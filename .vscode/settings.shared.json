@@ -1,0 +1,26 @@
+{
+  "npm.packageManager": "pnpm",
+  "js/ts.tsdk.path": "./node_modules/typescript/lib",
+
+  "prettier.prettierPath": "./node_modules/prettier",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+
+  "eslint.runtime": "node",
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+
+  "editor.tabSize": 2,
+
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.associations": { "**/.env": "dotenv", "**/.env.*": "dotenv" },
+
+  "html.format.enable": false,
+  "css.validate": false,
+  "css.format.enable": false,
+
+  "js/ts.tsserver.automaticTypeAcquisition.enabled": false,
+
+  "git.branchProtection": ["main"]
+}

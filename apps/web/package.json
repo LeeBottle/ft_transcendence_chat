@@ -1,14 +1,17 @@
 {
   "name": "web",
   "version": "0.1.0",
-  "type": "module",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --port 3000",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "dev": "wait-on tcp:3000 -t 30000 && next dev --turbopack --port 3001",
+    "format": "prettier --check \"app/**/*.{css,tsx}\" \"*.{js,json,md}\"",
+    "format:fix": "prettier --write \"app/**/*.{css,tsx}\" \"*.{js,json,md}\"",
+    "lint": "eslint \"app/**/*.{css,tsx}\" \"*.{js,json,md}\"",
+    "lint:fix": "eslint --fix \"app/**/*.{css,tsx}\" \"*.{js,json,md}\"",
+    "start": "next start"
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
@@ -18,8 +21,9 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
+    "@repo/types": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.15.3",
+    "@types/node": "24",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "^9.39.1",

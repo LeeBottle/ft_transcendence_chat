@@ -1,0 +1,5 @@
+# 1. 모든 텍스트 파일의 개행 문자를 Git에 올라갈 때는 'LF'로 강제 통일
+* text=auto eol=lf
+
+# 2. GitHub PR 창에서 코드 diff를 보여주지 않고 숨김
+pnpm-lock.yaml linguist-generated=true

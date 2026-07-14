@@ -3,7 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
-  "publishConfig": {
-    "access": "public"
+  "type": "module",
+  "scripts": {
+    "format": "prettier --check \"*.{js,json}\"",
+    "format:fix": "prettier --write \"*.{js,json}\"",
+    "format:write": "",
+    "lint": "eslint \"*.{js,json}\"",
+    "lint:fix": "eslint --fix \"*.{js,json}\""
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*"
   }
 }

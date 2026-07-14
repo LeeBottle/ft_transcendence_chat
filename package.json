@@ -1,20 +1,46 @@
 {
-  "name": "my-turborepo",
+  "name": "ft_transcendence",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "cleanup-all": "pnpm run cleanup-artifacts && pnpm run cleanup-node-modules",
+    "cleanup-artifacts": "./scripts/cleanup-artifacts.sh",
+    "cleanup-node-modules": "./scripts/cleanup-node-modules.sh",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "fix": "turbo run format:fix //#format:fix:root-files",
+    "format": "turbo run format //#format:root-files",
+    "format:fix:root-files": "prettier --write \"*.{js,json,md,yaml,yml}\" \"scripts/*.{sh,js}\" \".vscode/{extensions,settings.shared,tasks}.json\"",
+    "format:root-files": "prettier --check \"*.{js,json,md,yaml,yml}\" \"scripts/*.{sh,js}\" \".vscode/{extensions,settings.shared,tasks}.json\"",
+    "lint": "turbo run lint //#lint:root-files",
+    "lint:fix:root-files": "eslint --fix \"*.{js,json,md,yaml,yml}\" \"scripts/*.{sh,js}\" \".vscode/{extensions,settings.shared,tasks}.json\"",
+    "lint:root-files": "eslint \"*.{js,json,md,yaml,yml}\" \"scripts/*.{sh,js}\" \".vscode/{extensions,settings.shared,tasks}.json\"",
+    "validate": "turbo run check-types format //#format:root-files lint //#lint:root-files",
+    "vscode:merge-settings": "node ./scripts/merge-vscode-settings.js"
   },
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@prettier/plugin-oxc": "^0.1.0",
+    "@repo/eslint-config": "workspace:*",
+    "@types/node": "^26.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "prettier": "^3.7.4",
+    "prettier-plugin-packagejson": "^3.0.2",
+    "prettier-plugin-sh": "^0.19.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "turbo": "^2.10.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "wait-on": "^9.0.10"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=18"
+    "node": "~24.18.0",
+    "pnpm": "9.0.0"
+  },
+  "volta": {
+    "node": "24.18.0",
+    "pnpm": "9.0.0"
   }
 }

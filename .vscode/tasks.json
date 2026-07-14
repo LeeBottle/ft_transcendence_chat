@@ -1,0 +1,71 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev:all",
+      "dependsOn": ["web:dev", "api:dev"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "web:dev",
+      "type": "shell",
+      "command": "pnpm --filter web dev",
+      "isBackground": true,
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "shared",
+        "clear": true
+      },
+
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "."
+          }
+        }
+      ]
+    },
+    {
+      "label": "api:dev",
+      "type": "shell",
+      "command": "pnpm --filter api dev",
+      "isBackground": true,
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "shared",
+        "clear": true
+      },
+
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "."
+          }
+        }
+      ]
+    }
+  ]
+}

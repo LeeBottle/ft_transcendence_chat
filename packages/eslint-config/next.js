@@ -1,57 +1,68 @@
-import js from "@eslint/js";
-import { globalIgnores } from "eslint/config";
-import eslintConfigPrettier from "eslint-config-prettier";
-import tseslint from "typescript-eslint";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import pluginReact from "eslint-plugin-react";
-import globals from "globals";
-import pluginNext from "@next/eslint-plugin-next";
-import { config as baseConfig } from "./base.js";
+// @ts-check
 
-/**
- * A custom ESLint configuration for libraries that use Next.js.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
+import pluginNext from '@next/eslint-plugin-next';
+
+import eslintConfigPrettier from 'eslint-config-prettier';
+import pluginReact from 'eslint-plugin-react';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import { globalIgnores } from 'eslint/config';
+import globals from 'globals';
+
+import { baseConfig, GLOBAL_TARGET_FILES, TS_TARGET_FILES } from './base.js';
+
+/** @type {import("eslint").Linter.Config[]} */
 export const nextJsConfig = [
   ...baseConfig,
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
+  globalIgnores(['.next/**', 'out/**', 'next-env.d.ts']),
+
   {
+    files: GLOBAL_TARGET_FILES,
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
       ...pluginReact.configs.flat.recommended.languageOptions,
-      globals: {
-        ...globals.serviceworker,
-      },
+      globals: { ...globals.browser },
     },
   },
   {
+    files: GLOBAL_TARGET_FILES,
     plugins: {
-      "@next/next": pluginNext,
+      '@next/next': pluginNext,
     },
     rules: {
       ...pluginNext.configs.recommended.rules,
-      ...pluginNext.configs["core-web-vitals"].rules,
+      ...pluginNext.configs['core-web-vitals'].rules,
     },
   },
   {
+    files: GLOBAL_TARGET_FILES,
     plugins: {
-      "react-hooks": pluginReactHooks,
+      'react-hooks': pluginReactHooks,
     },
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: 'detect' } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
+
       // React scope no longer necessary with new JSX transform.
-      "react/react-in-jsx-scope": "off",
+      'react/react-in-jsx-scope': 'off',
     },
+  },
+
+  {
+    files: TS_TARGET_FILES,
+    rules: {
+      '@typescript-eslint/strict-boolean-expressions': [
+        'error',
+        {
+          allowNullableString: true,
+          allowNumber: false,
+        },
+      ],
+    },
+  },
+
+  eslintConfigPrettier,
+  {
+    files: GLOBAL_TARGET_FILES,
+    rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
 ];
