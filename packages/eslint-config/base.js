@@ -1,6 +1,7 @@
 // @type-check
 
 import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import-x';
 import turbo from 'eslint-plugin-turbo';
@@ -11,9 +12,32 @@ import tseslint from 'typescript-eslint';
 
 import { jsonConfig } from './json.js';
 
-const JS_TARGET_FILES = ['**/*.{js,jsx,mjs,cjs}'];
-export const TS_TARGET_FILES = ['**/*.{ts,tsx,mts,cts}'];
+const JS_TARGET_FILES = ['**/*.js'];
+
+export const TS_TARGET_FILES = ['**/*.{ts,tsx}'];
 export const GLOBAL_TARGET_FILES = [...JS_TARGET_FILES, ...TS_TARGET_FILES];
+
+const commonRestrictedSyntax = [
+  {
+    selector: 'ForInStatement',
+    message:
+      'for...in 루프는 프로토타입 체인을 순회하므로 금지합니다.\n' +
+      '대신 Object.keys()와 for...of 조합을 사용하십시오.',
+  },
+];
+
+export const commonRestrictedImportPatterns = [
+  {
+    group: ['@repo/*/*/**', 'api/*/**', 'web/*/**'],
+    message: '모노레포의 다른 패키지 내부 파일에 직접 접근 금지.',
+  },
+  {
+    group: ['~*'],
+    message:
+      '틸드(~) 별칭은 모던 Node.js ESM 표준이 아닙니다. ' +
+      'package.json의 `imports` 표준인 `#` 기반의 경로 별칭 사용하십시오.',
+  },
+];
 
 /** @type {import("eslint").Linter.Config[]} */
 export const baseConfig = [
@@ -88,26 +112,8 @@ export const baseConfig = [
         },
       ], // 예외 추가해야함
       'no-promise-executor-return': 'error', // Promise 생성자 내부에 return 사용 금지
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['@repo/*/*/**', 'api/*/**', 'web/*/**'],
-              message: '모노레포의 다른 패키지 내부 파일에 직접 접근 금지.',
-            },
-          ],
-        },
-      ],
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'ForInStatement',
-          message:
-            'for...in 루프는 프로토타입 체인을 순회하므로 금지합니다. 대신 Object.keys()와 for...of 조합을 사용하십시오.',
-        },
-      ],
-
+      'no-restricted-imports': ['error', { patterns: commonRestrictedImportPatterns }],
+      'no-restricted-syntax': ['error', ...commonRestrictedSyntax],
       'no-return-assign': 'error',
       'no-sequences': 'error', // 쉼표 연산자 사용하여 여러 표현식 묶기 금지
       'no-unmodified-loop-condition': 'error', // 루프 조건에 사용된 변수에 대해 루프 내에서 상태 변경 로직 누락시 오류
@@ -122,6 +128,35 @@ export const baseConfig = [
       'prefer-template': 'error', // 문자열 '+' 연산 대신 템플릿 리터럴 쓰도록 강제
       'require-atomic-updates': 'error', // 할당 연산자와 await 섞어 쓰기 금지 (race condition 방지)
       yoda: ['error', 'never'], // 상수나 리터럴을 왼쪽에 두는 것 금지 (e.g., if ('ADMIN' === role))
+    },
+  },
+  {
+    files: GLOBAL_TARGET_FILES,
+    plugins: { '@stylistic': stylistic },
+    rules: {
+      '@stylistic/padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: ['const', 'let'] },
+        { blankLine: 'always', prev: ['const', 'let'], next: '*' },
+        { blankLine: 'any', prev: ['const', 'let'], next: ['const', 'let'] },
+
+        { blankLine: 'always', prev: '*', next: 'export' },
+        { blankLine: 'always', prev: 'export', next: '*' },
+        { blankLine: 'any', prev: 'export', next: 'export' },
+
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: ['class', 'enum', 'function', 'interface', 'type'],
+        },
+        {
+          blankLine: 'always',
+          prev: ['class', 'enum', 'function', 'interface', 'type'],
+          next: '*',
+        },
+
+        { blankLine: 'always', prev: '*', next: ['return', 'throw'] },
+      ],
     },
   },
   {
@@ -227,6 +262,17 @@ export const baseConfig = [
       },
     },
     rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...commonRestrictedSyntax,
+        {
+          selector: 'TSEnumDeclaration',
+          message:
+            'TypeScript enum은 런타임 오버헤드 및 번들링 문제를 유발합니다.\n' +
+            '대신 `as const` 객체와 Union 타입을 사용하십시오.',
+        },
+      ],
+
       /* 타입 추론 강제 */
       '@typescript-eslint/no-inferrable-types': [
         'error',

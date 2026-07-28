@@ -23,6 +23,7 @@ function readJson(filePath) {
         if (stringGroup) {
           return stringGroup;
         }
+
         // 문자열 밖에서 발견된 진짜 주석은 빈 문자열('')로 치환하여 삭제
         return '';
       },
@@ -31,6 +32,7 @@ function readJson(filePath) {
     return JSON.parse(cleanContent || '{}');
   } catch (error) {
     console.error(`[Warn] ${filePath} 파싱 실패:`, error.message);
+
     return {};
   }
 }
@@ -41,6 +43,7 @@ function isObject(item) {
 
 function deepMerge(target, source) {
   const output = { ...target };
+
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach((key) => {
       if (isObject(source[key])) {
@@ -54,6 +57,7 @@ function deepMerge(target, source) {
       }
     });
   }
+
   return output;
 }
 

@@ -1,9 +1,8 @@
 # 절대 건드리면 안 되는 파일들
 pnpm-lock.yaml
-*.lock
 
 # 빌드 산출물
-dist
-node_modules
-.next
-.turbo
+dist/
+node_modules/
+.next/
+.turbo/

@@ -1,21 +1,40 @@
 // @ts-check
 
 import eslintConfigPrettier from 'eslint-config-prettier';
-import { globalIgnores } from 'eslint/config';
 import globals from 'globals';
 
-import { baseConfig, GLOBAL_TARGET_FILES, TS_TARGET_FILES } from './base.js';
+import {
+  baseConfig,
+  commonRestrictedImportPatterns,
+  GLOBAL_TARGET_FILES,
+  TS_TARGET_FILES,
+} from './base.js';
 
 /** @type {import("eslint").Linter.Config[]} */
 export const nestAppConfig = [
   ...baseConfig,
 
-  globalIgnores(['eslint.config.mjs']),
-
   {
     files: GLOBAL_TARGET_FILES,
     languageOptions: { globals: { ...globals.node } },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            ...commonRestrictedImportPatterns,
+            {
+              group: ['..', '../**', '**/..', '**/../**'],
+              message:
+                '부모 디렉토리 참조(../)는 의존성 파악을 훼손합니다. ' +
+                'package.json의 `imports` 표준인 `#` 기반의 경로 별칭 사용하십시오.',
+            },
+          ],
+        },
+      ],
+    },
   },
+
   {
     files: TS_TARGET_FILES,
     rules: {

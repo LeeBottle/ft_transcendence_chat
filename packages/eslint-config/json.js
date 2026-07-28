@@ -1,7 +1,8 @@
 // @type-check
 
 import json from '@eslint/json';
-import packageJson, { configs as packageJsonCofigs } from 'eslint-plugin-package-json';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import packageJson, { configs as packageJsonConfigs } from 'eslint-plugin-package-json';
 
 /** @type {import("eslint").Linter.Config[]} */
 export const jsonConfig = [
@@ -14,7 +15,7 @@ export const jsonConfig = [
     ...json.configs.recommended,
   },
 
-  packageJsonCofigs.recommended,
+  packageJsonConfigs.recommended,
   {
     files: ['**/package.json'],
     plugins: { 'package-json': packageJson },
@@ -26,7 +27,14 @@ export const jsonConfig = [
   },
 
   {
-    files: ['**/tsconfig.json', '**/tsconfig.*.json', '**/turbo.json', '.vscode/settings.json'],
+    files: [
+      '**/tsconfig.json',
+      '**/tsconfig.*.json',
+      '**/turbo.json',
+      '.vscode/{extensions,settings.shared,tasks}.json',
+    ],
     language: 'json/jsonc',
   },
+
+  eslintConfigPrettier,
 ];

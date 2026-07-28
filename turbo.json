@@ -4,8 +4,22 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["API_URL", "CLIENT_URL", "PORT"],
-      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*", "!.env.example"],
+      "env": [
+        "NODE_ENV",
+
+        "API_URL",
+
+        "API_PORT",
+        "CLIENT_URL",
+        "UPLOAD_BASE_DIR",
+
+        "DB_HOST",
+        "DB_PORT",
+        "DB_USERNAME",
+        "DB_PASSWORD",
+        "DB_SCHEMA_NAME"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*", "!.env.example", "!.env.*.example"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
     "dev": { "cache": false, "persistent": true },
@@ -26,7 +40,7 @@
 
     "format": {
       "inputs": [
-        "**/*.{js,ts,tsx,json,md,yaml,yml,html,css}",
+        "**/*.{js,ts,tsx,json,md,yaml,html,css}",
         "$TURBO_ROOT$/prettier.config.js",
         "$TURBO_ROOT$/.prettierignore",
         "!**/.turbo/**",
@@ -39,7 +53,7 @@
     },
     "//#format:root-files": {
       "inputs": [
-        "*.{js,json,md,yaml,yml}",
+        "*.{js,json,md,yaml}",
         ".prettierignore",
         "scripts/*.{sh,js}",
         ".vscode/*.json",
@@ -54,7 +68,7 @@
 
     "lint": {
       "inputs": [
-        "**/*.{js,ts,tsx,json,md,yaml,yml,html,css}",
+        "**/*.{js,ts,tsx,json,md,yaml,html,css}",
         "!**/.turbo/**",
         "!**/.next/**",
         "!**/dist/**",
@@ -65,7 +79,7 @@
     },
     "//#lint:root-files": {
       "inputs": [
-        "*.{js,json,md,yaml,yml}",
+        "*.{js,json,md,yaml}",
         "scripts/*.{sh,js}",
         ".vscode/*.json",
         "!.vscode/settings.json",
