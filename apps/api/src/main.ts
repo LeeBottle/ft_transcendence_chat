@@ -1,10 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
-import { ApiEnvError } from '#config/exceptions/environment-validation.error.js';
-
 import type { ApiEnv } from './config/api-env.schema.js';
 import { AppModule } from './app.module.js';
+import { ApiEnvError } from './config/exceptions/environment-validation.error.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

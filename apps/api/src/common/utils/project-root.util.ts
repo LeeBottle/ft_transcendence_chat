@@ -3,8 +3,9 @@ import path from 'node:path';
 
 const API_PROJECT_ROOT = getApiProjectRoot();
 
-export const resolveFromProjectRoot = (...paths: string[]): string =>
-  path.join(API_PROJECT_ROOT, ...paths);
+export function resolveFromProjectRoot(...paths: string[]): string {
+  return path.join(API_PROJECT_ROOT, ...paths);
+}
 
 //  NestJS 애플리케이션(api/)의 최상위 절대 경로 반환
 function getApiProjectRoot(): string {

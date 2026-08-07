@@ -7,7 +7,7 @@ import importPlugin from 'eslint-plugin-import-x';
 import turbo from 'eslint-plugin-turbo';
 import unicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
-import { globalIgnores } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 import { jsonConfig } from './json.js';
@@ -40,7 +40,7 @@ export const commonRestrictedImportPatterns = [
 ];
 
 /** @type {import("eslint").Linter.Config[]} */
-export const baseConfig = [
+export const baseConfig = defineConfig([
   globalIgnores(['**/node_modules/**', '**/dist/**', '**/out/**', 'pnpm-lock.yaml']),
 
   ...jsonConfig,
@@ -50,7 +50,7 @@ export const baseConfig = [
     ...js.configs.recommended,
   },
 
-  // 내부적으로 pasrser 설정 및 '@typescript-eslint/' plungin 포함
+  // 내부적으로 parser 설정 및 '@typescript-eslint/' plugin 포함
   // js.configs.recommended에서 겹치는 설정들도 off 해줌
   // 전역 files에 .ts, .tsx, .mts, .cts 추가
   ...tseslint.configs.strictTypeChecked.map((config) => ({
@@ -69,7 +69,7 @@ export const baseConfig = [
       complexity: ['warn', { max: 15 }], // 하나의 함수 안에 분기문 15개 초과시 경고
 
       // switch문 default 분기가 마지막에 반드시 존재해야함
-      // 단, swich문 마지막에 `// no default` 추가시 default 분기 의도적 생략 가능
+      // 단, switch문 마지막에 `// no default` 추가시 default 분기 의도적 생략 가능
       'default-case': 'error',
       'default-case-last': 'error',
 
@@ -334,4 +334,4 @@ export const baseConfig = [
     files: GLOBAL_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
-];
+]);

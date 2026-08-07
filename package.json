@@ -23,7 +23,8 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@prettier/plugin-oxc": "^0.1.0",
     "@repo/eslint-config": "workspace:*",
-    "@types/node": "^26.1.1",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "prettier": "^3.7.4",
@@ -31,16 +32,15 @@
     "prettier-plugin-sh": "^0.19.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "turbo": "^2.10.0",
-    "typescript": "5.9.2",
-    "wait-on": "^9.0.10"
+    "typescript": "catalog:"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@11.17.0",
   "engines": {
     "node": "~24.18.0",
-    "pnpm": "9.0.0"
+    "pnpm": "^11.17.0"
   },
   "volta": {
     "node": "24.18.0",
-    "pnpm": "9.0.0"
+    "pnpm": "11.17.0"
   }
 }
