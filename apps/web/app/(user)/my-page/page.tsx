@@ -3,15 +3,7 @@
 import { useRouter } from 'next/navigation';
 
 import MyPageView from '@/features/my-page/components/myPagesView';
-
-// TODO(API): 실제로는 세션/서버에서 로그인된 유저 정보를 받아와야 함 - 지금은 mock
-const MOCK_USER = {
-  username: 'user_01',
-  displayName: '김지수',
-  email: 'jisoo@company.com',
-  role: 'user' as const,
-  joinDate: '2025-01-15',
-};
+import { MOCK_USER } from '@/features/user/mockUser';
 
 export default function MyPage() {
   const router = useRouter();

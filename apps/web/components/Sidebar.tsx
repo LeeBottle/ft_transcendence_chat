@@ -20,8 +20,6 @@ function Sidebar({ items, activeId, onSelect }: SidebarProps) {
     <nav
       className="
         flex flex-col gap-1
-        w-56 h-screen shrink-0
-        border-r border-gray-200 bg-white
         px-3 py-4
       "
     >

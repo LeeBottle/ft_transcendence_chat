@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import ChatHeader from '@/features/chat/components/ChatHeader';
@@ -8,16 +7,7 @@ import InputBar from '@/features/chat/components/InputBar';
 import MessageList from '@/features/chat/components/MessageList';
 import TaskPanel, { type ExtractStatus, type SummarySection } from '@/features/chat/components/TaskPanel';
 import type { Message, Task } from '@/features/chat/types';
-import RoomList from '@/features/room/components/RoomList';
-import type { Room } from '@/features/room/types';
-
-const DEFAULT_ROOM: Room = { id: '1', name: '디자인 팀', avatarLabel: '디', avatarColor: 'indigo', unreadCount: 3 };
-
-const ROOMS: Room[] = [
-  DEFAULT_ROOM,
-  { id: '2', name: '박민준', avatarLabel: '박', avatarColor: 'teal' },
-  { id: '3', name: '개발팀 백엔드', avatarLabel: '백', avatarColor: 'orange', unreadCount: 7 },
-];
+import { useRoomContext } from '@/features/room/RoomContext';
 
 const INITIAL_MESSAGES: Message[] = [
   {
@@ -69,8 +59,9 @@ async function mockExtractSummary(): Promise<SummarySection[]> {
 }
 
 export default function ChatPage() {
-  const router = useRouter();
-  const [activeRoomId, setActiveRoomId] = useState('1');
+  const { rooms, activeRoomId } = useRoomContext();
+  const activeRoom = rooms.find((room) => room.id === activeRoomId) ?? rooms[0];
+
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [messageInput, setMessageInput] = useState('');
   const [taskPanelOpen, setTaskPanelOpen] = useState(true);
@@ -82,11 +73,11 @@ export default function ChatPage() {
   const [summarySections, setSummarySections] = useState<SummarySection[]>([]);
   const [summaryStatus, setSummaryStatus] = useState<ExtractStatus>('idle');
 
-  const activeRoom = ROOMS.find((room) => room.id === activeRoomId) ?? DEFAULT_ROOM;
-
   // TODO(API): 실제로는 백엔드/WebSocket으로 메시지 전송 필요 - 지금은 로컬 상태에만 추가
   function handleSend() {
-    if (messageInput.trim() === '') {return;}
+    if (messageInput.trim() === '') {
+      return;
+    }
 
     // SUCCESS: 로컬 목록에 즉시 반영 (optimistic update)
     setMessages((prev) => [
@@ -151,18 +142,16 @@ export default function ChatPage() {
 
   const canSync = tasks.some((task) => task.isAi && task.checked === true);
 
+  if (!activeRoom) {
+    return (
+      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+        아직 채팅방이 없어요. 사이드바에서 새 채팅방을 만들어보세요.
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex">
-      <div className="w-56 border-r border-gray-200 p-3 overflow-y-auto">
-        <RoomList rooms={ROOMS} activeRoomId={activeRoomId} onSelectRoom={setActiveRoomId} />
-        <button
-          onClick={() => { router.push('/chat/create'); }}
-          className="mt-3 w-full h-9 rounded-lg border border-dashed border-gray-300 text-gray-400 text-xs cursor-pointer hover:text-purple-500 hover:border-purple-400"
-        >
-          + 새 채팅방
-        </button>
-      </div>
-
       <div className="flex-1 flex flex-col min-w-0">
         <ChatHeader
           avatarLabel={activeRoom.avatarLabel}
@@ -170,9 +159,13 @@ export default function ChatPage() {
           roomName={activeRoom.name}
           subtitle="김지수, 박민준, 이수아 · 3명"
           taskPanelOpen={taskPanelOpen}
-          onToggleTaskPanel={() => { setTaskPanelOpen((prev) => !prev); }}
+          onToggleTaskPanel={() => {
+            setTaskPanelOpen((prev) => !prev);
+          }}
           meetingEnded={meetingEnded}
-          onEndMeeting={() => { setMeetingEnded(true); }}
+          onEndMeeting={() => {
+            setMeetingEnded(true);
+          }}
         />
         <MessageList messages={messages} meetingEnded={meetingEnded} />
         <InputBar value={messageInput} onChange={setMessageInput} onSend={handleSend} />

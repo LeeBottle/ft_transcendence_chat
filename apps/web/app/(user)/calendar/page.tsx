@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import CalendarGrid from '@/features/calendar/components/CalendarGrid';
 import CalendarSidePanel from '@/features/calendar/components/CalendarSidePanel';
+import CalendarTaskCreateModal from '@/features/calendar/components/CalendarTaskCreateModal';
 import type { CalendarTask } from '@/features/calendar/types';
 
 const INITIAL_TASKS: CalendarTask[] = [
@@ -22,6 +23,7 @@ export default function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState(16);
   const [tasks, setTasks] = useState<CalendarTask[]>(INITIAL_TASKS);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const selectedDate = toDateString(year, month, selectedDay);
   const tasksOnSelectedDay = useMemo(
@@ -52,26 +54,54 @@ export default function CalendarPage() {
     // FAIL: 실패 시 목록을 그대로 유지하고 에러 토스트를 띄워야 함 (백엔드 연동 시 추가)
   }
 
+  // TODO(API): 생성 시 백엔드에 POST 요청 필요 - 지금은 로컬 상태만 갱신하는 뼈대
+  function handleCreateTask(input: Omit<CalendarTask, 'id' | 'room'>) {
+    // SUCCESS: 목록에 추가 (개인 생성 태스크는 room을 '개인생성'으로 고정)
+    setTasks((prev) => [...prev, { ...input, id: crypto.randomUUID(), room: '개인생성' }]);
+    setCreateModalOpen(false);
+    // FAIL: 생성 실패 시 모달을 닫지 않고 에러 메시지를 보여줘야 함 (백엔드 연동 시 추가)
+  }
+
   return (
-    <div className="h-full flex">
-      <CalendarGrid
-        year={year}
-        month={month}
-        monthLabel={`${year}년 ${month + 1}월`}
-        tasks={tasks}
-        selectedDay={selectedDay}
-        todayDay={16}
-        onSelectDay={setSelectedDay}
-        onChangeMonth={handleChangeMonth}
-      />
-      <CalendarSidePanel
-        selectedLabel={`${month + 1}월 ${selectedDay}일`}
-        tasks={tasksOnSelectedDay}
-        editingTaskId={editingTaskId}
-        onStartEdit={setEditingTaskId}
-        onCancelEdit={() => { setEditingTaskId(null); }}
-        onSave={handleSaveTask}
-        onDelete={handleDeleteTask}
+    <div className="h-full flex flex-col">
+      <div className="h-12 border-b border-gray-100 flex items-center justify-end px-4 shrink-0">
+        <button
+          onClick={() => { setCreateModalOpen(true); }}
+          className="h-8 px-3.5 rounded-lg bg-purple-500 text-white text-sm font-medium cursor-pointer hover:bg-purple-600"
+        >
+          + 새 태스크
+        </button>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        <CalendarGrid
+          year={year}
+          month={month}
+          monthLabel={`${year}년 ${month + 1}월`}
+          tasks={tasks}
+          selectedDay={selectedDay}
+          todayDay={16}
+          onSelectDay={setSelectedDay}
+          onChangeMonth={handleChangeMonth}
+        />
+        <CalendarSidePanel
+          selectedLabel={`${month + 1}월 ${selectedDay}일`}
+          tasks={tasksOnSelectedDay}
+          editingTaskId={editingTaskId}
+          onStartEdit={setEditingTaskId}
+          onCancelEdit={() => {
+            setEditingTaskId(null);
+          }}
+          onSave={handleSaveTask}
+          onDelete={handleDeleteTask}
+        />
+      </div>
+
+      <CalendarTaskCreateModal
+        open={createModalOpen}
+        defaultDate={selectedDate}
+        onCancel={() => { setCreateModalOpen(false); }}
+        onSubmit={handleCreateTask}
       />
     </div>
   );
