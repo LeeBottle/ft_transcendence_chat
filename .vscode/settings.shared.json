@@ -10,7 +10,12 @@
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
 
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
   "editor.tabSize": 2,
+  "editor.stickyTabStops": true,
+
+  "[makefile]": { "editor.insertSpaces": false, "editor.tabSize": 4 },
 
   "files.eol": "\n",
   "files.insertFinalNewline": true,

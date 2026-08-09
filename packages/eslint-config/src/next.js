@@ -5,13 +5,13 @@ import pluginNext from '@next/eslint-plugin-next';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import { globalIgnores } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 
 import { baseConfig, GLOBAL_TARGET_FILES, TS_TARGET_FILES } from './base.js';
 
 /** @type {import("eslint").Linter.Config[]} */
-export const nextJsConfig = [
+export const nextJsConfig = defineConfig([
   ...baseConfig,
   globalIgnores(['.next/**', 'out/**', 'next-env.d.ts']),
 
@@ -26,7 +26,7 @@ export const nextJsConfig = [
   {
     files: GLOBAL_TARGET_FILES,
     plugins: {
-      '@next/next': pluginNext,
+      '@next/next': /** @type {any} */ (pluginNext),
     },
     rules: {
       ...pluginNext.configs.recommended.rules,
@@ -65,4 +65,4 @@ export const nextJsConfig = [
     files: GLOBAL_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
-];
+]);

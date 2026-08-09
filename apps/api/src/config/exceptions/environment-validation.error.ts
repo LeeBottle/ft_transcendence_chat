@@ -13,9 +13,8 @@ export class ApiEnvError extends BaseEnvError {
   }
 }
 
-// Only TypeORM CLI
 export class DatabaseEnvError extends BaseEnvError {
   constructor(details: string) {
-    super('TypeORM CLI', details);
+    super('DatabaseModule', details);
   }
 }

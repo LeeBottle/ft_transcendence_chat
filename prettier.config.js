@@ -17,7 +17,7 @@ const config = {
     'prettier-plugin-tailwindcss', // 활성화 시 반드시 배열의 최하단(마지막)에 위치해야 함
   ],
 
-  // @ianvs/prettier-plugin-sort-imports 설정
+  // '@ianvs/prettier-plugin-sort-imports' 설정
   importOrderTypeScriptVersion: '5.9.2',
   importOrderParserPlugins: [
     // 1. 핵심 언어 기반 인프라
@@ -32,38 +32,26 @@ const config = {
     'importAttributes',
   ],
   importOrder: [
-    '<TYPES>^node:',
+    '^node:',
     '<BUILTIN_MODULES>',
     '',
-    '<TYPES>^react($|-)',
-    '<TYPES>^@react-',
     '^react($|-)',
     '^@react-',
     '',
-    '<TYPES>^next($|/)',
-    '<TYPES>^next-',
-    '<TYPES>^@next/',
     '^next($|/)',
     '^next-',
     '^@next/',
     '',
-    '<TYPES>^@nestjs/',
-    '<TYPES>^@nestjs-',
-    '<TYPES>^nestjs-',
     '^@nestjs/', // 공식 코어
     '^@nestjs-', // 공인 확장팩
     '^nestjs-',
     '',
-    '<TYPES>',
     '<THIRD_PARTY_MODULES>',
     '',
-    '<TYPES>^@repo/',
     '^@repo/',
     '',
-    '<TYPES>^#',
     '^#',
     '',
-    '<TYPES>^[.]',
     '^[.]',
   ],
 

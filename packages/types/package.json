@@ -3,17 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "index.ts",
-  "types": "index.ts",
+  "exports": {
+    "./user": "./src/user.type.js"
+  },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "format": "prettier --check \"*.{js,json,ts}\"",
-    "format:fix": "prettier --write \"*.{js,json,ts}\"",
     "lint": "eslint \"*.{js,json,ts}\"",
     "lint:fix": "eslint --fix \"*.{js,json,ts}\""
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
   }
 }

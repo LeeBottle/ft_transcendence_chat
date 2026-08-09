@@ -1,14 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 
-import type { User } from '@repo/types';
+import type { UserService } from './user.service.js';
 
 @Controller('users')
 export class UserController {
-  @Get()
-  getUser(): User {
-    return {
-      id: 3,
-      title: 'user_title',
-    };
-  }
+  constructor(private readonly userService: UserService) {}
 }
