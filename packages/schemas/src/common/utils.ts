@@ -8,6 +8,10 @@ import type {
   StringValidationStep,
 } from './types.js';
 
+type StringFieldReturnType<T extends StringValidationOptions> = T['nullable'] extends true
+  ? string | null
+  : string;
+
 /**
  * StringValidationOptions의 기본값
  *
@@ -16,6 +20,7 @@ import type {
 const DEFAULT_STRING_VALIDATION_OPTIONS = {
   trim: false,
   nonEmpty: false,
+  nullable: false,
   order: [],
 } as const satisfies StringValidationOptions;
 
@@ -38,14 +43,14 @@ const DEFAULT_STRING_VALIDATION_OPTIONS = {
  * @see StringValidationOptions
  * @see DEFAULT_STRING_VALIDATION_OPTIONS
  */
-export function createStringFieldSchema(
-  config: StringFieldConfig,
-  options?: StringValidationOptions,
-): z.ZodType<string> {
+export function createStringFieldSchema<
+  TOptions extends StringValidationOptions = StringValidationOptions,
+>(config: StringFieldConfig, options?: TOptions): z.ZodType<StringFieldReturnType<TOptions>> {
   const { constraints, messages } = config;
   const {
     trim = DEFAULT_STRING_VALIDATION_OPTIONS.trim,
     nonEmpty = DEFAULT_STRING_VALIDATION_OPTIONS.nonEmpty,
+    nullable = DEFAULT_STRING_VALIDATION_OPTIONS.nullable,
     order = DEFAULT_STRING_VALIDATION_OPTIONS.order,
   } = options ?? {};
 
@@ -107,20 +112,25 @@ export function createStringFieldSchema(
     stepRunners[step]();
   }
 
-  // format이 마지막이면 ReDoS 방지를 위한 .pipe() 자동 적용
+  let finalSchema: z.ZodType<string | null>;
+
   if (isRegexLast && regexSchema) {
-    return schema.pipe(regexSchema);
-  }
-
-  if (order.includes('email')) {
+    finalSchema = schema.pipe(regexSchema);
+  } else if (order.includes('email')) {
     if (isPureZodString(schema)) {
-      return z.email(messages.format);
+      finalSchema = z.email(messages.format);
+    } else {
+      finalSchema = schema.pipe(z.email(messages.format));
     }
-
-    return schema.pipe(z.email(messages.format));
+  } else {
+    finalSchema = schema;
   }
 
-  return schema;
+  if (nullable) {
+    finalSchema = finalSchema.nullable();
+  }
+
+  return finalSchema as z.ZodType<StringFieldReturnType<TOptions>>;
 }
 
 /** 순수하게 z.string()으로 생성된 스키마인지 검증하는 함수 */

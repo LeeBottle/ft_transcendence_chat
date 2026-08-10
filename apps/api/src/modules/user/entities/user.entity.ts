@@ -23,6 +23,9 @@ export class UserEntity extends SoftDeleteAuditBase {
   @Column({ type: 'varchar', name: 'email', length: 255 })
   email!: string;
 
+  @Column({ type: 'datetime', name: 'email_verified_at', nullable: true })
+  emailVerifiedAt!: string | null;
+
   @Column({ type: 'tinyint', name: 'role', unsigned: true, default: UserRole.USER })
   role!: UserRole;
 
@@ -34,7 +37,6 @@ export class UserEntity extends SoftDeleteAuditBase {
     name: 'profile_image_path',
     length: 255,
     nullable: true,
-    default: null,
     collation: 'utf8mb4_bin',
   })
   profileImagePath!: string | null;

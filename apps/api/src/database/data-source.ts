@@ -1,10 +1,11 @@
 import os from 'node:os';
 
 import type { PoolOptions } from 'mysql2';
+import { DataSource, type LogLevel } from 'typeorm';
 import type { MysqlDataSourceOptions } from 'typeorm/driver/mysql/MysqlDataSourceOptions.js';
-import { DataSource } from 'typeorm';
 
 import { resolveFromProjectRoot } from '#common/utils/project-root.util.js';
+import type { NodeEnv } from '#config/api-env.schema.js';
 import { dbEnv } from '#config/database-env.schema.js';
 
 /**
@@ -18,14 +19,19 @@ type PureMysqlExtraOptions = Omit<
   keyof MysqlDataSourceOptions | 'user' | 'connectionLimit'
 >;
 
-const DEFAULT_PROD_MAX_QUERY_EXECUTION_TIME_MS = 500;
-const DEFAULT_DEV_MAX_QUERY_EXECUTION_TIME_MS = 200;
+const Logging = {
+  production: ['error'],
+  development: ['error', 'warn'],
+  test: [], // off
+} as const satisfies Record<NodeEnv, LogLevel[]>;
+
+const MaxQueryExecutionTimeMs = {
+  production: 500,
+  development: 200,
+  test: 0, // off
+} as const satisfies Record<NodeEnv, number>;
 
 const isProduction = dbEnv.NODE_ENV === 'production';
-
-const defaultMaxQueryExecutionTime = isProduction
-  ? DEFAULT_PROD_MAX_QUERY_EXECUTION_TIME_MS
-  : DEFAULT_DEV_MAX_QUERY_EXECUTION_TIME_MS;
 
 export const dataSourceOptions = {
   type: 'mysql',
@@ -36,23 +42,24 @@ export const dataSourceOptions = {
   password: dbEnv.DB_PASSWORD,
   database: dbEnv.DB_SCHEMA_NAME,
 
-  logging: isProduction ? ['error'] : ['error', 'warn'],
+  logging: Logging[dbEnv.NODE_ENV],
   logger: isProduction ? 'simple-console' : 'formatted-console',
-  maxQueryExecutionTime: dbEnv.DB_MAX_QUERY_EXECUTION_TIME_MS ?? defaultMaxQueryExecutionTime,
+  maxQueryExecutionTime:
+    dbEnv.DB_MAX_QUERY_EXECUTION_TIME_MS ?? MaxQueryExecutionTimeMs[dbEnv.NODE_ENV],
 
   charset: 'utf8mb4_0900_ai_ci',
   timezone: 'Z', // UTC
 
   entities: [
-    isProduction
-      ? resolveFromProjectRoot('dist/modules/*/entities/*.entity.js')
-      : resolveFromProjectRoot('src/modules/*/entities/*.entity.ts'),
+    resolveFromProjectRoot(
+      isProduction ? 'dist/modules/*/entities/*.entity.js' : 'src/modules/*/entities/*.entity.ts',
+    ),
   ],
 
   migrations: [
-    isProduction
-      ? resolveFromProjectRoot('dist/database/migrations/*.js')
-      : resolveFromProjectRoot('src/database/migrations/*.ts'),
+    resolveFromProjectRoot(
+      isProduction ? 'dist/database/migrations/*.js' : 'src/database/migrations/*.ts',
+    ),
   ],
   migrationsTableName: 'sys_migrations_history',
 

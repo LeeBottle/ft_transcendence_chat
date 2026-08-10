@@ -11,6 +11,6 @@ export abstract class MutableAuditBase extends CreateAuditBase {
 }
 
 export abstract class SoftDeleteAuditBase extends MutableAuditBase {
-  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true, default: null })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   readonly deletedAt!: string | null;
 }

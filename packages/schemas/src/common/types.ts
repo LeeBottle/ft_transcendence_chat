@@ -71,6 +71,9 @@ export interface StringValidationOptions {
   /** 첫 검증 함수로 .min(1) 추가 여부 */
   readonly nonEmpty?: boolean;
 
+  /** .nullable() 추가 여부 */
+  readonly nullable?: boolean;
+
   /**
    * length와 format 간의 검증 순서 지정
    *

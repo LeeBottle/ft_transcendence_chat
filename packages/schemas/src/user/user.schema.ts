@@ -30,12 +30,9 @@ export function createEmailSchema(options?: StringValidationOptions): z.ZodType<
   return createStringFieldSchema(USER_CONFIGS.email, options);
 }
 
-export const roleSchema = z.enum(UserRole);
-export const statusSchema = z.enum(UserStatus);
-
 /* 응답 전용 */
 
-export function createProfileImagePathSchema(): z.ZodType<string> {
+export function createProfileImagePathSchema(): z.ZodType<string | null> {
   return createStringFieldSchema(
     USER_CONFIGS.profileImagePath,
     USER_RESPONSE_VALIDATION_OPTIONS.profileImagePath,
@@ -43,4 +40,7 @@ export function createProfileImagePathSchema(): z.ZodType<string> {
 }
 
 export const idSchema = z.string().regex(USER_CONFIGS.id.constraints.fullRegex);
+export const emailVerifiedAtSchema = z.iso.datetime().nullable();
+export const roleSchema = z.enum(UserRole);
+export const statusSchema = z.literal(UserStatus.ACTIVE);
 export const createdAtSchema = z.iso.datetime();

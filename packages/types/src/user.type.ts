@@ -9,7 +9,7 @@ export const UserStatus = {
   SUSPENDED: 2,
 
   /** 탈퇴 이후 복구되었으나 이메일 변경이 필요한 상태 (이메일은 마스킹 된 상태) */
-  NEED_EMAIL_UPDATE: 3,
+  // NEED_EMAIL_UPDATE: 3,
 } as const;
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 

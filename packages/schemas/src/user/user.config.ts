@@ -85,6 +85,7 @@ const USER_VALIDATION_OPTIONS = {
     response: {
       trim: false,
       nonEmpty: false,
+      nullable: true,
       order: ['length', 'regex'],
     },
   },

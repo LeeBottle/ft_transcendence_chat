@@ -6,6 +6,8 @@ import {
   createEmailSchema,
   createLoginIdSchema,
   createNameSchema,
+  createProfileImagePathSchema,
+  emailVerifiedAtSchema,
   roleSchema,
   statusSchema,
   USER_REQUEST_VALIDATION_OPTIONS,
@@ -19,7 +21,7 @@ export {
   PASSWORD_ALLOWED_REGEX,
 } from './auth.config.js';
 
-export const registerRequestSchema = z
+export const registerUserRequestSchema = z
   .object({
     loginId: createLoginIdSchema(USER_REQUEST_VALIDATION_OPTIONS.loginId),
     password: createPasswordSchema(),
@@ -36,19 +38,16 @@ export const registerRequestSchema = z
       });
     }
   });
-export type RegisterRequest = z.infer<typeof registerRequestSchema>;
+export type RegisterUserRequest = z.infer<typeof registerUserRequestSchema>;
 
-export const registerResponseSchema = z.object({
+export const registerUserResponseSchema = z.object({
   loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
-  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
   email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
-  role: roleSchema,
-  status: statusSchema,
   createdAt: createdAtSchema,
 });
-export type RegisterResponse = z.infer<typeof registerResponseSchema>;
+export type RegisterUserResponse = z.infer<typeof registerUserResponseSchema>;
 
-export const loginRequestSchema = z
+export const loginUserRequestSchema = z
   .object({
     loginId: createLoginIdSchema(USER_REQUEST_VALIDATION_OPTIONS.loginId),
     password: createPasswordSchema(),
@@ -94,13 +93,18 @@ export const loginRequestSchema = z
     //   ctx.addIssue({ code: 'custom', message: LOGIN_FAIL_MESSAGE });
     // }
   });
-export type LoginRequest = z.infer<typeof loginRequestSchema>;
+export type LoginUserRequest = z.infer<typeof loginUserRequestSchema>;
 
-export const loginResponseSchema = z.object({
+export const loginUserResponseSchema = z.object({
   loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+  emailVerifiedAt: emailVerifiedAtSchema,
   role: roleSchema,
+  status: statusSchema,
+  profileImagePath: createProfileImagePathSchema(),
 });
-export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export type LoginUserResponse = z.infer<typeof loginUserResponseSchema>;
 
 /* 요청 전용 */
 
