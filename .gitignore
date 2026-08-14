@@ -1,31 +1,25 @@
 node_modules/
+dist/
+.next/
+.turbo/
+out/
+
+next-env.d.ts
+
+.vscode/**/*.json
+.vscode/**/*.jsonc
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+!.vscode/tasks.json
+
+uploads/
 
 .env
 .env.*
 !.env.example
 !.env.*.example
 
-*.log
-
-secrets/
-.secrets/
-
-.turbo/
-
-.next/
-out/
-dist/
-
-next-env.d.ts
 *.tsbuildinfo
-
-uploads/
-
-.vscode/*.json
-.vscode/*.jsonc
-!.vscode/extensions.json
-!.vscode/settings.shared.json
-!.vscode/tasks.json
 
 # seonhwan private
 .cspell.json

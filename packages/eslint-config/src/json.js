@@ -3,12 +3,15 @@
 import json from '@eslint/json';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import packageJson, { configs as packageJsonConfigs } from 'eslint-plugin-package-json';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-/** @type {import("eslint").Linter.Config[]} */
-export const jsonConfig = [
+import { GLOBAL_IGNORE_PATTERNS } from './eslint.ignore.js';
+
+export const jsonConfig = defineConfig([
+  globalIgnores(GLOBAL_IGNORE_PATTERNS),
+
   {
     files: ['**/*.json'],
-    ignores: ['**/node_modules/**', '**/dist/**'],
     language: 'json/json',
     plugins: { json },
     rules: { 'json/top-level-interop': 'error' }, // 최상위 값이 반드시 객체 or 배열
@@ -37,4 +40,4 @@ export const jsonConfig = [
   },
 
   eslintConfigPrettier,
-];
+]);

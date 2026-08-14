@@ -9,10 +9,11 @@ import type { NodeEnv } from '#config/api-env.schema.js';
 import { dbEnv } from '#config/database-env.schema.js';
 
 /**
- * mysql2 패키지 전용 속성들만 가지는 타입. \
+ * Mysql2 패키지 전용 속성들만 가지는 타입.\
  * (DataSourceOptions의 'extra' 속성 값 객체가 가질 수 있는 속성들을 모두 보유한 객체 타입)
  *
- * @remarks TypeORM의 공통 옵션과 이름은 다르지만 역할이 동일한 속성들은 제외.
+ * @remarks
+ * TypeORM의 공통 옵션과 이름은 다르지만 역할이 동일한 속성들은 제외.
  */
 type PureMysqlExtraOptions = Omit<
   PoolOptions,
@@ -32,6 +33,7 @@ const MaxQueryExecutionTimeMs = {
 } as const satisfies Record<NodeEnv, number>;
 
 const isProduction = dbEnv.NODE_ENV === 'production';
+const isTsExecution = import.meta.url.endsWith('.ts');
 
 export const dataSourceOptions = {
   type: 'mysql',
@@ -52,13 +54,13 @@ export const dataSourceOptions = {
 
   entities: [
     resolveFromProjectRoot(
-      isProduction ? 'dist/modules/*/entities/*.entity.js' : 'src/modules/*/entities/*.entity.ts',
+      isTsExecution ? 'src/modules/*/entities/*.entity.ts' : 'dist/modules/*/entities/*.entity.js',
     ),
   ],
 
   migrations: [
     resolveFromProjectRoot(
-      isProduction ? 'dist/database/migrations/*.js' : 'src/database/migrations/*.ts',
+      isTsExecution ? 'src/database/migrations/*.ts' : 'dist/database/migrations/*.js',
     ),
   ],
   migrationsTableName: 'sys_migrations_history',
@@ -90,6 +92,7 @@ export const dataSourceOptions = {
 
 /**
  * HikariCP 공식을 기반으로 최적의 DB 커넥션 풀 크기를 동적 계산
+ *
  * @param effectiveSpindleCount 현대 SSD/클라우드 환경 기본값: 1
  */
 function calculateOptimalPoolSize(effectiveSpindleCount: number = 1): number {

@@ -1,6 +1,7 @@
 // @ts-check
 
 import eslintConfigPrettier from 'eslint-config-prettier';
+import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 
 import {
@@ -10,8 +11,7 @@ import {
   TS_TARGET_FILES,
 } from './base.js';
 
-/** @type {import("eslint").Linter.Config[]} */
-export const nestAppConfig = [
+export const nestAppConfig = defineConfig([
   ...baseConfig,
 
   {
@@ -54,4 +54,4 @@ export const nestAppConfig = [
     files: GLOBAL_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
-];
+]);

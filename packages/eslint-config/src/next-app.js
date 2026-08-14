@@ -5,18 +5,16 @@ import pluginNext from '@next/eslint-plugin-next';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import { defineConfig, globalIgnores } from 'eslint/config';
+import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 
 import { baseConfig, GLOBAL_TARGET_FILES, TS_TARGET_FILES } from './base.js';
 
-/** @type {import("eslint").Linter.Config[]} */
-export const nextJsConfig = defineConfig([
+export const nextAppConfig = defineConfig([
   ...baseConfig,
-  globalIgnores(['.next/**', 'out/**', 'next-env.d.ts']),
 
   {
-    files: GLOBAL_TARGET_FILES,
+    files: TS_TARGET_FILES,
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
       ...pluginReact.configs.flat.recommended.languageOptions,
@@ -24,7 +22,7 @@ export const nextJsConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: TS_TARGET_FILES,
     plugins: {
       '@next/next': /** @type {any} */ (pluginNext),
     },
@@ -34,7 +32,7 @@ export const nextJsConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: TS_TARGET_FILES,
     plugins: {
       'react-hooks': pluginReactHooks,
     },
@@ -46,7 +44,6 @@ export const nextJsConfig = defineConfig([
       'react/react-in-jsx-scope': 'off',
     },
   },
-
   {
     files: TS_TARGET_FILES,
     rules: {

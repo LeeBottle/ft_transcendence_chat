@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 printf "Cleaning up project node_modules...\n\n"
 

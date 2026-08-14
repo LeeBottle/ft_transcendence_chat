@@ -1,14 +1,14 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 
-import { UserStatus } from '@repo/types/user';
+import { UserStatus } from '@repo/constants/user';
 
 import type {
   LoginUserResponseDto,
   RegisterUserResponseDto,
 } from '#modules/auth/controllers/auth.dto.js';
-import type { UserService } from '#modules/user/user.service.js';
+import { UserService } from '#modules/user/user.service.js';
 
-import type { PasswordService } from './password.service.js';
+import { PasswordService } from './password.service.js';
 
 interface RegisterUserParams {
   loginId: string;

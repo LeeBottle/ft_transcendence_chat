@@ -1,16 +1,13 @@
 // @ts-check
 
 import eslintConfigPrettier from 'eslint-config-prettier';
-import { globalIgnores } from 'eslint/config';
+import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 
 import { baseConfig, GLOBAL_TARGET_FILES, TS_TARGET_FILES } from './base.js';
 
-/** @type {import("eslint").Linter.Config[]} */
-export const nodeLibraryConfig = [
+export const nodeLibraryConfig = defineConfig([
   ...baseConfig,
-
-  globalIgnores(['eslint.config.mjs']),
 
   {
     files: GLOBAL_TARGET_FILES,
@@ -35,4 +32,4 @@ export const nodeLibraryConfig = [
     files: GLOBAL_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
-];
+]);

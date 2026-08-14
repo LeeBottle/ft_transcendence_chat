@@ -28,15 +28,14 @@ const DEFAULT_STRING_VALIDATION_OPTIONS = {
  * 문자열 검증 스키마를 생성합니다.
  *
  * @remarks
- * 이 함수에서 반환한 스키마 뒤에 검증함수 추가 불가능. \
- * ReDoS 방지 .pipe() 구조를 위해 반환 타입을 z.ZodType<string>로 고정했기 때문. \
+ * 이 함수에서 반환한 스키마 뒤에 검증함수 추가 불가능.\
+ * ReDoS 방지 .pipe() 구조를 위해 반환 타입을 z.ZodType<string>로 고정했기 때문.\
  * 해당 기능 필요시 리팩토링 필요.
  *
  * 또한 allowedRegex는 검증하지 않고, fullRegex만 검증.
  *
- * order에 'email' 포함시 강제로 맨 뒷 검증 순서로 지정 (.pipe(z.email()) 구조) \
+ * Order에 'email' 포함시 강제로 맨 뒷 검증 순서로 지정 (.pipe(z.email()) 구조)\
  * (단 유일하게 'email'만 있는 경우는 예외적으로 .pipe() 없이 z.email())
- *
  * @param config 문자열 필드 설정 객체
  * @param options 검증 동작 제어 옵션
  * @see StringFieldConfig
@@ -71,7 +70,7 @@ export function createStringFieldSchema<
   // 이 객체 속성값 함수들은 해당 속성이 order에 포함되어 있을 때만 실행됨
   const stepRunners: Record<StringValidationStep, () => void> = {
     length: () => {
-      if (!constraints) {
+      if (constraints === undefined) {
         return;
       }
 
@@ -91,7 +90,7 @@ export function createStringFieldSchema<
     },
     regex: () => {
       // config에 전달된 객체가 RegexStringConstraints가 아닌 경우
-      if (!constraints || !('fullRegex' in constraints)) {
+      if (constraints === undefined || !('fullRegex' in constraints)) {
         return; // 여기서 return 하면 regexSchema는 undefined로 남아있음
       }
 
@@ -114,7 +113,7 @@ export function createStringFieldSchema<
 
   let finalSchema: z.ZodType<string | null>;
 
-  if (isRegexLast && regexSchema) {
+  if (isRegexLast && regexSchema !== undefined) {
     finalSchema = schema.pipe(regexSchema);
   } else if (order.includes('email')) {
     if (isPureZodString(schema)) {
@@ -177,7 +176,7 @@ export function projectInnerProperty<T extends object, const P extends InnerKeys
   const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(target)) {
-    if (value && typeof value === 'object' && property in value) {
+    if (value !== null && typeof value === 'object' && property in value) {
       result[key] = (value as Record<string, unknown>)[property];
     }
   }
@@ -186,7 +185,7 @@ export function projectInnerProperty<T extends object, const P extends InnerKeys
 }
 
 /**
- * .superRefine(), .transform() 내부에서 하위 스키마 검증 (검증 성공 여부 반환) \
+ * .superRefine(), .transform() 내부에서 하위 스키마 검증 (검증 성공 여부 반환)\
  * 검증 실패 시 ctx에 issue를 추가
  */
 export function validateNestedSchema(

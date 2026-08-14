@@ -14,7 +14,7 @@ import type {
   RegisterUserRequestDto,
   RegisterUserResponseDto,
 } from '#modules/auth/controllers/auth.dto.js';
-import type { AuthService } from '#modules/auth/services/auth.service.js';
+import { AuthService } from '#modules/auth/services/auth.service.js';
 
 @Controller('auth')
 export class AuthController {

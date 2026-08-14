@@ -1,8 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
-import type { ApiEnv } from './config/api-env.schema.js';
 import { AppModule } from './app.module.js';
+import type { ApiEnv } from './config/api-env.schema.js';
 import { ApiEnvError } from './config/exceptions/environment-validation.error.js';
 
 async function bootstrap() {

@@ -1,8 +1,15 @@
-# 절대 건드리면 안 되는 파일들
-pnpm-lock.yaml
-
-# 빌드 산출물
-dist/
 node_modules/
+dist/
 .next/
 .turbo/
+out/
+
+next-env.d.ts
+
+.vscode/**/*.json
+.vscode/**/*.jsonc
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+!.vscode/tasks.json
+
+pnpm-lock.yaml

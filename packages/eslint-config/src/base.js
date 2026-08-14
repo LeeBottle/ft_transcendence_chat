@@ -10,6 +10,7 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
+import { GLOBAL_IGNORE_PATTERNS } from './eslint.ignore.js';
 import { jsonConfig } from './json.js';
 
 const JS_TARGET_FILES = ['**/*.js'];
@@ -39,9 +40,8 @@ export const commonRestrictedImportPatterns = [
   },
 ];
 
-/** @type {import("eslint").Linter.Config[]} */
 export const baseConfig = defineConfig([
-  globalIgnores(['**/node_modules/**', '**/dist/**', '**/out/**', 'pnpm-lock.yaml']),
+  globalIgnores(GLOBAL_IGNORE_PATTERNS),
 
   ...jsonConfig,
 
@@ -162,7 +162,7 @@ export const baseConfig = defineConfig([
   {
     files: GLOBAL_TARGET_FILES,
     plugins: { turbo },
-    rules: { 'turbo/no-undeclared-env-vars': 'warn' },
+    rules: { 'turbo/no-undeclared-env-vars': 'error' },
   },
   {
     files: GLOBAL_TARGET_FILES,

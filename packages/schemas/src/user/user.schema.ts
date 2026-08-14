@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { UserRole, UserStatus } from '@repo/types/user';
+import { UserRole, UserStatus } from '@repo/constants/user';
 
 import type { StringValidationOptions } from '#common/types.js';
 import { createStringFieldSchema } from '#common/utils.js';

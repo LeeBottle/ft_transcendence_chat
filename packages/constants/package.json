@@ -1,0 +1,27 @@
+{
+  "name": "@repo/constants",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./user": {
+      "types": "./src/user.ts",
+      "default": "./dist/user.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "check-types": "tsc --noEmit",
+    "dev": "tsup --watch",
+    "lint": "eslint \"*.{js,ts,json}\" \"src/**/*.ts\"",
+    "lint:fix": "eslint --fix \"*.{js,ts,json}\" \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@repo/build-tools": "workspace:*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:"
+  }
+}

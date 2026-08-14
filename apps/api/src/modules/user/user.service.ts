@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 
-import { buildUserEntitySelectMap } from '#common/utils/typeorm.util.js';
+// import { buildUserEntitySelectMap } from '#common/utils/typeorm.util.js';
 
 import { UserEntity } from './entities/user.entity.js';
 

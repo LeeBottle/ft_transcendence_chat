@@ -11,8 +11,8 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "generate:component": "turbo gen react-component",
-    "lint": "eslint \"src/**/*.tsx\" \"*.{js,json}\"",
-    "lint:fix": "eslint --fix \"src/**/*.tsx\" \"*.{js,json}\""
+    "lint": "eslint \"*.{js,json}\" \"src/**/*.tsx\"",
+    "lint:fix": "eslint --fix \"*.{js,json}\" \"src/**/*.tsx\""
   },
   "dependencies": {
     "react": "^19.2.0",

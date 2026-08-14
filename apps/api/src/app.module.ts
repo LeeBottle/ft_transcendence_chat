@@ -6,14 +6,11 @@ import { DatabaseModule } from './database/database.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { UserModule } from './modules/user/user.module.js';
 
-const API_ENV_PATH = '../../infra/.env.api';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [API_ENV_PATH],
-      ignoreEnvFile: process.env.NODE_ENV === 'production',
+      ignoreEnvFile: true,
       validate: parseApiEnv,
     }),
     DatabaseModule,

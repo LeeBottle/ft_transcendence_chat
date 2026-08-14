@@ -30,7 +30,7 @@ repository.
 ## Project setup
 
 ```bash
-$ pnpm install
+pnpm install
 ```
 
 ## Compile and run the project
@@ -73,8 +73,8 @@ platform for deploying NestJS applications on AWS. Mau makes deployment
 straightforward and fast, requiring just a few simple steps:
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm install -g @nestjs/mau
+mau deploy
 ```
 
 With Mau, you can deploy your application in just a few clicks, allowing

@@ -1,6 +1,6 @@
-import type { User } from '@repo/types';
+// import type { User } from '@repo/types';
 
-async function fetchData(): Promise<User> {
+async function fetchData(): Promise<number> {
   const apiUrl = process.env.API_URL;
 
   const response = await fetch(`${apiUrl}`, {
@@ -12,9 +12,9 @@ async function fetchData(): Promise<User> {
   }
 
   // response.json()의 결과(any)를 명시적으로 User 타입으로 단언
-  const data = (await response.json()) as User;
+  // const data = (await response.json()) as User;
 
-  return data;
+  return 1;
 }
 
 export default async function Page() {
@@ -25,7 +25,7 @@ export default async function Page() {
       <h1>Next.js + NestJS Integration</h1>
       <p>
         <br />
-        Data from NestJS: {data.id} {data.title}
+        Data from NestJS: {data}
       </p>
     </main>
   );

@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-import { UserRole, UserStatus } from '@repo/types/user';
+import { UserRole, UserStatus } from '@repo/constants/user';
 
 import { SoftDeleteAuditBase } from '#database/entities/audit-base.entity.js';
 

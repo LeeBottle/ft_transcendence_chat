@@ -1,6 +1,6 @@
 // @ts-check
 
-import { nextJsConfig } from '@repo/eslint-config/next';
+import { nextAppConfig } from '@repo/eslint-config/next-app';
 
-/** @type {import("eslint").Linter.Config[]} */
-export default nextJsConfig;
+/** @type {import('eslint').Linter.Config[]} */
+export default nextAppConfig;

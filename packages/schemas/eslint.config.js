@@ -1,6 +1,6 @@
 // @ts-check
 
-import { baseConfig } from '@repo/eslint-config/base';
+import { nestAppConfig } from '@repo/eslint-config/nest-app';
 
-/** @type {import("eslint").Linter.Config[]} */
-export default baseConfig;
+/** @type {import('eslint').Linter.Config[]} */
+export default nestAppConfig;

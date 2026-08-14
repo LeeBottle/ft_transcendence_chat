@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @type {import("prettier").Config} */
+/** @type {import('prettier').Config} */
 const config = {
   printWidth: 100,
   singleQuote: true,
@@ -9,11 +9,12 @@ const config = {
   plugins: [
     // RUST 기반 고성능 Oxc 파서 설정 (파서 교체형 - Overwrite)
     // '@ianvs/prettier-plugin-sort-imports' 보다 반드시 앞에 와야함
-    '@prettier/plugin-oxc',
+    // '@prettier/plugin-oxc',
 
     '@ianvs/prettier-plugin-sort-imports', // (파서 확장형 - Wrapping)
     'prettier-plugin-packagejson',
     'prettier-plugin-sh',
+    'prettier-plugin-jsdoc',
     'prettier-plugin-tailwindcss', // 활성화 시 반드시 배열의 최하단(마지막)에 위치해야 함
   ],
 
@@ -54,6 +55,10 @@ const config = {
     '',
     '^[.]',
   ],
+
+  tsdoc: true,
+  jsdocPreferCodeFences: true,
+  jsdocSeparateReturnsFromParam: true,
 
   overrides: [
     {

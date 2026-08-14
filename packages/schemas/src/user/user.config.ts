@@ -16,7 +16,7 @@ export const LOGIN_ID_ALLOWED_REGEX = /^[a-z0-9_]+$/; // For UX. 영문 소문�
 const NAME_MIN_LENGTH = 1;
 const NAME_MAX_LENGTH = 50;
 /**
- * 한글 이름은 외국인 한글 성명 표기 고려하여 공백도 허용 \
+ * 한글 이름은 외국인 한글 성명 표기 고려하여 공백도 허용\
  * 영문 이름은 공백, 하이픈(-), 아포스트로피(') 허용
  */
 const NAME_FULL_REGEX = /^(?:[가-힣]+(?: [가-힣]+)*|[a-zA-Z]+(?:[ '-][a-zA-Z]+)*)$/;

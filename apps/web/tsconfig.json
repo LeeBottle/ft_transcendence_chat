@@ -1,13 +1,9 @@
 {
-  "extends": "@repo/typescript-config/nextjs",
+  "extends": "@repo/typescript-config/next-app",
+  "include": ["app/**/*.ts", "app/**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+
   "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "strictNullChecks": true
-  },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.js", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo"
+  }
 }

@@ -5,13 +5,15 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "./base": "./base.json",
-    "./nextjs": "./nextjs.json",
-    "./react-library": "./react-library.json"
+    "./base": "./configs/base.json",
+    "./internal-library": "./configs/internal-library.json",
+    "./nest-app": "./configs/nest-app.json",
+    "./next-app": "./configs/next-app.json",
+    "./react-library": "./configs/react-library.json"
   },
   "scripts": {
-    "lint": "eslint \"*.{js,json}\"",
-    "lint:fix": "eslint --fix \"*.{js,json}\""
+    "lint": "eslint \"*.{js,json}\" \"configs/**/*.json\"",
+    "lint:fix": "eslint --fix \"*.{js,json}\" \"configs/**/*.json\""
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

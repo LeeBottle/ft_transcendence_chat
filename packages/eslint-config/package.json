@@ -3,22 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "imports": {
-    "#*": "./src/*"
-  },
   "exports": {
     "./base": "./src/base.js",
     "./json": "./src/json.js",
     "./nest-app": "./src/nest-app.js",
-    "./next": "./src/next.js",
+    "./next-app": "./src/next-app.js",
     "./node-library": "./src/node-library.js",
     "./react-app": "./src/react-app.js",
     "./react-library": "./src/react-library.js",
     "./root": "./src/root.js"
   },
   "scripts": {
-    "lint": "eslint \"*.{js,json,md}\"",
-    "lint:fix": "eslint --fix \"*.{js,json,md}\""
+    "lint": "eslint \"*.{js,json}\" \"src/**/*.js\"",
+    "lint:fix": "eslint --fix \"*.{js,json}\" \"src/**/*.js\""
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
