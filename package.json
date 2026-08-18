@@ -5,8 +5,8 @@
   "scripts": {
     "_format:check": "prettier --check \"**/*.{js,ts,tsx,sh,json,yaml,md,html,css}\"",
     "_format:write": "prettier --write \"**/*.{js,ts,tsx,sh,json,yaml,md,html,css}\"",
-    "_lint:root": "eslint \"*.{js,json}\" \"scripts/**/*.{js,sh}\" \".vscode/**/*.json\"",
-    "_lint:root:fix": "eslint --fix \"*.{js,json}\" \"scripts/**/*.{js,sh}\" \".vscode/**/*.json\"",
+    "_lint:root": "eslint \"*.{js,json}\" \"scripts/**/*.js\" \".vscode/**/*.json\"",
+    "_lint:root:fix": "eslint --fix \"*.{js,json}\" \"scripts/**/*.js\" \".vscode/**/*.json\"",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
     "cleanup:all": "pnpm run cleanup:artifacts && pnpm run cleanup:node-modules",
@@ -16,9 +16,9 @@
     "fix": "turbo run //#_lint:root:fix lint:fix && turbo run //#_format:write",
     "format": "turbo run //#_format:check",
     "lint": "turbo run //#_lint:root lint",
+    "prepare": "husky",
     "validate": "turbo run check-types //#_lint:root lint //#_format:check",
-    "vscode:merge-settings": "node ./scripts/merge-vscode-settings.js",
-    "prepare": "husky"
+    "vscode:merge-settings": "node ./scripts/merge-vscode-settings.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",

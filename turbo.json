@@ -25,14 +25,14 @@
     "//#_lint:root": {
       "inputs": [
         "*.{js,json}",
-        "scripts/**/*.{js,sh}",
+        "scripts/**/*.js",
         ".vscode/{extensions,settings.shared,tasks}.json"
       ],
       "outputs": []
     },
     "//#_lint:root:fix": { "cache": false },
     "lint": {
-      "inputs": ["**/*.{js,ts,tsx,sh,json}", "!{node_modules,dist,.next,.turbo}/**", "!**/out/**"],
+      "inputs": ["**/*.{js,ts,tsx,json}", "!{node_modules,dist,.next,.turbo}/**", "!**/out/**"],
       "outputs": []
     },
     "lint:fix": { "cache": false },

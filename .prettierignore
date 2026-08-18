@@ -13,3 +13,5 @@ next-env.d.ts
 !.vscode/tasks.json
 
 pnpm-lock.yaml
+
+.husky/
