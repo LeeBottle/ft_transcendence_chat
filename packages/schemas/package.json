@@ -10,13 +10,13 @@
     }
   },
   "exports": {
-    "./user": {
-      "types": "./src/user/user.schema.ts",
-      "default": "./dist/user/user.schema.js"
-    },
     "./auth": {
       "types": "./src/auth/auth.schema.ts",
       "default": "./dist/auth/auth.schema.js"
+    },
+    "./user": {
+      "types": "./src/user/user.schema.ts",
+      "default": "./dist/user/user.schema.js"
     }
   },
   "scripts": {

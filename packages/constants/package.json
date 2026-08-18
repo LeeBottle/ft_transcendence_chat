@@ -4,9 +4,29 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./user-login-history": {
+      "types": "./src/auth/user-login-history.ts",
+      "default": "./dist/auth/user-login-history.js"
+    },
+    "./calendar-task": {
+      "types": "./src/calendar/calendar-task.ts",
+      "default": "./dist/calendar/calendar-task.js"
+    },
+    "./chat-room-member": {
+      "types": "./src/chat/chat-room-member.ts",
+      "default": "./dist/chat/chat-room-member.js"
+    },
+    "./chat-room-message": {
+      "types": "./src/chat/chat-room-message.ts",
+      "default": "./dist/chat/chat-room-message.js"
+    },
+    "./chat-room-task": {
+      "types": "./src/chat/chat-room-task.ts",
+      "default": "./dist/chat/chat-room-task.js"
+    },
     "./user": {
-      "types": "./src/user.ts",
-      "default": "./dist/user.js"
+      "types": "./src/user/user.ts",
+      "default": "./dist/user/user.js"
     }
   },
   "scripts": {

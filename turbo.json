@@ -32,11 +32,7 @@
     },
     "//#_lint:root:fix": { "cache": false },
     "lint": {
-      "inputs": [
-        "*.{js,json}",
-        "scripts/**/*.{js,sh}",
-        ".vscode/{extensions,settings.shared,tasks}.json"
-      ],
+      "inputs": ["**/*.{js,ts,tsx,sh,json}", "!{node_modules,dist,.next,.turbo}/**", "!**/out/**"],
       "outputs": []
     },
     "lint:fix": { "cache": false },

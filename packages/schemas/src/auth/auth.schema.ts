@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
+import { createdAtSchema } from '#common/timestamp.schema.js';
 import { createStringFieldSchema, validateNestedSchema } from '#common/utils.js';
 import {
-  createdAtSchema,
   createEmailSchema,
   createLoginIdSchema,
   createNameSchema,

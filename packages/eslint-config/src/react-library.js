@@ -6,7 +6,7 @@ import pluginReactHooks from 'eslint-plugin-react-hooks';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 
-import { baseConfig, GLOBAL_TARGET_FILES, TS_TARGET_FILES } from './base.js';
+import { baseConfig, JS_TS_TARGET_FILES, TS_TARGET_FILES } from './base.js';
 
 export const reactLibraryConfig = defineConfig([
   ...baseConfig,
@@ -46,7 +46,7 @@ export const reactLibraryConfig = defineConfig([
 
   eslintConfigPrettier,
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
 ]);

@@ -10,13 +10,13 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-import { GLOBAL_IGNORE_PATTERNS } from './eslint.ignore.js';
+import { GLOBAL_IGNORE_PATTERNS } from './common/eslint.ignore.js';
 import { jsonConfig } from './json.js';
 
 const JS_TARGET_FILES = ['**/*.js'];
 
 export const TS_TARGET_FILES = ['**/*.{ts,tsx}'];
-export const GLOBAL_TARGET_FILES = [...JS_TARGET_FILES, ...TS_TARGET_FILES];
+export const JS_TS_TARGET_FILES = [...JS_TARGET_FILES, ...TS_TARGET_FILES];
 
 const commonRestrictedSyntax = [
   {
@@ -46,7 +46,7 @@ export const baseConfig = defineConfig([
   ...jsonConfig,
 
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     ...js.configs.recommended,
   },
 
@@ -63,7 +63,7 @@ export const baseConfig = defineConfig([
   })),
 
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     languageOptions: { sourceType: 'module' },
     rules: {
       complexity: ['warn', { max: 15 }], // 하나의 함수 안에 분기문 15개 초과시 경고
@@ -131,7 +131,7 @@ export const baseConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { '@stylistic': stylistic },
     rules: {
       '@stylistic/padding-line-between-statements': [
@@ -160,12 +160,12 @@ export const baseConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { turbo },
     rules: { 'turbo/no-undeclared-env-vars': 'error' },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { unicorn },
     rules: {
       'unicorn/prefer-node-protocol': 'error', // node 내장 패키지 import시 앞에 'node:' 강제
@@ -174,7 +174,7 @@ export const baseConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { import: importPlugin },
     rules: {
       'import/first': 'error',
@@ -195,7 +195,7 @@ export const baseConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { 'unused-imports': unusedImports },
     rules: {
       // 'unused-imports/no-unused-imports': 'warn',	// 나중에 husky 설정 후 주석 해제
@@ -219,7 +219,7 @@ export const baseConfig = defineConfig([
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
 
     // 변수명, 함수명 등에 ASCII 기반의 영문, 숫자, 언더스코어, 달러 기호만 허용하도록 정규식 강제
     // 식별자에 '-' 포함시 문법 오류. 단지 객체 프로퍼티에 허용하기 위해 '-' 추가함
@@ -227,7 +227,7 @@ export const baseConfig = defineConfig([
     rules: { 'id-match': ['error', '^[a-zA-Z0-9_$-]+$', { properties: true }] },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     rules: {
       // 주석 기호(// 또는 /*) 뒤에 반드시 공백을 1개 이상 두도록 강제
       'spaced-comment': [
@@ -331,7 +331,7 @@ export const baseConfig = defineConfig([
 
   eslintConfigPrettier,
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
 ]);

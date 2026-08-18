@@ -6,7 +6,7 @@ import type {
   LoginUserResponseDto,
   RegisterUserResponseDto,
 } from '#modules/auth/controllers/auth.dto.js';
-import { UserService } from '#modules/user/user.service.js';
+import { UserService } from '#modules/user/services/user.service.js';
 
 import { PasswordService } from './password.service.js';
 
@@ -38,7 +38,7 @@ export class AuthService {
 
     const user = await this.userService.create({ loginId, passwordHash, name, email });
 
-    return { loginId: user.loginId, email: user.email, createdAt: user.createdAt };
+    return { loginId: user.loginId, email: user.email, createdAt: user.createdAt.toISOString() };
   }
 
   async login(params: LoginUserParams): Promise<LoginUserResponseDto> {
@@ -56,7 +56,7 @@ export class AuthService {
       throw new UnauthorizedException('아이디 또는 비밀번호가 올바르지 않습니다.');
     }
 
-    if (user.status === UserStatus.INACTIVE) {
+    if (user.status === UserStatus.WITHDRAWN) {
       throw new ForbiddenException('탈퇴 처리된 계정입니다.');
     }
 
@@ -70,7 +70,7 @@ export class AuthService {
       loginId: user.loginId,
       name: user.name,
       email: user.email,
-      emailVerifiedAt: user.emailVerifiedAt,
+      emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
       role: user.role,
       status: user.status,
       profileImagePath: user.profileImagePath,

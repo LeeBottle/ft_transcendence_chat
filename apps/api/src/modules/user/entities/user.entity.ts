@@ -1,43 +1,63 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Check, Column, Entity, Index, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 import { UserRole, UserStatus } from '@repo/constants/user';
 
 import { SoftDeleteAuditBase } from '#database/entities/audit-base.entity.js';
 
 @Entity({ name: 'users' })
+@Unique('uq_users_login_id', ['loginId'])
+@Unique('uq_users_email', ['email'])
+@Check(
+  'chk_users_role_valid',
+  /* sql */ `
+    \`role\` IN (
+      ${UserRole.USER},
+      ${UserRole.ADMIN}
+    )
+  `,
+)
+@Check(
+  'chk_users_status_valid',
+  /* sql */ `
+    \`status\` IN (
+      ${UserStatus.ACTIVE},
+      ${UserStatus.SUSPENDED},
+      ${UserStatus.WITHDRAWN}
+    )
+  `,
+)
 export class UserEntity extends SoftDeleteAuditBase {
-  @PrimaryGeneratedColumn({ type: 'bigint', name: 'id', unsigned: true })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
 
-  @Index('login_id_UNIQUE', { unique: true })
-  @Column({ type: 'varchar', name: 'login_id', length: 20 })
+  @Column({ name: 'login_id', type: 'varchar', length: 20 })
   loginId!: string;
 
-  @Column({ type: 'varchar', name: 'password_hash', length: 255, collation: 'utf8mb4_bin' })
+  @Column({ name: 'password_hash', type: 'varchar', length: 255, collation: 'utf8mb4_bin' })
   passwordHash!: string;
 
-  @Column({ type: 'varchar', name: 'name', length: 50 })
+  @Column({ name: 'name', type: 'varchar', length: 50 })
   name!: string;
 
-  @Index('email_UNIQUE', { unique: true })
-  @Column({ type: 'varchar', name: 'email', length: 255 })
+  @Column({ name: 'email', type: 'varchar', length: 254 })
   email!: string;
 
-  @Column({ type: 'datetime', name: 'email_verified_at', nullable: true })
-  emailVerifiedAt!: string | null;
+  @Column({ name: 'email_verified_at', type: 'datetime', precision: 3, nullable: true })
+  emailVerifiedAt!: Date | null;
 
-  @Column({ type: 'tinyint', name: 'role', unsigned: true, default: UserRole.USER })
+  @Column({ name: 'role', type: 'varchar', length: 64, default: UserRole.USER })
   role!: UserRole;
 
-  @Column({ type: 'tinyint', name: 'status', unsigned: true, default: UserStatus.ACTIVE })
+  @Column({ name: 'status', type: 'varchar', length: 64, default: UserStatus.ACTIVE })
   status!: UserStatus;
 
   @Column({
-    type: 'varchar',
     name: 'profile_image_path',
+    type: 'varchar',
     length: 255,
     nullable: true,
     collation: 'utf8mb4_bin',
+    comment: '업로드 루트 기준 상대경로',
   })
   profileImagePath!: string | null;
 }

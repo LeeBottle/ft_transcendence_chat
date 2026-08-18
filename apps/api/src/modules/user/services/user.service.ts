@@ -1,11 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 
 // import { buildUserEntitySelectMap } from '#common/utils/typeorm.util.js';
 
-import { UserEntity } from './entities/user.entity.js';
+import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 interface AssertUniquenessParams {
   readonly loginId: string;

@@ -5,7 +5,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 import packageJson, { configs as packageJsonConfigs } from 'eslint-plugin-package-json';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
-import { GLOBAL_IGNORE_PATTERNS } from './eslint.ignore.js';
+import { GLOBAL_IGNORE_PATTERNS } from './common/eslint.ignore.js';
 
 export const jsonConfig = defineConfig([
   globalIgnores(GLOBAL_IGNORE_PATTERNS),

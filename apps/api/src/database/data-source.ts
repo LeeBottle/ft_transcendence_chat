@@ -65,7 +65,7 @@ export const dataSourceOptions = {
   ],
   migrationsTableName: 'sys_migrations_history',
 
-  dateStrings: true, // 날짜/시간 타입들을 Date 객체가 아닌, 문자열 그대로 읽어옴
+  dateStrings: false, // true 설정시 날짜/시간 타입들을 Date 객체가 아닌, 문자열 그대로 읽어옴
   supportBigNumbers: true, // default
   bigNumberStrings: true, // default
 

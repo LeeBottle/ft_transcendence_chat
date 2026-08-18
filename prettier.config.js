@@ -1,7 +1,7 @@
 // @ts-check
 
 /** @type {import('prettier').Config} */
-const config = {
+export default {
   printWidth: 100,
   singleQuote: true,
   singleAttributePerLine: true, // HTML 태그에 여러 속성이 붙을 경우 한 줄에 하나씩 배치
@@ -12,6 +12,8 @@ const config = {
     // '@prettier/plugin-oxc',
 
     '@ianvs/prettier-plugin-sort-imports', // (파서 확장형 - Wrapping)
+    'prettier-plugin-embed', // prettier-plugin-sql 보다 반드시 앞에 와야함
+    'prettier-plugin-sql',
     'prettier-plugin-packagejson',
     'prettier-plugin-sh',
     'prettier-plugin-jsdoc',
@@ -56,6 +58,12 @@ const config = {
     '^[.]',
   ],
 
+  /* prettier-plugin-sql */
+  language: 'mysql',
+  keywordCase: 'upper',
+  dataTypeCase: 'upper',
+  functionCase: 'upper',
+
   tsdoc: true,
   jsdocPreferCodeFences: true,
   jsdocSeparateReturnsFromParam: true,
@@ -75,5 +83,3 @@ const config = {
     },
   ],
 };
-
-export default config;

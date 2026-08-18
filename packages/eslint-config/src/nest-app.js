@@ -7,15 +7,16 @@ import globals from 'globals';
 import {
   baseConfig,
   commonRestrictedImportPatterns,
-  GLOBAL_TARGET_FILES,
+  JS_TS_TARGET_FILES,
   TS_TARGET_FILES,
 } from './base.js';
+import { migrationSqlCommentConfig } from './common/migration-sql.js';
 
 export const nestAppConfig = defineConfig([
   ...baseConfig,
 
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     languageOptions: { globals: { ...globals.node } },
     rules: {
       'no-restricted-imports': [
@@ -49,9 +50,11 @@ export const nestAppConfig = defineConfig([
     },
   },
 
+  migrationSqlCommentConfig,
+
   eslintConfigPrettier,
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
 ]);
