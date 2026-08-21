@@ -1,4 +1,6 @@
-# 1. 개요
+# ft_transcendence
+
+## 1. 개요
 
 채팅 회의 & AI 자동 태스크 추출
 
@@ -12,7 +14,7 @@
 
 ### 2-2. 패키지 설치 (모노레포 내부 (이하 동일))
 
-- 프로젝트 루트에서 `pnpm install`
+프로젝트 루트에서 `pnpm install`
 
 ### 2-3. .vscode/settings.json 설정
 
@@ -26,9 +28,48 @@
 
 ### 2.4 .vscode/extensions.json
 
-1. 여기 있는 익스텐션 반드시 모두 설치
+여기 있는 익스텐션 반드시 모두 설치
 
-## 3. 전체 디렉토리 구조
+## 3. 모노레포 루트 package.json scripts
+
+### 3.1 pnpm cleanup:artifacts
+
+빌드 결과물, 캐시 모두 제거
+
+### 3.2 pnpm cleanup:node_modules
+
+node_modules 모두 제거
+
+### 3.3 pnpm cleanup:all
+
+빌드 결과물, 캐시, node_modules 모두 제거
+
+### 3.4 pnpm dev
+
+개발 모드. 코드 변경 사항을 실시간 반영. 개발시 이 명령을 실행시켜놓고
+하는걸 매우 권장.
+
+### 3.5 pnpm build
+
+모노레포 전체 패키지 빌드
+
+### 3.6 pnpm validate
+
+모노레포 전체 코드 타입 체크, 린트, 포맷 검사
+
+### 3.7 pnpm fix
+
+모노레포 전체 코드 린트, 포맷 규칙을 준수하도록 코드 수정
+
+### 3.8 pnpm vscode:merge-settings
+
+1. [선택사항] `.vscode/settings.local.jsonc`에 개인 VS Code 설정 작성
+2. 이 명령어 실행
+3. 팀 공통 설정인 `.vscode/settings.shared.json`과 개인 설정인
+   `.vscode/settings.local.jsonc`가 병합되어 `.vscode/settings.json`가
+   생성됨
+
+## 4. 전체 디렉토리 구조
 
 ```text
 .
@@ -56,7 +97,7 @@
 │   │   │       ├── chat : 채팅(방, 멤버, 채팅 태스크, )
 │   │   │       └── user : 유저 프로필 관리, 정보 수정 등
 │   │   └── uploads : 서버 데이터(e.g., 유저 프로필 사진) 저장 루트
-│   └── web : 프론트엔드(Next.js) 모음
+│   └── web : 프론트엔드(Next.js)
 ├── infra : 환경 변수 파일, 도커 및 도커 컴포즈 파일
 ├── packages : 프론트/백 공용 사용자 정의 패키지 모음
 │   ├── build-tools : 공용 패키지 빌드 설정 모음
@@ -65,3 +106,19 @@
 │   └── ui : dummy (추후 삭제 예정)
 └── scripts : 개발용 스크립트
 ```
+
+### 4.1 apps
+
+- api: 백엔드 NestJS
+- web: 프론트엔드 Next.js
+
+### 4.1 infra/
+
+- 개발/프로덕션 환경 공용 환경변수 파일
+- 프로덕션 환경용 환경 변수 파일
+- 도커 컴포즈 구성
+
+### 4.2 packages/
+
+- 프론트엔드/백엔드 공유 패키지들
+-

@@ -1,3 +1,5 @@
+import { exit } from 'node:process';
+
 import { DataSource } from 'typeorm';
 
 import { dbEnv } from '#config/database-env.schema.js';
@@ -24,12 +26,9 @@ async function resetSchema(): Promise<void> {
     console.error(`[DB Reset] Resetting schema: \`${schemaName}\`...`);
 
     await bootstrapDataSource.query(`DROP DATABASE IF EXISTS \`${schemaName}\`;`);
-    await bootstrapDataSource.query(`
-      CREATE DATABASE \`${schemaName}\`
-        DEFAULT CHARACTER SET \`${dbEnv.DB_CHARSET}\`
-        COLLATE \`${dbEnv.DB_COLLATION}\`;
+    await bootstrapDataSource.query(/* sql */ `
+      CREATE DATABASE \`${schemaName}\` DEFAULT CHARACTER SET \`${dbEnv.DB_CHARSET}\` COLLATE \`${dbEnv.DB_COLLATION}\`;
     `);
-
     console.error(`[DB Reset] Successfully recreated schema: \`${schemaName}\``);
   } finally {
     // 커넥션 풀 완전 종료
@@ -41,5 +40,5 @@ async function resetSchema(): Promise<void> {
 
 resetSchema().catch((error: unknown) => {
   console.error('[DB Reset Failed]', error);
-  process.exit(1);
+  exit(1);
 });

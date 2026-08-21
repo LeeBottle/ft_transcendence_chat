@@ -1,4 +1,4 @@
-import { Check, Column, Entity, Index, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 import { UserRole, UserStatus } from '@repo/constants/user';
 

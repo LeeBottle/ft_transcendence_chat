@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*": "./*"
+  },
   "scripts": {
     "build": "next build",
     "check-types": "next typegen && tsc --noEmit",
-    "dev": "wait-on tcp:3000 -t 30000 && next dev --turbopack --port 3001",
+    "dev": "wait-on tcp:4000 -t 30000 && NODE_OPTIONS=--env-file=../../infra/.env.web next dev --turbopack --port 3000",
     "lint": "eslint \"*.{js,json}\" \"app/**/*.tsx\"",
     "lint:fix": "eslint --fix \"*.{js,json}\" \"app/**/*.tsx\"",
-    "start": "next start"
+    "start": "NODE_OPTIONS=\"--enable-source-maps --env-file=../../infra/.env.web\" next start"
   },
   "dependencies": {
     "@repo/ui": "workspace:*",

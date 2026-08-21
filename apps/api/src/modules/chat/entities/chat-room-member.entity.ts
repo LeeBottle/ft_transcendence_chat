@@ -25,13 +25,7 @@ export class ChatRoomMemberEntity extends MutableAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
 
-  @Column({
-    name: 'chat_room_id',
-    type: 'char',
-    length: 36,
-    collation: 'utf8mb4_bin',
-    comment: 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
-  })
+  @Column({ name: 'chat_room_id', type: 'bigint', unsigned: true })
   chatRoomId!: string;
 
   @Index('idx_chat_room_members_user_id')

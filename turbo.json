@@ -5,6 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "env": ["NODE_ENV", "NEXT_PUBLIC_*"],
+      "passThroughEnv": ["API_URL"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },

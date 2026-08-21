@@ -11,11 +11,13 @@
     }
   },
   "scripts": {
-    "_typeorm": "NODE_ENV=development node --conditions=development --enable-source-maps --env-file=../../infra/.env.database --import tsx node_modules/typeorm/cli.js",
+    "_typeorm": "NODE_ENV=development node --conditions=development --enable-source-maps --env-file=../../infra/.env.database --env-file=.env.development --import tsx node_modules/typeorm/cli.js",
     "build": "nest build",
     "check-types": "tsc --noEmit",
-    "debug": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --debug --watch --env-file ../../infra/.env.database --env-file ../../infra/.env.api --exec 'node --watch-path=../../infra/.env.database --watch-path=../../infra/.env.api'",
-    "dev": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --watch --env-file ../../infra/.env.database --env-file ../../infra/.env.api --exec 'node --watch-path=../../infra/.env.database --watch-path=../../infra/.env.api'",
+    "create-schema": "tsx --conditions=development --env-file=../../infra/.env.database --env-file=.env.development src/database/scripts/create-schema.ts",
+    "create-user": "tsx --conditions=development --env-file=../../infra/.env.database --env-file=.env.development src/database/scripts/create-user.ts",
+    "debug": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --debug --watch --env-file=../../infra/.env.database --env-file=../../infra/.env.api --env-file=.env.development --exec 'node --watch-path=../../infra/.env.database --watch-path=../../infra/.env.api --watch-path=.env.development'",
+    "dev": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --watch --env-file=../../infra/.env.database --env-file=../../infra/.env.api --env-file=.env.development --exec 'node --watch-path=../../infra/.env.database --watch-path=../../infra/.env.api --watch-path=.env.development'",
     "lint": "eslint \"*.{js,json}\" \"src/**/*.ts\"",
     "lint:fix": "eslint --fix \"*.{js,json}\" \"src/**/*.ts\"",
     "migration:create": "pnpm _typeorm migration:create",
@@ -24,8 +26,8 @@
     "migration:run": "pnpm _typeorm migration:run -d src/database/data-source.ts",
     "migration:run:prod": "NODE_ENV=production node --enable-source-maps node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js",
     "prod": "NODE_ENV=production node --enable-source-maps dist/main.js",
-    "reset-schema": "tsx --conditions=development --env-file ../../infra/.env.database src/database/scripts/reset-schema.ts",
-    "start": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --env-file ../../infra/.env.database --env-file ../../infra/.env.api"
+    "reset-schema": "tsx --conditions=development --env-file=../../infra/.env.database  --env-file=.env.development src/database/scripts/reset-schema.ts",
+    "start": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --env-file=../../infra/.env.database --env-file=../../infra/.env.api --env-file=.env.development"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

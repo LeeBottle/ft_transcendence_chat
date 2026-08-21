@@ -4,8 +4,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
-  Tree,
+  PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm';
 
@@ -14,13 +13,7 @@ import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 @Entity({ name: 'chat_rooms' })
 export class ChatRoomEntity extends SoftDeleteAuditBase {
-  @PrimaryColumn({
-    name: 'id',
-    type: 'char',
-    length: 36,
-    collation: 'utf8mb4_bin',
-    comment: 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
-  })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
 
   @Index('idx_chat_rooms_creator_user_id')

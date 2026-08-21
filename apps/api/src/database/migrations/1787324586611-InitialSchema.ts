@@ -1,50 +1,75 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialSchema1787245912878 implements MigrationInterface {
-  name = 'InitialSchema1787245912878';
+export class InitialSchema1787324586611 implements MigrationInterface {
+  name = 'InitialSchema1787324586611';
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
-      CREATE TABLE \`chat_room_members\` (
+      CREATE TABLE \`users\` (
         \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
         \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+        \`deleted_at\` DATETIME(3) NULL,
         \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        \`chat_room_id\` CHAR(36) COLLATE "utf8mb4_bin" NOT NULL COMMENT 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
-        \`user_id\` BIGINT UNSIGNED NOT NULL,
-        \`role\` ENUM('MEMBER', 'MANAGER', 'OWNER') NOT NULL DEFAULT 'MEMBER',
-        \`is_owner\` TINYINT AS (IF(\`role\` = 'OWNER', 1, NULL)) VIRTUAL NULL COMMENT '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)',
-        \`status\` ENUM('ACTIVE', 'LEFT', 'KICKED') NOT NULL DEFAULT 'ACTIVE',
-        \`joined_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-        \`left_at\` DATETIME(3) NULL,
-        \`calendar_synced_at\` DATETIME(3) NULL,
-        INDEX \`idx_chat_room_members_user_id\` (\`user_id\`),
-        UNIQUE INDEX \`uq_chat_room_members_chat_room_id_is_owner\` (\`chat_room_id\`, \`is_owner\`),
-        UNIQUE INDEX \`uq_chat_room_members_chat_room_id_user_id\` (\`chat_room_id\`, \`user_id\`),
+        \`login_id\` VARCHAR(20) NOT NULL,
+        \`password_hash\` VARCHAR(255) COLLATE "utf8mb4_bin" NOT NULL,
+        \`name\` VARCHAR(50) NOT NULL,
+        \`email\` VARCHAR(254) NOT NULL,
+        \`email_verified_at\` DATETIME(3) NULL,
+        \`role\` ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER',
+        \`status\` ENUM('ACTIVE', 'SUSPENDED', 'WITHDRAWN') NOT NULL DEFAULT 'ACTIVE',
+        \`profile_image_path\` VARCHAR(255) COLLATE "utf8mb4_bin" NULL COMMENT '업로드 루트 기준 상대경로',
+        UNIQUE INDEX \`uq_users_email\` (\`email\`),
+        UNIQUE INDEX \`uq_users_login_id\` (\`login_id\`),
         PRIMARY KEY (\`id\`)
       ) ENGINE = InnoDB
     `);
-    await queryRunner.query(
-      /* sql */ `
-        INSERT INTO
-          \`ft_transcendence\`.\`typeorm_metadata\` (
-            \`database\`,
-            \`schema\`,
-            \`table\`,
-            \`type\`,
-            \`name\`,
-            \`value\`
-          )
-        VALUES
-          (DEFAULT, ?, ?, ?, ?, ?)
-      `,
-      [
-        'ft_transcendence',
-        'chat_room_members',
-        'GENERATED_COLUMN',
-        'is_owner',
-        "IF(`role` = 'OWNER', 1, NULL)",
-      ],
-    );
+    await queryRunner.query(/* sql */ `
+      CREATE TABLE \`user_login_histories\` (
+        \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        \`user_id\` BIGINT UNSIGNED NULL,
+        \`attempted_identifier\` VARCHAR(254) NOT NULL,
+        \`is_success\` TINYINT NOT NULL,
+        \`ip_address\` VARCHAR(45) NOT NULL,
+        \`user_agent\` TEXT NULL,
+        \`failure_reason\` ENUM(
+          'INVALID_PASSWORD',
+          'USER_NOT_FOUND',
+          'SUSPENDED',
+          'WITHDRAWN'
+        ) NULL,
+        INDEX \`idx_user_login_histories_user_id\` (\`user_id\`),
+        PRIMARY KEY (\`id\`)
+      ) ENGINE = InnoDB
+    `);
+    await queryRunner.query(/* sql */ `
+      CREATE TABLE \`calendar_tasks\` (
+        \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+        \`deleted_at\` DATETIME(3) NULL,
+        \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        \`user_id\` BIGINT UNSIGNED NOT NULL,
+        \`title\` VARCHAR(255) NOT NULL,
+        \`started_at\` DATETIME(3) NOT NULL,
+        \`due_at\` DATETIME(3) NOT NULL,
+        \`completed_at\` DATETIME(3) NULL,
+        INDEX \`idx_calendar_tasks_user_id\` (\`user_id\`),
+        PRIMARY KEY (\`id\`)
+      ) ENGINE = InnoDB
+    `);
+    await queryRunner.query(/* sql */ `
+      CREATE TABLE \`chat_rooms\` (
+        \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+        \`deleted_at\` DATETIME(3) NULL,
+        \`id\` CHAR(36) COLLATE "utf8mb4_bin" NOT NULL COMMENT 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
+        \`creator_user_id\` BIGINT UNSIGNED NOT NULL,
+        \`title\` VARCHAR(255) NOT NULL,
+        \`closed_at\` DATETIME(3) NULL,
+        INDEX \`idx_chat_rooms_creator_user_id\` (\`creator_user_id\`),
+        PRIMARY KEY (\`id\`)
+      ) ENGINE = InnoDB
+    `);
     await queryRunner.query(/* sql */ `
       CREATE TABLE \`chat_room_messages\` (
         \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -74,6 +99,35 @@ export class InitialSchema1787245912878 implements MigrationInterface {
         UNIQUE INDEX \`uq_chat_room_tasks_chat_room_member_id_calendar_task_id\` (\`chat_room_member_id\`, \`calendar_task_id\`),
         PRIMARY KEY (\`id\`)
       ) ENGINE = InnoDB
+    `);
+    await queryRunner.query(/* sql */ `
+      DROP INDEX \`uq_chat_room_members_chat_room_id_is_owner\` ON \`chat_room_members\`
+    `);
+    await queryRunner.query(/* sql */ `
+      ALTER TABLE \`chat_room_members\`
+      CHANGE \`is_owner\` \`is_owner\` TINYINT AS (IF(\`role\` = 'OWNER', 1, NULL)) VIRTUAL NULL COMMENT '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)'
+    `);
+    await queryRunner.query(
+      /* sql */ `
+        UPDATE \`app_development\`.\`typeorm_metadata\`
+        SET
+          \`value\` = ?
+        WHERE
+          \`type\` = ?
+          AND \`name\` = ?
+          AND \`schema\` = ?
+          AND \`table\` = ?
+      `,
+      [
+        "IF(`role` = 'OWNER', 1, NULL)",
+        'GENERATED_COLUMN',
+        'is_owner',
+        'app_development',
+        'chat_room_members',
+      ],
+    );
+    await queryRunner.query(/* sql */ `
+      CREATE UNIQUE INDEX \`uq_chat_room_members_chat_room_id_is_owner\` ON \`chat_room_members\` (\`chat_room_id\`, \`is_owner\`)
     `);
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`user_login_histories\`
@@ -151,6 +205,29 @@ export class InitialSchema1787245912878 implements MigrationInterface {
       DROP FOREIGN KEY \`fk_user_login_histories_users_user_id\`
     `);
     await queryRunner.query(/* sql */ `
+      DROP INDEX \`uq_chat_room_members_chat_room_id_is_owner\` ON \`chat_room_members\`
+    `);
+    await queryRunner.query(
+      /* sql */ `
+        UPDATE \`app_development\`.\`typeorm_metadata\`
+        SET
+          \`value\` = ?
+        WHERE
+          \`type\` = ?
+          AND \`name\` = ?
+          AND \`schema\` = ?
+          AND \`table\` = ?
+      `,
+      ['', 'GENERATED_COLUMN', 'is_owner', 'app_development', 'chat_room_members'],
+    );
+    await queryRunner.query(/* sql */ `
+      ALTER TABLE \`chat_room_members\`
+      CHANGE \`is_owner\` \`is_owner\` TINYINT NULL COMMENT '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)'
+    `);
+    await queryRunner.query(/* sql */ `
+      CREATE UNIQUE INDEX \`uq_chat_room_members_chat_room_id_is_owner\` ON \`chat_room_members\` (\`chat_room_id\`, \`is_owner\`)
+    `);
+    await queryRunner.query(/* sql */ `
       DROP INDEX \`uq_chat_room_tasks_chat_room_member_id_calendar_task_id\` ON \`chat_room_tasks\`
     `);
     await queryRunner.query(/* sql */ `
@@ -164,26 +241,20 @@ export class InitialSchema1787245912878 implements MigrationInterface {
       DROP INDEX \`idx_chat_room_messages_chat_room_id\` ON \`chat_room_messages\`
     `);
     await queryRunner.query(/* sql */ `DROP TABLE \`chat_room_messages\``);
-    await queryRunner.query(
-      /* sql */ `
-        DELETE FROM \`ft_transcendence\`.\`typeorm_metadata\`
-        WHERE
-          \`type\` = ?
-          AND \`name\` = ?
-          AND \`schema\` = ?
-          AND \`table\` = ?
-      `,
-      ['GENERATED_COLUMN', 'is_owner', 'ft_transcendence', 'chat_room_members'],
-    );
     await queryRunner.query(/* sql */ `
-      DROP INDEX \`uq_chat_room_members_chat_room_id_user_id\` ON \`chat_room_members\`
+      DROP INDEX \`idx_chat_rooms_creator_user_id\` ON \`chat_rooms\`
     `);
+    await queryRunner.query(/* sql */ `DROP TABLE \`chat_rooms\``);
     await queryRunner.query(/* sql */ `
-      DROP INDEX \`uq_chat_room_members_chat_room_id_is_owner\` ON \`chat_room_members\`
+      DROP INDEX \`idx_calendar_tasks_user_id\` ON \`calendar_tasks\`
     `);
+    await queryRunner.query(/* sql */ `DROP TABLE \`calendar_tasks\``);
     await queryRunner.query(/* sql */ `
-      DROP INDEX \`idx_chat_room_members_user_id\` ON \`chat_room_members\`
+      DROP INDEX \`idx_user_login_histories_user_id\` ON \`user_login_histories\`
     `);
-    await queryRunner.query(/* sql */ `DROP TABLE \`chat_room_members\``);
+    await queryRunner.query(/* sql */ `DROP TABLE \`user_login_histories\``);
+    await queryRunner.query(/* sql */ `DROP INDEX \`uq_users_login_id\` ON \`users\``);
+    await queryRunner.query(/* sql */ `DROP INDEX \`uq_users_email\` ON \`users\``);
+    await queryRunner.query(/* sql */ `DROP TABLE \`users\``);
   }
 }

@@ -1,5 +1,4 @@
 import {
-  Check,
   Column,
   Entity,
   Index,
@@ -22,13 +21,7 @@ export class ChatRoomMessageEntity extends CreateAuditBase {
   id!: string;
 
   @Index('idx_chat_room_messages_chat_room_id')
-  @Column({
-    name: 'chat_room_id',
-    type: 'char',
-    length: 36,
-    collation: 'utf8mb4_bin',
-    comment: 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
-  })
+  @Column({ name: 'chat_room_id', type: 'bigint', unsigned: true })
   chatRoomId!: string;
 
   @Index('idx_chat_room_messages_sender_user_id')
