@@ -4,13 +4,13 @@
 
 ## 2. 개발 환경 구성
 
-### 2-1. Volta 설치
+### 2-1. Volta 설치 (터미널 전역 설치)
 
 - `https://volta.sh/`
 - 설치 후 깃 클론한 레포지토리 접속(터미널 cd)하면 자동으로 pnpm
   11.17.0, node 24.18.0 설치됨
 
-### 2-2. 패키지 설치
+### 2-2. 패키지 설치 (모노레포 내부 (이하 동일))
 
 - 프로젝트 루트에서 `pnpm install`
 
@@ -23,6 +23,10 @@
 3. 개인 설정(`.vscode/settings.local.jsonc`), 팀 공유
    설정(`.vscode/settings.shared.json`)이 합쳐져 `.vscode/settings.json`
    생성됨 (개인 설정이 공유 설정을 덮어쓰는 구조(중복 설정 존재시))
+
+### 2.4 .vscode/extensions.json
+
+1. 여기 있는 익스텐션 반드시 모두 설치
 
 ## 3. 전체 디렉토리 구조
 

@@ -20,55 +20,50 @@ import { ChatRoomEntity } from './chat-room.entity.js';
 @Entity({ name: 'chat_room_members' })
 @Unique('uq_chat_room_members_chat_room_id_user_id', ['chatRoomId', 'userId'])
 @Unique('uq_chat_room_members_chat_room_id_is_owner', ['chatRoomId', 'isOwner'])
-@Check(
-  'chk_chat_room_members_role_valid',
-  /* sql */ `
-    \`role\` IN (
-      ${ChatRoomMemberRole.MEMBER},
-      ${ChatRoomMemberRole.MANAGER},
-      ${ChatRoomMemberRole.OWNER}
-    )
-  `,
-)
-@Check(
-  'chk_chat_room_members_status_valid',
-  /* sql */ `
-    \`status\` IN (
-      ${ChatRoomMemberStatus.ACTIVE},
-      ${ChatRoomMemberStatus.LEFT},
-      ${ChatRoomMemberStatus.KICKED}
-    )
-  `,
-)
 @Check('chk_chat_room_members_left_after_joined', '`left_at` IS NULL OR `left_at` >= `joined_at`')
 export class ChatRoomMemberEntity extends MutableAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
 
-  @Column({ name: 'chat_room_id', type: 'bigint', unsigned: true })
+  @Column({
+    name: 'chat_room_id',
+    type: 'char',
+    length: 36,
+    collation: 'utf8mb4_bin',
+    comment: 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
+  })
   chatRoomId!: string;
 
   @Index('idx_chat_room_members_user_id')
   @Column({ name: 'user_id', type: 'bigint', unsigned: true })
   userId!: string;
 
-  @Column({ name: 'role', type: 'varchar', length: 64, default: ChatRoomMemberRole.MEMBER })
+  @Column({
+    name: 'role',
+    type: 'enum',
+    enum: ChatRoomMemberRole,
+    default: ChatRoomMemberRole.MEMBER,
+  })
   role!: ChatRoomMemberRole;
 
   @Column({
     name: 'is_owner',
     type: 'tinyint',
-    unsigned: true,
-    nullable: true,
-    asExpression: `IF(\`role\` = ${ChatRoomMemberRole.OWNER}, 1, NULL)`,
+    asExpression: `IF(\`role\` = '${ChatRoomMemberRole.OWNER}', 1, NULL)`,
     generatedType: 'VIRTUAL',
+    nullable: true,
+    comment: '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)',
     insert: false,
     update: false,
-    comment: '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)',
   })
   isOwner!: 1 | null;
 
-  @Column({ name: 'status', type: 'varchar', length: 64, default: ChatRoomMemberStatus.ACTIVE })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: ChatRoomMemberStatus,
+    default: ChatRoomMemberStatus.ACTIVE,
+  })
   status!: ChatRoomMemberStatus;
 
   @Column({

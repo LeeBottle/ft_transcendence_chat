@@ -1,14 +1,6 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  InternalServerErrorException,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 
-import type {
+import {
   LoginUserRequestDto,
   LoginUserResponseDto,
   RegisterUserRequestDto,
@@ -26,6 +18,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(200)
   async login(@Body() dto: LoginUserRequestDto): Promise<LoginUserResponseDto> {
     return await this.authService.login(dto);
   }

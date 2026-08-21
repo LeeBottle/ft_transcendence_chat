@@ -7,25 +7,6 @@ import { SoftDeleteAuditBase } from '#database/entities/audit-base.entity.js';
 @Entity({ name: 'users' })
 @Unique('uq_users_login_id', ['loginId'])
 @Unique('uq_users_email', ['email'])
-@Check(
-  'chk_users_role_valid',
-  /* sql */ `
-    \`role\` IN (
-      ${UserRole.USER},
-      ${UserRole.ADMIN}
-    )
-  `,
-)
-@Check(
-  'chk_users_status_valid',
-  /* sql */ `
-    \`status\` IN (
-      ${UserStatus.ACTIVE},
-      ${UserStatus.SUSPENDED},
-      ${UserStatus.WITHDRAWN}
-    )
-  `,
-)
 export class UserEntity extends SoftDeleteAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
@@ -45,18 +26,18 @@ export class UserEntity extends SoftDeleteAuditBase {
   @Column({ name: 'email_verified_at', type: 'datetime', precision: 3, nullable: true })
   emailVerifiedAt!: Date | null;
 
-  @Column({ name: 'role', type: 'varchar', length: 64, default: UserRole.USER })
+  @Column({ name: 'role', type: 'enum', enum: UserRole, default: UserRole.USER })
   role!: UserRole;
 
-  @Column({ name: 'status', type: 'varchar', length: 64, default: UserStatus.ACTIVE })
+  @Column({ name: 'status', type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
   status!: UserStatus;
 
   @Column({
     name: 'profile_image_path',
     type: 'varchar',
     length: 255,
-    nullable: true,
     collation: 'utf8mb4_bin',
+    nullable: true,
     comment: '업로드 루트 기준 상대경로',
   })
   profileImagePath!: string | null;

@@ -1,8 +1,3 @@
 {
-  "recommendations": [
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "mikestead.dotenv",
-    "davidanson.vscode-markdownlint"
-  ]
+  "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "mikestead.dotenv"]
 }

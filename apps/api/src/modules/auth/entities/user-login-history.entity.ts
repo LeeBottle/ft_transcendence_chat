@@ -16,18 +16,6 @@ import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 @Entity({ name: 'user_login_histories' })
 @Check('chk_user_login_histories_is_success_valid', '`is_success` IN (0, 1)') // PostgreSQL 마이그레이션 전 데이터 오염 방지용
-@Check(
-  'chk_user_login_histories_failure_reason_valid',
-  /* sql */ `
-    \`failure_reason\` IN (
-      NULL,
-      ${UserLoginHistoryFailureReason.INVALID_PASSWORD},
-      ${UserLoginHistoryFailureReason.USER_NOT_FOUND},
-      ${UserLoginHistoryFailureReason.SUSPENDED},
-      ${UserLoginHistoryFailureReason.WITHDRAWN}
-    )
-  `,
-)
 export class UserLoginHistoryEntity extends CreateAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
@@ -48,7 +36,12 @@ export class UserLoginHistoryEntity extends CreateAuditBase {
   @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
 
-  @Column({ name: 'failure_reason', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'failure_reason',
+    type: 'enum',
+    enum: UserLoginHistoryFailureReason,
+    nullable: true,
+  })
   failureReason!: UserLoginHistoryFailureReason | null;
 
   @ManyToOne(() => UserEntity, { onUpdate: 'RESTRICT', onDelete: 'RESTRICT' })

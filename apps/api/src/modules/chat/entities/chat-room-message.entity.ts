@@ -17,30 +17,25 @@ import { UserEntity } from '#modules/user/entities/user.entity.js';
 import { ChatRoomEntity } from './chat-room.entity.js';
 
 @Entity({ name: 'chat_room_messages' })
-@Check(
-  'chk_chat_room_messages_type_valid',
-  /* sql */ `
-    \`type\` IN (
-      ${ChatRoomMessageType.TEXT},
-      ${ChatRoomMessageType.IMAGE},
-      ${ChatRoomMessageType.FILE},
-      ${ChatRoomMessageType.SYSTEM}
-    )
-  `,
-)
 export class ChatRoomMessageEntity extends CreateAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
 
   @Index('idx_chat_room_messages_chat_room_id')
-  @Column({ name: 'chat_room_id', type: 'bigint', unsigned: true })
+  @Column({
+    name: 'chat_room_id',
+    type: 'char',
+    length: 36,
+    collation: 'utf8mb4_bin',
+    comment: 'UUIDv7 (시간 순 정렬 지원, 주소창 공개 PK)',
+  })
   chatRoomId!: string;
 
   @Index('idx_chat_room_messages_sender_user_id')
   @Column({ name: 'sender_user_id', type: 'bigint', unsigned: true })
   senderUserId!: string;
 
-  @Column({ name: 'type', type: 'varchar', length: 64 })
+  @Column({ name: 'type', type: 'enum', enum: ChatRoomMessageType })
   type!: ChatRoomMessageType;
 
   @Column({ name: 'sent_at', type: 'datetime', precision: 3 })

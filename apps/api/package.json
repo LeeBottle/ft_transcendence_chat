@@ -6,11 +6,12 @@
   "imports": {
     "#*.js": {
       "types": "./src/*.ts",
+      "development": "./src/*.ts",
       "default": "./dist/*.js"
     }
   },
   "scripts": {
-    "_typeorm": "NODE_ENV=development node --enable-source-maps --env-file=../../infra/.env.database --import tsx node_modules/typeorm/cli.js",
+    "_typeorm": "NODE_ENV=development node --conditions=development --enable-source-maps --env-file=../../infra/.env.database --import tsx node_modules/typeorm/cli.js",
     "build": "nest build",
     "check-types": "tsc --noEmit",
     "debug": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --debug --watch --env-file ../../infra/.env.database --env-file ../../infra/.env.api --exec 'node --watch-path=../../infra/.env.database --watch-path=../../infra/.env.api'",
@@ -23,6 +24,7 @@
     "migration:run": "pnpm _typeorm migration:run -d src/database/data-source.ts",
     "migration:run:prod": "NODE_ENV=production node --enable-source-maps node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js",
     "prod": "NODE_ENV=production node --enable-source-maps dist/main.js",
+    "reset-schema": "tsx --conditions=development --env-file ../../infra/.env.database src/database/scripts/reset-schema.ts",
     "start": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --env-file ../../infra/.env.database --env-file ../../infra/.env.api"
   },
   "dependencies": {
@@ -30,6 +32,7 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.6",
     "@nestjs/typeorm": "^11.0.3",
@@ -41,10 +44,13 @@
     "helmet": "^8.3.0",
     "mysql2": "^3.23.0",
     "nestjs-zod": "^5.4.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^1.1.0",
+    "uuid": "^14.0.2",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -57,6 +63,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/node": "catalog:",
+    "@types/passport-jwt": "^4.0.1",
     "chokidar": "^5.0.0",
     "eslint": "catalog:",
     "tsx": "^4.23.1",

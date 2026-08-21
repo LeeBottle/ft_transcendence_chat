@@ -23,16 +23,6 @@ import { ChatRoomMemberEntity } from './chat-room-member.entity.js';
   'calendarTaskId',
 ])
 @Check('chk_chat_room_tasks_due_after_started', '`due_at` >= `started_at`')
-@Check(
-  'chk_chat_room_tasks_calendar_sync_status_valid',
-  /* sql */ `
-    \`calendar_sync_status\` IN (
-      ${CalendarSyncStatus.NOT_REQUESTED},
-      ${CalendarSyncStatus.SUCCESS},
-      ${CalendarSyncStatus.FAILURE}
-    )
-  `,
-) // PostgreSQL 마이그레이션 전 데이터 오염 방지용
 export class ChatRoomTaskEntity extends CreateAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
@@ -58,8 +48,8 @@ export class ChatRoomTaskEntity extends CreateAuditBase {
 
   @Column({
     name: 'calendar_sync_status',
-    type: 'varchar',
-    length: 64,
+    type: 'enum',
+    enum: CalendarSyncStatus,
     default: CalendarSyncStatus.NOT_REQUESTED,
   })
   calendarSyncStatus!: CalendarSyncStatus;

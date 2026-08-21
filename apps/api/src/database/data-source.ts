@@ -8,6 +8,8 @@ import { resolveFromProjectRoot } from '#common/utils/project-root.util.js';
 import type { NodeEnv } from '#config/api-env.schema.js';
 import { dbEnv } from '#config/database-env.schema.js';
 
+import { entities } from './data-source-entities.js';
+
 /**
  * Mysql2 패키지 전용 속성들만 가지는 타입.\
  * (DataSourceOptions의 'extra' 속성 값 객체가 가질 수 있는 속성들을 모두 보유한 객체 타입)
@@ -49,15 +51,10 @@ export const dataSourceOptions = {
   maxQueryExecutionTime:
     dbEnv.DB_MAX_QUERY_EXECUTION_TIME_MS ?? MaxQueryExecutionTimeMs[dbEnv.NODE_ENV],
 
-  charset: 'utf8mb4_0900_ai_ci',
+  charset: dbEnv.DB_COLLATION,
   timezone: 'Z', // UTC
 
-  entities: [
-    resolveFromProjectRoot(
-      isTsExecution ? 'src/modules/*/entities/*.entity.ts' : 'dist/modules/*/entities/*.entity.js',
-    ),
-  ],
-
+  entities,
   migrations: [
     resolveFromProjectRoot(
       isTsExecution ? 'src/database/migrations/*.ts' : 'dist/database/migrations/*.js',

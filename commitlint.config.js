@@ -6,15 +6,10 @@ const commitTypes = [
   'docs', // 문서 변경, Only 주석 변경
   'refactor', // 코드 리팩토링
   'perf', // 성능 개선
-  'infra', // Docker, NGINX, .env 등 인프라 관련 설정 변경
-  'deps', // 의존성 추가/업데이트/삭제
   'chore', // 기타 잡무, 패키지 설정 변경
-
   'test', // 테스트 코드 추가/수정
   'build', // 빌드 시스템, 외부 의존성 패키지 수정 (pnpm, turbo 등)
   'ci', // CI 설정 변경
-
-  'security', // 보안 취약점 패치 (e.g., 스키마 내 .regex()에 대한 ReDOS 취약점 패치)
   'revert', // 이전 커밋 되돌리기
 ];
 
@@ -52,22 +47,24 @@ const commitScopes = [
   'constants/common',
   'schemas/common',
 
-  /* type 'infra' or scope 'api' only */
-  'db', // type 'infra' only
-  'api/db', // TypeORM 설정 / 마이그레이션
-  'cache', // type 'infra' only
-  'api/cache', // Redis / 캐싱 로직
-
   /* Shared Configs */
   'lint', // eslint-config 패키지 내부 설정 파일 수정 (개별 패키지 eslint.config.js 수정은 chore(해당 패키지 스코프) 사용)
   'format', // prettier 설정 변경
   'tsconfig', // typescript-config 패키지 내부 설정 파일 수정 (개별 패키지 tsconfig.json 수정은 chore(해당 패키지 스코프) 사용)
 
+  /* infra */
+  'infra', // Docker, .env 등 인프라 관련 설정 변경
+  'api/db', // TypeORM 설정 / 마이그레이션
+  'api/cache', // Redis / 캐싱 로직
+
   /* Developer Tooling */
   'scripts', // 모노레포 루트의 `scripts/`
 
   /* Monorepo Workspace */
+  'deps', // 의존성 추가/업데이트/삭제
   'repo', // 모노레포 루트 설정(e.g., turbo.json, pnpm-workspace, root package.json)
+  'git',
+  'github',
 ];
 
 export default {
