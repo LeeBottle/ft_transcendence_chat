@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "env": ["API_URL", "CLIENT_URL", "PORT"],
-      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*", "!.env.example"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
     "dev": { "cache": false, "persistent": true },
@@ -15,66 +15,36 @@
         "**/*.{ts,tsx}",
         "tsconfig.json",
         "tsconfig.*.json",
-        "package.json",
-        "!**/.turbo/**",
-        "!**/.next/**",
-        "!**/dist/**",
-        "!**/out/**",
-        "!**/node_modules/**"
-      ]
-    },
-
-    "format": {
-      "inputs": [
-        "**/*.{js,ts,tsx,json,md,yaml,yml,html,css}",
-        "$TURBO_ROOT$/prettier.config.js",
-        "$TURBO_ROOT$/.prettierignore",
-        "!**/.turbo/**",
-        "!**/.next/**",
-        "!**/dist/**",
-        "!**/out/**",
-        "!**/node_modules/**"
+        "!{node_modules,dist,.next,.turbo}/**",
+        "!**/out/**"
       ],
       "outputs": []
     },
-    "//#format:root-files": {
+
+    "//#_lint:root": {
       "inputs": [
-        "*.{js,json,md,yaml,yml}",
-        ".prettierignore",
-        "scripts/*.{sh,js}",
-        ".vscode/*.json",
-        "!.vscode/settings.json",
-        "!.vscode/settings.local.jsonc",
-        "!pnpm-lock.yaml"
+        "*.{js,json}",
+        "scripts/**/*.js",
+        ".vscode/{extensions,settings.shared,tasks}.json"
       ],
       "outputs": []
     },
-    "format:fix": { "cache": false, "dependsOn": ["lint:fix"] },
-    "//#format:fix:root-files": { "cache": false, "dependsOn": ["//#lint:fix:root-files"] },
-
+    "//#_lint:root:fix": { "cache": false },
     "lint": {
-      "inputs": [
-        "**/*.{js,ts,tsx,json,md,yaml,yml,html,css}",
-        "!**/.turbo/**",
-        "!**/.next/**",
-        "!**/dist/**",
-        "!**/out/**",
-        "!**/node_modules/**"
-      ],
-      "outputs": []
-    },
-    "//#lint:root-files": {
-      "inputs": [
-        "*.{js,json,md,yaml,yml}",
-        "scripts/*.{sh,js}",
-        ".vscode/*.json",
-        "!.vscode/settings.json",
-        "!.vscode/settings.local.jsonc",
-        "!pnpm-lock.yaml"
-      ],
+      "inputs": ["**/*.{js,ts,tsx,json}", "!{node_modules,dist,.next,.turbo}/**", "!**/out/**"],
       "outputs": []
     },
     "lint:fix": { "cache": false },
-    "//#lint:fix:root-files": { "cache": false }
+
+    "//#_format:check": {
+      "inputs": [
+        "**/*.{js,ts,tsx,sh,json,yaml,md,html,css}",
+        "$TURBO_ROOT$/{prettier.config.js,.prettierignore}",
+        "!{node_modules,dist,.next,.turbo}/**",
+        "!**/out/**"
+      ],
+      "outputs": []
+    },
+    "//#_format:write": { "cache": false }
   }
 }

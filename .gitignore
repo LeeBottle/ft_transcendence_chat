@@ -1,25 +1,25 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 node_modules/
+dist/
+.next/
+.turbo/
+out/
+
+next-env.d.ts
+
+.vscode/**/*.json
+.vscode/**/*.jsonc
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+!.vscode/tasks.json
+
+uploads/
 
 .env
 .env.*
 !.env.example
+!.env.*.example
 
-secrets/
-.secrets/
-
-.turbo/
-
-.next/
-out/
-dist/
-
-next-env.d.ts
 *.tsbuildinfo
 
-.vscode/*.json
-.vscode/*.jsonc
-!.vscode/extensions.json
-!.vscode/settings.shared.json
-!.vscode/tasks.json
+# Each member's private ignores
+.cspell.json

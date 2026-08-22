@@ -9,6 +9,14 @@ const sharedPath = path.join(vscodeDir, 'settings.shared.json');
 const localPath = path.join(vscodeDir, 'settings.local.jsonc');
 const targetPath = path.join(vscodeDir, 'settings.json');
 
+const sharedSettings = readJson(sharedPath);
+const localSettings = readJson(localPath);
+
+const finalSettings = deepMerge(sharedSettings, localSettings);
+
+fs.writeFileSync(targetPath, JSON.stringify(finalSettings, null, 2), 'utf-8');
+console.log('✅ .vscode/settings.json 파일이 성공적으로 병합 및 갱신되었습니다.');
+
 function readJson(filePath) {
   if (!fs.existsSync(filePath)) {
     return {};
@@ -23,6 +31,7 @@ function readJson(filePath) {
         if (stringGroup) {
           return stringGroup;
         }
+
         // 문자열 밖에서 발견된 진짜 주석은 빈 문자열('')로 치환하여 삭제
         return '';
       },
@@ -31,16 +40,14 @@ function readJson(filePath) {
     return JSON.parse(cleanContent || '{}');
   } catch (error) {
     console.error(`[Warn] ${filePath} 파싱 실패:`, error.message);
+
     return {};
   }
 }
 
-function isObject(item) {
-  return item && typeof item === 'object' && !Array.isArray(item);
-}
-
 function deepMerge(target, source) {
   const output = { ...target };
+
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach((key) => {
       if (isObject(source[key])) {
@@ -54,13 +61,10 @@ function deepMerge(target, source) {
       }
     });
   }
+
   return output;
 }
 
-const sharedSettings = readJson(sharedPath);
-const localSettings = readJson(localPath);
-
-const finalSettings = deepMerge(sharedSettings, localSettings);
-
-fs.writeFileSync(targetPath, JSON.stringify(finalSettings, null, 2), 'utf-8');
-console.log('✅ .vscode/settings.json 파일이 성공적으로 병합 및 갱신되었습니다.');
+function isObject(item) {
+  return item && typeof item === 'object' && !Array.isArray(item);
+}

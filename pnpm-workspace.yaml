@@ -1,3 +1,18 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  "@scarf/scarf": false
+  bcrypt: true
+  "@swc/core": true
+
+catalog:
+  "@types/node": ^24.0.0
+  eslint: ^9.39.1
+  typescript: ~5.9.2
+  zod: ^4.4.3
+  tsup: ^8.5.1

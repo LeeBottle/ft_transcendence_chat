@@ -1,7 +1,7 @@
 // @ts-check
 
-/** @type {import("prettier").Config} */
-const config = {
+/** @type {import('prettier').Config} */
+export default {
   printWidth: 100,
   singleQuote: true,
   singleAttributePerLine: true, // HTML 태그에 여러 속성이 붙을 경우 한 줄에 하나씩 배치
@@ -9,15 +9,18 @@ const config = {
   plugins: [
     // RUST 기반 고성능 Oxc 파서 설정 (파서 교체형 - Overwrite)
     // '@ianvs/prettier-plugin-sort-imports' 보다 반드시 앞에 와야함
-    '@prettier/plugin-oxc',
+    // '@prettier/plugin-oxc',
 
     '@ianvs/prettier-plugin-sort-imports', // (파서 확장형 - Wrapping)
+    'prettier-plugin-embed', // prettier-plugin-sql 보다 반드시 앞에 와야함
+    'prettier-plugin-sql',
     'prettier-plugin-packagejson',
     'prettier-plugin-sh',
+    'prettier-plugin-jsdoc',
     'prettier-plugin-tailwindcss', // 활성화 시 반드시 배열의 최하단(마지막)에 위치해야 함
   ],
 
-  // @ianvs/prettier-plugin-sort-imports 설정
+  // '@ianvs/prettier-plugin-sort-imports' 설정
   importOrderTypeScriptVersion: '5.9.2',
   importOrderParserPlugins: [
     // 1. 핵심 언어 기반 인프라
@@ -32,44 +35,38 @@ const config = {
     'importAttributes',
   ],
   importOrder: [
-    '<TYPES>^node:',
+    '^node:',
     '<BUILTIN_MODULES>',
     '',
-    '<TYPES>^react($|-)',
-    '<TYPES>^@react-',
     '^react($|-)',
     '^@react-',
     '',
-    '<TYPES>^next($|/)',
-    '<TYPES>^next-',
-    '<TYPES>^@next/',
     '^next($|/)',
     '^next-',
     '^@next/',
     '',
-    '<TYPES>^@nestjs/',
-    '<TYPES>^@nestjs-',
-    '<TYPES>^nestjs-',
     '^@nestjs/', // 공식 코어
     '^@nestjs-', // 공인 확장팩
     '^nestjs-',
     '',
-    '<TYPES>',
     '<THIRD_PARTY_MODULES>',
     '',
-    '<TYPES>^@repo/',
     '^@repo/',
     '',
-    '<TYPES>^#',
-    '<TYPES>^[@~]/',
     '^#',
-    '^[@~]/',
     '',
-    '<TYPES>^[.]{2}/',
-    '<TYPES>^[.]',
-    '^[.]{2}/',
     '^[.]',
   ],
+
+  /* prettier-plugin-sql */
+  language: 'mysql',
+  keywordCase: 'upper',
+  dataTypeCase: 'upper',
+  functionCase: 'upper',
+
+  tsdoc: true,
+  jsdocPreferCodeFences: true,
+  jsdocSeparateReturnsFromParam: true,
 
   overrides: [
     {
@@ -86,5 +83,3 @@ const config = {
     },
   ],
 };
-
-export default config;
