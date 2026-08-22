@@ -13,6 +13,7 @@ async function fetchData(): Promise<User> {
 
   // response.json()의 결과(any)를 명시적으로 User 타입으로 단언
   const data = (await response.json()) as User;
+
   return data;
 }
 

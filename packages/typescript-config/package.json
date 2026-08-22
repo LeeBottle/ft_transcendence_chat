@@ -9,6 +9,7 @@
     "lint:fix": "eslint --fix \"*.{js,json}\" \"configs/**/*.json\""
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*"
+    "@repo/eslint-config": "workspace:*",
+    "eslint": "catalog:"
   }
 }
