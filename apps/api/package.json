@@ -7,8 +7,6 @@
     "build": "nest build",
     "check-types": "tsc --noEmit",
     "dev": "nest start --watch",
-    "format": "prettier --check \"src/**/*.ts\" \"*.{js,json,md}\"",
-    "format:fix": "prettier --write \"src/**/*.ts\" \"*.{js,json,md}\"",
     "lint": "eslint \"src/**/*.ts\" \"*.{js,json,md}\"",
     "lint:fix": "eslint --fix \"src/**/*.ts\" \"*.{js,json,md}\"",
     "start": "nest start",

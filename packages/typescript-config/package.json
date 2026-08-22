@@ -5,9 +5,6 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "format": "prettier --check \"*.{js,json}\"",
-    "format:fix": "prettier --write \"*.{js,json}\"",
-    "format:write": "",
     "lint": "eslint \"*.{js,json}\"",
     "lint:fix": "eslint --fix \"*.{js,json}\""
   },

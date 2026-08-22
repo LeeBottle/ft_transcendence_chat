@@ -24,33 +24,16 @@
       ]
     },
 
-    "format": {
+    "//#_format:check": {
       "inputs": [
-        "**/*.{js,ts,tsx,json,md,yaml,yml,html,css}",
-        "$TURBO_ROOT$/prettier.config.js",
-        "$TURBO_ROOT$/.prettierignore",
-        "!**/.turbo/**",
-        "!**/.next/**",
-        "!**/dist/**",
-        "!**/out/**",
-        "!**/node_modules/**"
+        "**/*.{js,ts,tsx,sh,json,yaml,md,html,css}",
+        "$TURBO_ROOT$/{prettier.config.js,.prettierignore}",
+        "!{node_modules,dist,.next,.turbo}/**",
+        "!**/out/**"
       ],
       "outputs": []
     },
-    "//#format:root-files": {
-      "inputs": [
-        "*.{js,json,md,yaml,yml}",
-        ".prettierignore",
-        "scripts/*.{sh,js}",
-        ".vscode/*.json",
-        "!.vscode/settings.json",
-        "!.vscode/settings.local.jsonc",
-        "!pnpm-lock.yaml"
-      ],
-      "outputs": []
-    },
-    "format:fix": { "cache": false, "dependsOn": ["lint:fix"] },
-    "//#format:fix:root-files": { "cache": false, "dependsOn": ["//#lint:fix:root-files"] },
+    "//#_format:write": { "cache": false },
 
     "lint": {
       "inputs": [

@@ -8,8 +8,6 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
-    "format": "prettier --check \"src/**/*.tsx\" \"*.{js,json}\"",
-    "format:fix": "prettier --write \"src/**/*.tsx\" \"*.{js,json}\"",
     "generate:component": "turbo gen react-component",
     "lint": "eslint \"src/**/*.tsx\" \"*.{js,json}\"",
     "lint:fix": "eslint --fix \"src/**/*.tsx\" \"*.{js,json}\""
