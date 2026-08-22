@@ -5,18 +5,18 @@
   "scripts": {
     "_format:check": "prettier --check \"**/*.{js,ts,tsx,sh,json,yaml,md,html,css}\"",
     "_format:write": "prettier --write \"**/*.{js,ts,tsx,sh,json,yaml,md,html,css}\"",
+    "_lint:root": "eslint \"*.{js,json}\" \"scripts/**/*.js\" \".vscode/**/*.json\"",
+    "_lint:root:fix": "eslint --fix \"*.{js,json}\" \"scripts/**/*.js\" \".vscode/**/*.json\"",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
     "cleanup:all": "pnpm run cleanup:artifacts && pnpm run cleanup:node-modules",
     "cleanup:artifacts": "./scripts/cleanup-artifacts.sh",
     "cleanup:node-modules": "./scripts/cleanup-node-modules.sh",
     "dev": "turbo run dev",
-    "fix": "turbo run lint:fix //#lint:fix:root-files && turbo run //#_format:write",
+    "fix": "turbo run //#_lint:root:fix lint:fix && turbo run //#_format:write",
     "format": "turbo run //#_format:check",
-    "lint": "turbo run lint //#lint:root-files",
-    "lint:fix:root-files": "eslint --fix \"*.{js,json,md,yaml,yml}\" \"scripts/*.{sh,js}\" \".vscode/{extensions,settings.shared,tasks}.json\"",
-    "lint:root-files": "eslint \"*.{js,json,md,yaml,yml}\" \"scripts/*.{sh,js}\" \".vscode/{extensions,settings.shared,tasks}.json\"",
-    "validate": "turbo run check-types //#_format:check lint //#lint:root-files",
+    "lint": "turbo run //#_lint:root lint",
+    "validate": "turbo run check-types //#_lint:root lint //#_format:check",
     "vscode:merge-settings": "node ./scripts/merge-vscode-settings.js"
   },
   "devDependencies": {
