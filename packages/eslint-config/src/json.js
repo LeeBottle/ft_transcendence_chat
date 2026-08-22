@@ -1,20 +1,24 @@
 // @type-check
 
 import json from '@eslint/json';
-import packageJson, { configs as packageJsonCofigs } from 'eslint-plugin-package-json';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import packageJson, { configs as packageJsonConfigs } from 'eslint-plugin-package-json';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-/** @type {import("eslint").Linter.Config[]} */
-export const jsonConfig = [
+import { GLOBAL_IGNORE_PATTERNS } from './common/eslint.ignore.js';
+
+export const jsonConfig = defineConfig([
+  globalIgnores(GLOBAL_IGNORE_PATTERNS),
+
   {
     files: ['**/*.json'],
-    ignores: ['**/node_modules/**', '**/dist/**'],
     language: 'json/json',
     plugins: { json },
     rules: { 'json/top-level-interop': 'error' }, // 최상위 값이 반드시 객체 or 배열
     ...json.configs.recommended,
   },
 
-  packageJsonCofigs.recommended,
+  packageJsonConfigs.recommended,
   {
     files: ['**/package.json'],
     plugins: { 'package-json': packageJson },
@@ -26,7 +30,14 @@ export const jsonConfig = [
   },
 
   {
-    files: ['**/tsconfig.json', '**/tsconfig.*.json', '**/turbo.json', '.vscode/settings.json'],
+    files: [
+      '**/tsconfig.json',
+      '**/tsconfig.*.json',
+      '**/turbo.json',
+      '.vscode/{extensions,settings.shared,tasks}.json',
+    ],
     language: 'json/jsonc',
   },
-];
+
+  eslintConfigPrettier,
+]);

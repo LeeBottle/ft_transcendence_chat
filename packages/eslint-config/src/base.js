@@ -1,32 +1,56 @@
 // @type-check
 
 import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import-x';
 import turbo from 'eslint-plugin-turbo';
 import unicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
-import { globalIgnores } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
+import { GLOBAL_IGNORE_PATTERNS } from './common/eslint.ignore.js';
 import { jsonConfig } from './json.js';
 
-const JS_TARGET_FILES = ['**/*.{js,jsx,mjs,cjs}'];
-export const TS_TARGET_FILES = ['**/*.{ts,tsx,mts,cts}'];
-export const GLOBAL_TARGET_FILES = [...JS_TARGET_FILES, ...TS_TARGET_FILES];
+const JS_TARGET_FILES = ['**/*.js'];
 
-/** @type {import("eslint").Linter.Config[]} */
-export const baseConfig = [
-  globalIgnores(['**/node_modules/**', '**/dist/**', '**/out/**', 'pnpm-lock.yaml']),
+export const TS_TARGET_FILES = ['**/*.{ts,tsx}'];
+export const JS_TS_TARGET_FILES = [...JS_TARGET_FILES, ...TS_TARGET_FILES];
+
+const commonRestrictedSyntax = [
+  {
+    selector: 'ForInStatement',
+    message:
+      'for...in 루프는 프로토타입 체인을 순회하므로 금지합니다.\n' +
+      '대신 Object.keys()와 for...of 조합을 사용하십시오.',
+  },
+];
+
+export const commonRestrictedImportPatterns = [
+  {
+    group: ['@repo/*/*/**', 'api/*/**', 'web/*/**'],
+    message: '모노레포의 다른 패키지 내부 파일에 직접 접근 금지.',
+  },
+  {
+    group: ['~*'],
+    message:
+      '틸드(~) 별칭은 모던 Node.js ESM 표준이 아닙니다. ' +
+      'package.json의 `imports` 표준인 `#` 기반의 경로 별칭 사용하십시오.',
+  },
+];
+
+export const baseConfig = defineConfig([
+  globalIgnores(GLOBAL_IGNORE_PATTERNS),
 
   ...jsonConfig,
 
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     ...js.configs.recommended,
   },
 
-  // 내부적으로 pasrser 설정 및 '@typescript-eslint/' plungin 포함
+  // 내부적으로 parser 설정 및 '@typescript-eslint/' plugin 포함
   // js.configs.recommended에서 겹치는 설정들도 off 해줌
   // 전역 files에 .ts, .tsx, .mts, .cts 추가
   ...tseslint.configs.strictTypeChecked.map((config) => ({
@@ -39,13 +63,13 @@ export const baseConfig = [
   })),
 
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     languageOptions: { sourceType: 'module' },
     rules: {
       complexity: ['warn', { max: 15 }], // 하나의 함수 안에 분기문 15개 초과시 경고
 
       // switch문 default 분기가 마지막에 반드시 존재해야함
-      // 단, swich문 마지막에 `// no default` 추가시 default 분기 의도적 생략 가능
+      // 단, switch문 마지막에 `// no default` 추가시 default 분기 의도적 생략 가능
       'default-case': 'error',
       'default-case-last': 'error',
 
@@ -88,26 +112,8 @@ export const baseConfig = [
         },
       ], // 예외 추가해야함
       'no-promise-executor-return': 'error', // Promise 생성자 내부에 return 사용 금지
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['@repo/*/*/**', 'api/*/**', 'web/*/**'],
-              message: '모노레포의 다른 패키지 내부 파일에 직접 접근 금지.',
-            },
-          ],
-        },
-      ],
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'ForInStatement',
-          message:
-            'for...in 루프는 프로토타입 체인을 순회하므로 금지합니다. 대신 Object.keys()와 for...of 조합을 사용하십시오.',
-        },
-      ],
-
+      'no-restricted-imports': ['error', { patterns: commonRestrictedImportPatterns }],
+      'no-restricted-syntax': ['error', ...commonRestrictedSyntax],
       'no-return-assign': 'error',
       'no-sequences': 'error', // 쉼표 연산자 사용하여 여러 표현식 묶기 금지
       'no-unmodified-loop-condition': 'error', // 루프 조건에 사용된 변수에 대해 루프 내에서 상태 변경 로직 누락시 오류
@@ -125,12 +131,41 @@ export const baseConfig = [
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
-    plugins: { turbo },
-    rules: { 'turbo/no-undeclared-env-vars': 'warn' },
+    files: JS_TS_TARGET_FILES,
+    plugins: { '@stylistic': stylistic },
+    rules: {
+      '@stylistic/padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: ['const', 'let'] },
+        { blankLine: 'always', prev: ['const', 'let'], next: '*' },
+        { blankLine: 'any', prev: ['const', 'let'], next: ['const', 'let'] },
+
+        { blankLine: 'always', prev: '*', next: 'export' },
+        { blankLine: 'always', prev: 'export', next: '*' },
+        { blankLine: 'any', prev: 'export', next: 'export' },
+
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: ['class', 'enum', 'function', 'interface', 'type'],
+        },
+        {
+          blankLine: 'always',
+          prev: ['class', 'enum', 'function', 'interface', 'type'],
+          next: '*',
+        },
+
+        { blankLine: 'always', prev: '*', next: ['return', 'throw'] },
+      ],
+    },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
+    plugins: { turbo },
+    rules: { 'turbo/no-undeclared-env-vars': 'error' },
+  },
+  {
+    files: JS_TS_TARGET_FILES,
     plugins: { unicorn },
     rules: {
       'unicorn/prefer-node-protocol': 'error', // node 내장 패키지 import시 앞에 'node:' 강제
@@ -139,7 +174,7 @@ export const baseConfig = [
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { import: importPlugin },
     rules: {
       'import/first': 'error',
@@ -160,7 +195,7 @@ export const baseConfig = [
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     plugins: { 'unused-imports': unusedImports },
     rules: {
       // 'unused-imports/no-unused-imports': 'warn',	// 나중에 husky 설정 후 주석 해제
@@ -184,7 +219,7 @@ export const baseConfig = [
     },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
 
     // 변수명, 함수명 등에 ASCII 기반의 영문, 숫자, 언더스코어, 달러 기호만 허용하도록 정규식 강제
     // 식별자에 '-' 포함시 문법 오류. 단지 객체 프로퍼티에 허용하기 위해 '-' 추가함
@@ -192,7 +227,7 @@ export const baseConfig = [
     rules: { 'id-match': ['error', '^[a-zA-Z0-9_$-]+$', { properties: true }] },
   },
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     rules: {
       // 주석 기호(// 또는 /*) 뒤에 반드시 공백을 1개 이상 두도록 강제
       'spaced-comment': [
@@ -212,6 +247,13 @@ export const baseConfig = [
       ],
     },
   },
+  {
+    files: ['**/scripts/**/*.{js,ts}'],
+    languageOptions: { sourceType: 'module' },
+    rules: {
+      'no-console': 'off', // 스크립트에서는 console.log 허용
+    },
+  },
 
   {
     files: JS_TARGET_FILES,
@@ -227,6 +269,17 @@ export const baseConfig = [
       },
     },
     rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...commonRestrictedSyntax,
+        {
+          selector: 'TSEnumDeclaration',
+          message:
+            'TypeScript enum은 런타임 오버헤드 및 번들링 문제를 유발합니다.\n' +
+            '대신 `as const` 객체와 Union 타입을 사용하십시오.',
+        },
+      ],
+
       /* 타입 추론 강제 */
       '@typescript-eslint/no-inferrable-types': [
         'error',
@@ -285,7 +338,7 @@ export const baseConfig = [
 
   eslintConfigPrettier,
   {
-    files: GLOBAL_TARGET_FILES,
+    files: JS_TS_TARGET_FILES,
     rules: { curly: ['error', 'all'] }, // 조건/반복문 중괄호 강제
   },
-];
+]);
