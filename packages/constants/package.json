@@ -30,11 +30,14 @@
     }
   },
   "scripts": {
+    "build": "tsup",
     "check-types": "tsc --noEmit",
+    "dev": "tsup --watch",
     "lint": "eslint \"*.{js,ts,json}\" \"src/**/*.ts\"",
     "lint:fix": "eslint --fix \"*.{js,ts,json}\" \"src/**/*.ts\""
   },
   "devDependencies": {
+    "@repo/build-tools": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "eslint": "catalog:",

@@ -1,0 +1,22 @@
+{
+  "name": "@repo/build-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsup-base": "./src/tsup/base.ts",
+    "./tsup-utils": "./src/tsup/utils.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "eslint \"*.{js,json}\" \"src/**/*.ts\"",
+    "lint:fix": "eslint --fix \"*.{js,json}\" \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:"
+  }
+}

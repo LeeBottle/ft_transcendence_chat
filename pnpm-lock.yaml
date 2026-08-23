@@ -239,8 +239,29 @@ importers:
         specifier: ^9.0.10
         version: 9.1.0(debug@4.4.3(supports-color@5.5.0))(supports-color@5.5.0)
 
+  packages/build-tools:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.5(jiti@2.6.1)(supports-color@8.1.1)
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(@swc/core@1.16.1)(jiti@2.6.1)(postcss@8.4.31)(supports-color@8.1.1)(tsx@4.23.12)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   packages/constants:
     devDependencies:
+      '@repo/build-tools':
+        specifier: workspace:*
+        version: link:../build-tools
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
