@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 
 import type { Request } from 'express';
 
@@ -6,7 +6,12 @@ import { JwtAuthGuard } from '#modules/auth/guards/jwt-auth.guard.js';
 import type { JwtPayload } from '#modules/auth/strategies/jwt.strategy.js';
 import { CalendarService } from '#modules/calendar/services/calendar.service.js';
 
-import { CalendarTaskResponseDto, CreateCalendarTaskRequestDto } from './calendar.dto.js';
+import {
+  CalendarTaskListResponseDto,
+  CalendarTaskResponseDto,
+  CreateCalendarTaskRequestDto,
+  ListCalendarTasksQueryDto,
+} from './calendar.dto.js';
 
 type AuthenticatedRequest = Request & { user: JwtPayload };
 
@@ -14,6 +19,14 @@ type AuthenticatedRequest = Request & { user: JwtPayload };
 @Controller('calendar/tasks')
 export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
+
+  @Get()
+  async findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: ListCalendarTasksQueryDto,
+  ): Promise<CalendarTaskListResponseDto> {
+    return await this.calendarService.findAll(request.user.sub, query);
+  }
 
   @Post()
   async create(

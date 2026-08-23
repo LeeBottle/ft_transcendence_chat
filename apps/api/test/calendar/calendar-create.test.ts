@@ -35,6 +35,7 @@ void describe('CalendarService.create', () => {
       save: async (task) => {
         return await Promise.resolve(Object.assign(new CalendarTaskEntity(), task, { id: '7' }));
       },
+      find: async () => await Promise.resolve([]),
     };
     const service = new CalendarService(repository);
 
