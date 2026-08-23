@@ -69,7 +69,7 @@ startedAt < to AND dueAt >= from
 | 0    | 기준선 검증                     | `pnpm validate` | 완료   |
 | 1    | 테스트 실행 기반                | Node test       | 완료   |
 | 2    | 공유 Zod 스키마                 | schema tests    | 완료   |
-| 3    | 인증 사용자 연결과 태스크 생성  | unit tests      | 예정   |
+| 3    | 인증 사용자 연결과 태스크 생성  | unit tests      | 완료   |
 | 4    | 기간·상태별 목록 조회           | unit tests      | 예정   |
 | 5    | 소유 태스크 단건 조회           | unit tests      | 예정   |
 | 6    | 제목·시간 수정                  | unit tests      | 예정   |
