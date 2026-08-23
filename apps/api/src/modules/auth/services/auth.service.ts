@@ -1,7 +1,10 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 import { UserStatus } from '@repo/constants/user';
 
+import type { ApiEnv } from '#config/api-env.schema.js';
 import type {
   LoginUserResponseDto,
   RegisterUserResponseDto,
@@ -27,6 +30,8 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly passwordService: PasswordService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService<ApiEnv, true>,
   ) {}
 
   async register(params: RegisterUserParams): Promise<RegisterUserResponseDto> {
@@ -66,7 +71,16 @@ export class AuthService {
       );
     }
 
+    const accessToken = await this.jwtService.signAsync(
+      { sub: user.id, email: user.email },
+      {
+        secret: this.configService.getOrThrow('JWT_SECRET', { infer: true }),
+        expiresIn: this.configService.getOrThrow('JWT_EXPIRES_IN_SECONDS', { infer: true }),
+      },
+    );
+
     return {
+      accessToken,
       loginId: user.loginId,
       name: user.name,
       email: user.email,

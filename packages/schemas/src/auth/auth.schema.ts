@@ -96,6 +96,7 @@ export const loginUserRequestSchema = z
 export type LoginUserRequest = z.infer<typeof loginUserRequestSchema>;
 
 export const loginUserResponseSchema = z.object({
+  accessToken: z.string().min(1),
   loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
   name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
   email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),

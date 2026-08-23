@@ -5,6 +5,8 @@ import { ApiEnvError } from './exceptions/environment-validation.error.js';
 export const nodeEnvSchema = z.enum(['development', 'production', 'test']).default('development');
 export type NodeEnv = z.infer<typeof nodeEnvSchema>;
 
+const DEVELOPMENT_JWT_SECRET = 'development-only-change-this-jwt-secret';
+
 type CreatePortSchemaOptions = { default: number };
 
 const PORT_ERROR = '[1, 65535] 범위의 유효한 정수 포트 번호여야 합니다(빈 문자열 허용 불가).';
@@ -32,6 +34,18 @@ const apiEnvSchema = z
     UPLOAD_BASE_DIR: z.string().min(1).default('uploads'),
 
     BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(4).max(12).default(10),
+
+    JWT_SECRET: z.string().min(32).default(DEVELOPMENT_JWT_SECRET),
+    JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(3600),
+  })
+  .superRefine(({ NODE_ENV, JWT_SECRET }, ctx) => {
+    if (NODE_ENV === 'production' && JWT_SECRET === DEVELOPMENT_JWT_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '운영 환경에서는 JWT_SECRET을 반드시 별도로 설정해야 합니다.',
+        path: ['JWT_SECRET'],
+      });
+    }
   })
   .readonly();
 
