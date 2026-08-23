@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module.js';
 import { parseApiEnv } from '#config/api-env.schema.js';
 import { CalendarModule } from './modules/calendar/calendar.module.js';
 import { ChatModule } from './modules/chat/chat.module.js';
+import { UserModule } from './modules/user/user.module.js';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ChatModule } from './modules/chat/chat.module.js';
 
     CalendarModule,
     ChatModule,
+    UserModule,
   ],
 })
 export class AppModule {}
