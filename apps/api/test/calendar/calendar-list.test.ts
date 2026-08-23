@@ -49,7 +49,7 @@ function createRepository(tasks: CalendarTaskEntity[]): {
   return {
     repository,
     getFindOptions: () => {
-      assert.ok(findOptions);
+      assert.ok(findOptions !== undefined);
 
       return findOptions;
     },

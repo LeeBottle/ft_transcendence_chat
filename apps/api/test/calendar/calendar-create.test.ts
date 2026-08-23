@@ -47,7 +47,7 @@ void describe('CalendarService.create', () => {
       dueAt: '2099-08-23T02:00:00.000Z',
     });
 
-    assert.ok(createInput);
+    assert.ok(createInput !== undefined);
     assert.equal(createInput.userId, '42');
     assert.ok(createInput.startedAt instanceof Date);
     assert.ok(createInput.dueAt instanceof Date);

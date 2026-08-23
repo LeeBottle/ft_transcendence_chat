@@ -45,7 +45,7 @@ function createRepository(foundTask: CalendarTaskEntity | null): {
   return {
     repository,
     getFindOneOptions: () => {
-      assert.ok(findOneOptions);
+      assert.ok(findOneOptions !== undefined);
 
       return findOneOptions;
     },
