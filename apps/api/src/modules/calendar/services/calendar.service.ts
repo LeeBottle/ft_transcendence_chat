@@ -41,6 +41,10 @@ interface UpdateCalendarTaskParams {
   readonly dueAt?: string;
 }
 
+interface UpdateCalendarTaskCompletionParams {
+  readonly completed: boolean;
+}
+
 export interface CalendarTaskRepository {
   readonly create: (input: DeepPartial<CalendarTaskEntity>) => CalendarTaskEntity;
   readonly save: (task: CalendarTaskEntity) => Promise<CalendarTaskEntity>;
@@ -131,6 +135,26 @@ export class CalendarService {
 
     task.startedAt = startedAt;
     task.dueAt = dueAt;
+
+    const savedTask = await this.calendarTaskRepository.save(task);
+
+    return this.toResponse(savedTask, now);
+  }
+
+  async updateCompletion(
+    userId: string,
+    taskId: string,
+    params: UpdateCalendarTaskCompletionParams,
+    now = new Date(),
+  ): Promise<CalendarTaskResponseDto> {
+    const task = await this.findOwnedTaskOrThrow(userId, taskId);
+    const isCompleted = task.completedAt !== null;
+
+    if (params.completed === isCompleted) {
+      return this.toResponse(task, now);
+    }
+
+    task.completedAt = params.completed ? now : null;
 
     const savedTask = await this.calendarTaskRepository.save(task);
 

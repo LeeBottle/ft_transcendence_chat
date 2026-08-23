@@ -12,6 +12,7 @@ import {
   CalendarTaskResponseDto,
   CreateCalendarTaskRequestDto,
   ListCalendarTasksQueryDto,
+  UpdateCalendarTaskCompletionRequestDto,
   UpdateCalendarTaskRequestDto,
 } from './calendar.dto.js';
 
@@ -53,5 +54,14 @@ export class CalendarController {
     @Body() dto: UpdateCalendarTaskRequestDto,
   ): Promise<CalendarTaskResponseDto> {
     return await this.calendarService.update(request.user.sub, params.taskId, dto);
+  }
+
+  @Patch(':taskId/completion')
+  async updateCompletion(
+    @Req() request: AuthenticatedRequest,
+    @Param() params: CalendarTaskParamsDto,
+    @Body() dto: UpdateCalendarTaskCompletionRequestDto,
+  ): Promise<CalendarTaskResponseDto> {
+    return await this.calendarService.updateCompletion(request.user.sub, params.taskId, dto);
   }
 }
