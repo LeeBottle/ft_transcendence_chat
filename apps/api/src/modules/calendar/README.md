@@ -68,7 +68,7 @@ startedAt < to AND dueAt >= from
 | ---- | ------------------------------- | --------------- | ------ |
 | 0    | 기준선 검증                     | `pnpm validate` | 완료   |
 | 1    | 테스트 실행 기반                | Node test       | 완료   |
-| 2    | 공유 Zod 스키마                 | schema tests    | 예정   |
+| 2    | 공유 Zod 스키마                 | schema tests    | 완료   |
 | 3    | 인증 사용자 연결과 태스크 생성  | unit tests      | 예정   |
 | 4    | 기간·상태별 목록 조회           | unit tests      | 예정   |
 | 5    | 소유 태스크 단건 조회           | unit tests      | 예정   |
@@ -82,6 +82,10 @@ startedAt < to AND dueAt >= from
 Node 내장 test runner와 기존 `tsx`를 사용한다. 테스트는
 `apps/api/test/calendar`에 두며 `pnpm test`는 공유 패키지를 먼저 빌드한
 후 API 테스트를 실행한다.
+
+공유 스키마는 `@repo/schemas/calendar-task`에서 제공한다. 요청 객체는
+strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거부된다. 목록
+조회는 한 번에 최대 366일까지 허용한다.
 
 ## 6. 통합 주의사항
 

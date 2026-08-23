@@ -14,6 +14,10 @@
       "types": "./src/auth/auth.schema.ts",
       "default": "./dist/auth/auth.schema.js"
     },
+    "./calendar-task": {
+      "types": "./src/calendar/calendar-task.schema.ts",
+      "default": "./dist/calendar/calendar-task.schema.js"
+    },
     "./user": {
       "types": "./src/user/user.schema.ts",
       "default": "./dist/user/user.schema.js"
