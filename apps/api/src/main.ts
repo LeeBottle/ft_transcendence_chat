@@ -3,10 +3,10 @@ import process from 'node:process';
 
 import { NestFactory } from '@nestjs/core';
 
-import { UserModule } from './user.module.js';
+import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UserModule);
+  const app = await NestFactory.create(AppModule);
 
   // 모든 API 경로 앞에 '/api'를 강제로 붙입니다.
   app.setGlobalPrefix('api');
