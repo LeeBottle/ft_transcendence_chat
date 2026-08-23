@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 
 import type { Request } from 'express';
 
@@ -12,6 +12,7 @@ import {
   CalendarTaskResponseDto,
   CreateCalendarTaskRequestDto,
   ListCalendarTasksQueryDto,
+  UpdateCalendarTaskRequestDto,
 } from './calendar.dto.js';
 
 type AuthenticatedRequest = Request & { user: JwtPayload };
@@ -43,5 +44,14 @@ export class CalendarController {
     @Body() dto: CreateCalendarTaskRequestDto,
   ): Promise<CalendarTaskResponseDto> {
     return await this.calendarService.create(request.user.sub, dto);
+  }
+
+  @Patch(':taskId')
+  async update(
+    @Req() request: AuthenticatedRequest,
+    @Param() params: CalendarTaskParamsDto,
+    @Body() dto: UpdateCalendarTaskRequestDto,
+  ): Promise<CalendarTaskResponseDto> {
+    return await this.calendarService.update(request.user.sub, params.taskId, dto);
   }
 }

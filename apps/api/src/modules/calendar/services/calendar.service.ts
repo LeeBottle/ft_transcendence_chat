@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import {
@@ -33,6 +33,12 @@ interface ListCalendarTasksParams {
   readonly from: string;
   readonly to: string;
   readonly status?: 1 | 2 | 3;
+}
+
+interface UpdateCalendarTaskParams {
+  readonly title?: string;
+  readonly startedAt?: string;
+  readonly dueAt?: string;
 }
 
 export interface CalendarTaskRepository {
@@ -103,6 +109,32 @@ export class CalendarService {
     const task = await this.findOwnedTaskOrThrow(userId, taskId);
 
     return this.toResponse(task, now);
+  }
+
+  async update(
+    userId: string,
+    taskId: string,
+    params: UpdateCalendarTaskParams,
+    now = new Date(),
+  ): Promise<CalendarTaskResponseDto> {
+    const task = await this.findOwnedTaskOrThrow(userId, taskId);
+    const startedAt = params.startedAt === undefined ? task.startedAt : new Date(params.startedAt);
+    const dueAt = params.dueAt === undefined ? task.dueAt : new Date(params.dueAt);
+
+    if (dueAt < startedAt) {
+      throw new BadRequestException('마감 시각은 시작 시각보다 빠를 수 없습니다.');
+    }
+
+    if (params.title !== undefined) {
+      task.title = params.title;
+    }
+
+    task.startedAt = startedAt;
+    task.dueAt = dueAt;
+
+    const savedTask = await this.calendarTaskRepository.save(task);
+
+    return this.toResponse(savedTask, now);
   }
 
   private async findOwnedTaskOrThrow(userId: string, taskId: string): Promise<CalendarTaskEntity> {

@@ -72,7 +72,7 @@ startedAt < to AND dueAt >= from
 | 3    | 인증 사용자 연결과 태스크 생성  | unit tests      | 완료   |
 | 4    | 기간·상태별 목록 조회           | unit tests      | 완료   |
 | 5    | 소유 태스크 단건 조회           | unit tests      | 완료   |
-| 6    | 제목·시간 수정                  | unit tests      | 예정   |
+| 6    | 제목·시간 수정                  | unit tests      | 완료   |
 | 7    | 완료 및 완료 취소               | unit tests      | 예정   |
 | 8    | soft delete                     | unit tests      | 예정   |
 | 9    | 전체 타입·린트·포맷·빌드·테스트 | full validation | 예정   |
