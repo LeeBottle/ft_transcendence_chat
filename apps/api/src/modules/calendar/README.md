@@ -75,7 +75,8 @@ startedAt < to AND dueAt >= from
 | 6    | 제목·시간 수정                  | unit tests      | 완료   |
 | 7    | 완료 및 완료 취소               | unit tests      | 완료   |
 | 8    | soft delete                     | unit tests      | 완료   |
-| 9    | 전체 타입·린트·포맷·빌드·테스트 | full validation | 예정   |
+| 9    | 기간 조회용 복합 인덱스         | migration test  | 완료   |
+| 10   | 전체 타입·린트·포맷·빌드·테스트 | full validation | 예정   |
 
 기준선인 `dummy` 커밋 `7a3ee70`에서 `pnpm validate`가 통과했다.
 
@@ -86,6 +87,11 @@ Node 내장 test runner와 기존 `tsx`를 사용한다. 테스트는
 공유 스키마는 `@repo/schemas/calendar-task`에서 제공한다. 요청 객체는
 strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거부된다. 목록
 조회는 한 번에 최대 366일까지 허용한다.
+
+기간 목록 조회는 TypeORM이 자동으로 붙이는 `deletedAt IS NULL`까지
+포함하여 `userId, deletedAt, startedAt, dueAt` 순서의 복합 인덱스를
+사용한다. 기존 초기 마이그레이션을 고치지 않고 별도 추가
+마이그레이션으로 적용한다.
 
 ## 6. 통합 주의사항
 
