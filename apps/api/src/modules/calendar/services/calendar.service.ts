@@ -48,6 +48,7 @@ interface UpdateCalendarTaskCompletionParams {
 export interface CalendarTaskRepository {
   readonly create: (input: DeepPartial<CalendarTaskEntity>) => CalendarTaskEntity;
   readonly save: (task: CalendarTaskEntity) => Promise<CalendarTaskEntity>;
+  readonly softRemove: (task: CalendarTaskEntity) => Promise<CalendarTaskEntity>;
   readonly find: (options: FindManyOptions<CalendarTaskEntity>) => Promise<CalendarTaskEntity[]>;
   readonly findOne: (
     options: FindOneOptions<CalendarTaskEntity>,
@@ -159,6 +160,12 @@ export class CalendarService {
     const savedTask = await this.calendarTaskRepository.save(task);
 
     return this.toResponse(savedTask, now);
+  }
+
+  async remove(userId: string, taskId: string): Promise<void> {
+    const task = await this.findOwnedTaskOrThrow(userId, taskId);
+
+    await this.calendarTaskRepository.softRemove(task);
   }
 
   private async findOwnedTaskOrThrow(userId: string, taskId: string): Promise<CalendarTaskEntity> {

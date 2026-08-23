@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import type { Request } from 'express';
 
@@ -63,5 +76,14 @@ export class CalendarController {
     @Body() dto: UpdateCalendarTaskCompletionRequestDto,
   ): Promise<CalendarTaskResponseDto> {
     return await this.calendarService.updateCompletion(request.user.sub, params.taskId, dto);
+  }
+
+  @Delete(':taskId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @Req() request: AuthenticatedRequest,
+    @Param() params: CalendarTaskParamsDto,
+  ): Promise<void> {
+    await this.calendarService.remove(request.user.sub, params.taskId);
   }
 }

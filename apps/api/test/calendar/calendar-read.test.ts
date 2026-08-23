@@ -33,6 +33,7 @@ function createRepository(foundTask: CalendarTaskEntity | null): {
       throw new Error('Unexpected create call');
     },
     save: async (task) => await Promise.resolve(task),
+    softRemove: async (task) => await Promise.resolve(task),
     find: async () => await Promise.resolve([]),
     findOne: async (options) => {
       findOneOptions = options;

@@ -35,6 +35,7 @@ void describe('CalendarService.create', () => {
       save: async (task) => {
         return await Promise.resolve(Object.assign(new CalendarTaskEntity(), task, { id: '7' }));
       },
+      softRemove: async (task) => await Promise.resolve(task),
       find: async () => await Promise.resolve([]),
       findOne: async () => await Promise.resolve(null),
     };

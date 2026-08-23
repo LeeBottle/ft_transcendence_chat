@@ -35,6 +35,7 @@ function createRepository(task: CalendarTaskEntity): {
 
       return await Promise.resolve(target);
     },
+    softRemove: async (target) => await Promise.resolve(target),
     find: async () => await Promise.resolve([]),
     findOne: async () => await Promise.resolve(task),
   };
