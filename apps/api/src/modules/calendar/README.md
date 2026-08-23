@@ -67,7 +67,7 @@ startedAt < to AND dueAt >= from
 | Unit | Implementation                  | Automated check | Status |
 | ---- | ------------------------------- | --------------- | ------ |
 | 0    | 기준선 검증                     | `pnpm validate` | 완료   |
-| 1    | 테스트 실행 기반                | Node test       | 예정   |
+| 1    | 테스트 실행 기반                | Node test       | 완료   |
 | 2    | 공유 Zod 스키마                 | schema tests    | 예정   |
 | 3    | 인증 사용자 연결과 태스크 생성  | unit tests      | 예정   |
 | 4    | 기간·상태별 목록 조회           | unit tests      | 예정   |
@@ -78,6 +78,10 @@ startedAt < to AND dueAt >= from
 | 9    | 전체 타입·린트·포맷·빌드·테스트 | full validation | 예정   |
 
 기준선인 `dummy` 커밋 `7a3ee70`에서 `pnpm validate`가 통과했다.
+
+Node 내장 test runner와 기존 `tsx`를 사용한다. 테스트는
+`apps/api/test/calendar`에 두며 `pnpm test`는 공유 패키지를 먼저 빌드한
+후 API 테스트를 실행한다.
 
 ## 6. 통합 주의사항
 

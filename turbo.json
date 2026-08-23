@@ -20,6 +20,11 @@
       ],
       "outputs": []
     },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "test/**/*.ts"],
+      "outputs": []
+    },
 
     "//#_lint:root": {
       "inputs": [
