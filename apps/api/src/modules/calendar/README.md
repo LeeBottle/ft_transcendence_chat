@@ -40,7 +40,11 @@
 사용자의 JWT `sub`에서 읽고, 서비스의 모든 조회·수정·삭제는
 `taskId + userId` 조건을 함께 사용한다. 존재하지 않는 태스크와 다른
 사용자의 태스크는 모두 `404`로 응답하여 리소스 존재 여부를 노출하지
-않는다.
+않는다. 모든 요청에는 로그인 응답으로 받은 토큰을 다음처럼 보낸다.
+
+```http
+Authorization: Bearer <accessToken>
+```
 
 ## 4. 시간과 상태 규칙
 
@@ -59,8 +63,10 @@ startedAt < to AND dueAt >= from
   - `PENDING(1)`: 미완료이고 `startedAt > now`
   - `IN_PROGRESS(2)`: 미완료이고 `startedAt <= now`
   - `COMPLETED(3)`: `completedAt`이 존재함
-- 완료 요청은 `{ "completed": true }`만 받고 완료 시각은 서버가
-  기록한다.
+- 완료·재개 요청은 `{ "completed": true }` 또는
+  `{ "completed": false }`만 받고 완료 시각은 서버가 기록한다.
+- 동일한 완료 상태를 다시 요청하면 DB를 다시 쓰지 않으며, 기존 완료
+  시각도 유지한다.
 
 ## 5. 구현 및 검증 기록
 
@@ -76,7 +82,7 @@ startedAt < to AND dueAt >= from
 | 7    | 완료 및 완료 취소               | unit tests      | 완료   |
 | 8    | soft delete                     | unit tests      | 완료   |
 | 9    | 기간 조회용 복합 인덱스         | migration test  | 완료   |
-| 10   | 전체 타입·린트·포맷·빌드·테스트 | full validation | 예정   |
+| 10   | 전체 타입·린트·포맷·빌드·테스트 | full validation | 완료   |
 
 기준선인 `dummy` 커밋 `7a3ee70`에서 `pnpm validate`가 통과했다.
 
@@ -93,22 +99,48 @@ strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거�
 사용한다. 기존 초기 마이그레이션을 고치지 않고 별도 추가
 마이그레이션으로 적용한다.
 
-## 6. 통합 주의사항
+최종 검증 결과는 다음과 같다.
+
+- `pnpm test`: 테스트 20개 모두 통과
+- `pnpm validate`: 타입·린트·포맷 작업 16개 모두 통과
+- `pnpm build`: API와 웹을 포함한 빌드 작업 4개 모두 통과
+- `git diff --check`: 공백 오류 없음
+
+## 6. 리뷰 순서
+
+1. `packages/schemas/src/calendar/calendar-task.schema.ts`에서 요청과
+   응답 경계를 확인한다.
+2. `controllers/calendar.controller.ts`에서 HTTP 경로와 JWT 사용자
+   연결을 확인한다.
+3. `services/calendar.service.ts`에서 소유권, 조회 범위, 상태 계산과
+   CRUD 규칙을 확인한다.
+4. `apps/api/test/calendar`에서 각 규칙의 독립 테스트를 확인한다.
+5. `1787482676410-AddCalendarTaskRangeIndex.ts`에서 기간 조회 인덱스의
+   적용과 롤백 SQL을 확인한다.
+
+커밋별 변경은 다음 명령으로 오래된 순서부터 볼 수 있다.
+
+```bash
+git log --reverse --oneline dummy..calendar_module
+```
+
+## 7. 통합 주의사항
 
 - 현재 기준 브랜치의 JWT guard와 strategy는 파일만 있고 로그인 토큰 발급
   및 모듈 등록이 빠져 있었다. 캘린더 소유권 검증에 필요하므로 기존
   Bearer JWT strategy를 등록하고 로그인 응답에서 `accessToken`을
   발급하도록 별도 `api/auth` 커밋으로 연결했다.
-- 기존 초기 마이그레이션에는 캘린더와 무관한 chat 테이블 불일치가 있어
-  빈 DB 전체 마이그레이션 검증이 실패할 수 있다. 기존 마이그레이션은 이
-  브랜치에서 수정하지 않는다.
+- 기존 초기 마이그레이션에는 캘린더와 무관한 chat 테이블 불일치가 있다.
+  따라서 빈 DB에서 전체 마이그레이션을 실행하는 통합 검증은 이번 결과에
+  포함하지 않았고, 새 인덱스 마이그레이션의 적용·롤백 SQL을 단위
+  테스트했다. 기존 마이그레이션은 이 브랜치에서 수정하지 않는다.
 - 알림 모듈은 캘린더 저장 트랜잭션 안에서 직접 호출하지 않는다. 알림
   계약이 정해지면 생성·수정·완료·삭제 후 도메인 이벤트를 발행하는
   방식으로 연결한다.
 - 채팅 모듈은 `calendar_tasks`를 참조하지만 캘린더 모듈은 채팅 엔티티를
   참조하지 않는다. 이 단방향을 유지한다.
 
-## 7. 로컬 검증 명령
+## 8. 로컬 검증 명령
 
 ```bash
 pnpm test
