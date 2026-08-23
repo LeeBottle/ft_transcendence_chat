@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 
 import type { Request } from 'express';
 
@@ -8,6 +8,7 @@ import { CalendarService } from '#modules/calendar/services/calendar.service.js'
 
 import {
   CalendarTaskListResponseDto,
+  CalendarTaskParamsDto,
   CalendarTaskResponseDto,
   CreateCalendarTaskRequestDto,
   ListCalendarTasksQueryDto,
@@ -26,6 +27,14 @@ export class CalendarController {
     @Query() query: ListCalendarTasksQueryDto,
   ): Promise<CalendarTaskListResponseDto> {
     return await this.calendarService.findAll(request.user.sub, query);
+  }
+
+  @Get(':taskId')
+  async findOne(
+    @Req() request: AuthenticatedRequest,
+    @Param() params: CalendarTaskParamsDto,
+  ): Promise<CalendarTaskResponseDto> {
+    return await this.calendarService.findOne(request.user.sub, params.taskId);
   }
 
   @Post()

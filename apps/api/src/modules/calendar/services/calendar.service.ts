@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import {
@@ -11,6 +11,7 @@ import {
   Not,
   type DeepPartial,
   type FindManyOptions,
+  type FindOneOptions,
   type FindOptionsWhere,
 } from 'typeorm';
 
@@ -38,6 +39,9 @@ export interface CalendarTaskRepository {
   readonly create: (input: DeepPartial<CalendarTaskEntity>) => CalendarTaskEntity;
   readonly save: (task: CalendarTaskEntity) => Promise<CalendarTaskEntity>;
   readonly find: (options: FindManyOptions<CalendarTaskEntity>) => Promise<CalendarTaskEntity[]>;
+  readonly findOne: (
+    options: FindOneOptions<CalendarTaskEntity>,
+  ) => Promise<CalendarTaskEntity | null>;
 }
 
 @Injectable()
@@ -89,6 +93,26 @@ export class CalendarService {
     });
 
     return tasks.map((task) => this.toResponse(task, now));
+  }
+
+  async findOne(
+    userId: string,
+    taskId: string,
+    now = new Date(),
+  ): Promise<CalendarTaskResponseDto> {
+    const task = await this.findOwnedTaskOrThrow(userId, taskId);
+
+    return this.toResponse(task, now);
+  }
+
+  private async findOwnedTaskOrThrow(userId: string, taskId: string): Promise<CalendarTaskEntity> {
+    const task = await this.calendarTaskRepository.findOne({ where: { id: taskId, userId } });
+
+    if (task === null) {
+      throw new NotFoundException('캘린더 태스크를 찾을 수 없습니다.');
+    }
+
+    return task;
   }
 
   private toResponse(task: CalendarTaskEntity, now = new Date()): CalendarTaskResponseDto {

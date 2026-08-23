@@ -42,6 +42,7 @@ function createRepository(tasks: CalendarTaskEntity[]): {
 
       return await Promise.resolve(tasks);
     },
+    findOne: async () => await Promise.resolve(null),
   };
 
   return {
