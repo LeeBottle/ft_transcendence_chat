@@ -7,6 +7,7 @@ import type { MysqlDataSourceOptions } from 'typeorm/driver/mysql/MysqlDataSourc
 import { resolveFromProjectRoot } from '#common/utils/project-root.util.js';
 import type { NodeEnv } from '#config/api-env.schema.js';
 import { dbEnv } from '#config/database-env.schema.js';
+import { entities } from './data-source-entities.js';
 
 /**
  * Mysql2 패키지 전용 속성들만 가지는 타입.\
@@ -52,7 +53,7 @@ export const dataSourceOptions = {
   charset: dbEnv.DB_COLLATION,
   timezone: 'Z', // UTC
 
-  entities: [resolveFromProjectRoot('src/modules/**/*.entity.{ts,js}')],
+  entities,
   migrations: [
     resolveFromProjectRoot(
       isTsExecution ? 'src/database/migrations/*.ts' : 'dist/database/migrations/*.js',
