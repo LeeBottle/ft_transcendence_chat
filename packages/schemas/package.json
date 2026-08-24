@@ -19,6 +19,9 @@
       "default": "./dist/user/user.schema.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "check-types": "tsc --noEmit",
