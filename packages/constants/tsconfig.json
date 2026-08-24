@@ -1,0 +1,9 @@
+{
+  "extends": "@repo/typescript-config/internal-library",
+  "include": ["src", "tsup.config.ts"],
+
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo"
+  }
+}

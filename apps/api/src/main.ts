@@ -1,28 +1,40 @@
-// apps/api/src/main.ts
-import process from 'node:process';
-
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
-import { UserModule } from './user.module.js';
+import { AppModule } from './app.module.js';
+
+import type { ApiEnv } from './config/api-env.schema.js';
+import { ApiEnvError } from './config/exceptions/environment-validation.error.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UserModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const configService = app.get<ConfigService<ApiEnv, true>>(ConfigService);
 
-  // 모든 API 경로 앞에 '/api'를 강제로 붙입니다.
-  app.setGlobalPrefix('api');
+  const clientUrl = configService.getOrThrow('CLIENT_URL', { infer: true });
 
   app.enableCors({
-    origin: process.env.CLIENT_URL ?? 'http://localhost:3001',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: clientUrl,
     credentials: true,
+    maxAge: 86400,
   });
+  app.setGlobalPrefix('api');
+  app.enableShutdownHooks();
 
-  await app.listen(process.env.PORT ?? 3000);
+  app.set('trust proxy', 1);
+
+  const apiPort = configService.getOrThrow('API_PORT', { infer: true });
+
+  await app.listen(apiPort);
 }
 
-// 명시적인 예외 처리 체이닝 및 직관적인 에러 로깅
 bootstrap().catch((error: unknown) => {
-  console.error('NestJS Application failed to bootstrap:', error);
-  // 에러 발생 시 Node.js 프로세스를 명시적으로 비정상 종료시킴
+  console.error('### NestJS Application failed to bootstrap');
+  if (error instanceof ApiEnvError) {
+    console.error(error.toString());
+  } else {
+    console.error(error);
+  }
+
   process.exit(1);
 });
