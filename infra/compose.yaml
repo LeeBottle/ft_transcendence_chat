@@ -1,0 +1,99 @@
+name: ft_transcendence
+
+x-logging: &default-logging # 디스크 용량 고갈 방지 (Log Rotation)
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  chat-store:
+    image: redis:7.4.2-alpine
+    restart: unless-stopped
+
+    # 컨테이너 종료 시 AOF 플러시 완료를 기다려주는 안전 유예 시간
+    stop_grace_period: 20s
+
+    environment:
+      - CHAT_STORE_PASSWORD=${CHAT_STORE_PASSWORD}
+    command:
+      ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${CHAT_STORE_PASSWORD}"]
+    volumes:
+      - ./redis/chat-store.conf:/usr/local/etc/redis/redis.conf:ro
+      - chat-store-data:/data:rw
+    networks:
+      - internal-network
+
+    # maxclients 10000을 온전히 수용하기 위한 소켓 파일 디스크립터 확장
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'REDISCLI_AUTH="$$CHAT_STORE_PASSWORD" redis-cli ping | grep PONG || exit 1']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1.8G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    stop_grace_period: 1m # 정상 종료(Graceful Shutdown) 보장 시간 확대
+    # 호스트 머신(NestJS)에서 접근할 수 있도록 포트 개방
+    ports:
+      - "3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=60
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_SCHEMA_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: UTC
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - internal-network
+    healthcheck:
+      test:
+        ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *default-logging
+    # 리소스 점유 상한선 제어 (OOM 방어)
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1024M
+        reservations:
+          memory: 256M
+
+volumes:
+  mysql-data:
+    driver: local
+  chat-store-data:
+    driver: local
+
+# internal-network는 프로덕션 환경에서는 `internal: true` 옵션 활성화하여 외부 접근 차단 필수
+networks:
+  internal-network:
+    driver: bridge
