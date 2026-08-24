@@ -27,7 +27,7 @@ const apiEnvSchema = z
   .object({
     NODE_ENV: nodeEnvSchema,
 
-    API_PORT: createPortSchema({ default: 4000 }),
+    PORT: createPortSchema({ default: 4000 }),
     CLIENT_URL: z.url({ protocol: /^https?$/ }).default('http://localhost:3000'),
     UPLOAD_BASE_DIR: z.string().min(1).default('uploads'),
 
