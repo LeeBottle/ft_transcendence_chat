@@ -16,7 +16,7 @@ export default {
     'prettier-plugin-sql',
     'prettier-plugin-packagejson',
     'prettier-plugin-sh',
-    'prettier-plugin-jsdoc',
+    // 'prettier-plugin-jsdoc',
     'prettier-plugin-tailwindcss', // 활성화 시 반드시 배열의 최하단(마지막)에 위치해야 함
   ],
 
@@ -64,9 +64,9 @@ export default {
   dataTypeCase: 'upper',
   functionCase: 'upper',
 
-  tsdoc: true,
-  jsdocPreferCodeFences: true,
-  jsdocSeparateReturnsFromParam: true,
+  // tsdoc: true,
+  // jsdocPreferCodeFences: true,
+  // jsdocSeparateReturnsFromParam: true,
 
   overrides: [
     {
