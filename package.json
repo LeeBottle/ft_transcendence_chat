@@ -16,6 +16,7 @@
     "fix": "turbo run //#_lint:root:fix lint:fix && turbo run //#_format:write",
     "format": "turbo run //#_format:check",
     "lint": "turbo run //#_lint:root lint",
+    "prepare": "husky",
     "validate": "turbo run check-types //#_lint:root lint //#_format:check",
     "vscode:merge-settings": "node ./scripts/merge-vscode-settings.js"
   },
