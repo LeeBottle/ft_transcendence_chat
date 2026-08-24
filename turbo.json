@@ -4,7 +4,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["NODE_ENV", "API_URL", "CLIENT_URL", "PORT"],
+      "env": ["NODE_ENV", "NEXT_PUBLIC_*"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },

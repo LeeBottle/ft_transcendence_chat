@@ -3,7 +3,6 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module.js';
-
 import type { ApiEnv } from './config/api-env.schema.js';
 import { ApiEnvError } from './config/exceptions/environment-validation.error.js';
 
