@@ -15,11 +15,16 @@
   "editor.tabSize": 2,
   "editor.stickyTabStops": true,
 
-  "[makefile]": { "editor.insertSpaces": false, "editor.tabSize": 4 },
-
   "files.eol": "\n",
   "files.insertFinalNewline": true,
-  "files.associations": { "**/.env": "dotenv", "**/.env.*": "dotenv" },
+  "files.associations": {
+    "**/.env": "dotenv",
+    "**/.env.*": "dotenv",
+    "./infra/nginx/**/*.conf": "nginx"
+  },
+
+  "[nginx]": { "editor.tabSize": 4 },
+  "[makefile]": { "editor.insertSpaces": false, "editor.tabSize": 4 },
 
   "html.format.enable": false,
   "css.validate": false,
