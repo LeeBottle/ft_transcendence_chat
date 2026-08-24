@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*": "./*"
+  },
   "scripts": {
     "build": "next build",
     "check-types": "next typegen && tsc --noEmit",
-    "dev": "wait-on tcp:3000 -t 30000 && next dev --turbopack --port 3001",
+    "dev": "wait-on tcp:4000 -t 30000 && dotenv -e ../../infra/.env.web -- next dev --turbopack -p 3000",
     "lint": "eslint \"*.{js,json}\" \"app/**/*.tsx\"",
     "lint:fix": "eslint --fix \"*.{js,json}\" \"app/**/*.tsx\"",
-    "start": "next start"
+    "start": "NODE_OPTIONS=--enable-source-maps dotenv -e ../../infra/.env.web -- next start"
   },
   "dependencies": {
     "next": "16.2.0",
@@ -24,7 +27,6 @@
     "@types/react-dom": "19.2.2",
     "dotenv-cli": "^11.0.0",
     "eslint": "catalog:",
-    "nodemon": "^3.1.14",
     "typescript": "catalog:",
     "wait-on": "^9.0.10"
   }
