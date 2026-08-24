@@ -1,7 +1,7 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialSchema1787523086779 implements MigrationInterface {
-  name = 'InitialSchema1787523086779';
+export class InitialSchema1787551378141 implements MigrationInterface {
+  name = 'InitialSchema1787551378141';
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
@@ -92,7 +92,7 @@ export class InitialSchema1787523086779 implements MigrationInterface {
     await queryRunner.query(
       /* sql */ `
         INSERT INTO
-          \`app_production\`.\`typeorm_metadata\` (
+          \`typeorm_metadata\` (
             \`database\`,
             \`schema\`,
             \`table\`,
@@ -101,15 +101,9 @@ export class InitialSchema1787523086779 implements MigrationInterface {
             \`value\`
           )
         VALUES
-          (DEFAULT, ?, ?, ?, ?, ?)
+          (DEFAULT, DATABASE(), ?, ?, ?, ?)
       `,
-      [
-        'app_production',
-        'chat_room_members',
-        'GENERATED_COLUMN',
-        'is_owner',
-        "IF(`role` = 'OWNER', 1, NULL)",
-      ],
+      ['chat_room_members', 'GENERATED_COLUMN', 'is_owner', "IF(`role` = 'OWNER', 1, NULL)"],
     );
     await queryRunner.query(/* sql */ `
       CREATE TABLE \`chat_room_messages\` (
@@ -266,14 +260,14 @@ export class InitialSchema1787523086779 implements MigrationInterface {
     await queryRunner.query(/* sql */ `DROP TABLE \`chat_room_messages\``);
     await queryRunner.query(
       /* sql */ `
-        DELETE FROM \`app_production\`.\`typeorm_metadata\`
+        DELETE FROM \`typeorm_metadata\`
         WHERE
           \`type\` = ?
           AND \`name\` = ?
-          AND \`schema\` = ?
+          AND \`schema\` = DATABASE()
           AND \`table\` = ?
       `,
-      ['GENERATED_COLUMN', 'is_owner', 'app_production', 'chat_room_members'],
+      ['GENERATED_COLUMN', 'is_owner', 'chat_room_members'],
     );
     await queryRunner.query(/* sql */ `
       DROP INDEX \`uq_chat_room_members_chat_room_id_user_id\` ON \`chat_room_members\`
