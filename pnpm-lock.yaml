@@ -110,6 +110,9 @@ importers:
       '@repo/constants':
         specifier: workspace:*
         version: link:../../packages/constants
+      '@repo/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -328,6 +331,34 @@ importers:
       typescript-eslint:
         specifier: ^8.56.0
         version: 8.67.0(eslint@9.39.5(jiti@2.6.1)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.3)
+
+  packages/schemas:
+    dependencies:
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@repo/build-tools':
+        specifier: workspace:*
+        version: link:../build-tools
+      '@repo/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.5(jiti@2.6.1)(supports-color@8.1.1)
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(@swc/core@1.16.1)(jiti@2.6.1)(postcss@8.4.31)(supports-color@8.1.1)(tsx@4.23.12)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   packages/typescript-config:
     devDependencies:

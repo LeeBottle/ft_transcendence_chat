@@ -1,0 +1,41 @@
+{
+  "name": "@repo/schemas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#*.js": {
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "exports": {
+    "./auth": {
+      "types": "./src/auth/auth.schema.ts",
+      "default": "./dist/auth/auth.schema.js"
+    },
+    "./user": {
+      "types": "./src/user/user.schema.ts",
+      "default": "./dist/user/user.schema.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "check-types": "tsc --noEmit",
+    "dev": "tsup --watch",
+    "lint": "eslint \"*.{js,ts,json}\" \"src/**/*.ts\"",
+    "lint:fix": "eslint --fix \"*.{js,ts,json}\" \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/build-tools": "workspace:*",
+    "@repo/constants": "workspace:*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:"
+  }
+}
