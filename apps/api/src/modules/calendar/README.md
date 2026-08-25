@@ -115,7 +115,7 @@ strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거�
 3. `services/calendar.service.ts`에서 소유권, 조회 범위, 상태 계산과
    CRUD 규칙을 확인한다.
 4. `apps/api/test/calendar`에서 각 규칙의 독립 테스트를 확인한다.
-5. `1787482676410-AddCalendarTaskRangeIndex.ts`에서 기간 조회 인덱스의
+5. `1787564726192-AddCalendarTaskRangeIndex.ts`에서 기간 조회 인덱스의
    적용과 롤백 SQL을 확인한다.
 
 커밋별 변경은 다음 명령으로 오래된 순서부터 볼 수 있다.

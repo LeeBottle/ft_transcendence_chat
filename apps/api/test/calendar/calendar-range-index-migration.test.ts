@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
-  AddCalendarTaskRangeIndex1787482676410,
+  AddCalendarTaskRangeIndex1787564726192,
   type SqlQueryRunner,
-} from '#database/migrations/1787482676410-AddCalendarTaskRangeIndex.js';
+} from '#database/migrations/1787564726192-AddCalendarTaskRangeIndex.js';
 
 function createQueryRunner(queries: string[]): SqlQueryRunner {
   const queryRunner: SqlQueryRunner = {
@@ -21,7 +21,7 @@ function createQueryRunner(queries: string[]): SqlQueryRunner {
 void describe('AddCalendarTaskRangeIndex migration', () => {
   void it('creates and removes the owner-scoped active range index', async () => {
     const queries: string[] = [];
-    const migration = new AddCalendarTaskRangeIndex1787482676410();
+    const migration = new AddCalendarTaskRangeIndex1787564726192();
     const queryRunner = createQueryRunner(queries);
 
     await migration.up(queryRunner);

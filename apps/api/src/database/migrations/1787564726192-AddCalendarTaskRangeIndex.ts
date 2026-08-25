@@ -4,8 +4,8 @@ export interface SqlQueryRunner {
   readonly query: (query: string) => Promise<unknown>;
 }
 
-export class AddCalendarTaskRangeIndex1787482676410 implements MigrationInterface {
-  name = 'AddCalendarTaskRangeIndex1787482676410';
+export class AddCalendarTaskRangeIndex1787564726192 implements MigrationInterface {
+  name = 'AddCalendarTaskRangeIndex1787564726192';
 
   async up(queryRunner: SqlQueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
