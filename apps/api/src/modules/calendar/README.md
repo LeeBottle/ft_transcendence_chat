@@ -51,13 +51,16 @@ Authorization: Bearer <accessToken>
 - API 입력은 시간대가 포함된 ISO 8601 문자열만 허용한다.
 - DB 연결은 UTC이며 응답 시각은 `toISOString()`을 사용한 UTC 문자열이다.
 - `dueAt`은 `startedAt`보다 빠를 수 없다.
-- 목록 범위는 반열린 구간 `[from, to)`이고, 다음 조건으로 겹치는 일정을
-  조회한다.
+- 목록의 조회 범위는 `[from, to)`이며 조회 종료 시각 `to`는 포함하지
+  않는다. 태스크 마감 시각 `dueAt`은 포함하므로 다음 조건으로 겹치는
+  일정을 조회한다.
 
 ```text
 startedAt < to AND dueAt >= from
 ```
 
+- 따라서 `startedAt === to`인 태스크는 제외하고, `dueAt === from`인
+  태스크는 포함한다.
 - 정렬은 `startedAt ASC, id ASC`로 고정한다.
 - 상태는 DB 컬럼이 아니라 조회 시각을 기준으로 계산한다.
   - `PENDING(1)`: 미완료이고 `startedAt > now`
@@ -70,21 +73,24 @@ startedAt < to AND dueAt >= from
 
 ## 5. 구현 및 검증 기록
 
-| Unit | Implementation                  | Automated check | Status |
-| ---- | ------------------------------- | --------------- | ------ |
-| 0    | 기준선 검증                     | `pnpm validate` | 완료   |
-| 1    | 테스트 실행 기반                | Node test       | 완료   |
-| 2    | 공유 Zod 스키마                 | schema tests    | 완료   |
-| 3    | 인증 사용자 연결과 태스크 생성  | unit tests      | 완료   |
-| 4    | 기간·상태별 목록 조회           | unit tests      | 완료   |
-| 5    | 소유 태스크 단건 조회           | unit tests      | 완료   |
-| 6    | 제목·시간 수정                  | unit tests      | 완료   |
-| 7    | 완료 및 완료 취소               | unit tests      | 완료   |
-| 8    | soft delete                     | unit tests      | 완료   |
-| 9    | 기간 조회용 복합 인덱스         | migration test  | 완료   |
-| 10   | 전체 타입·린트·포맷·빌드·테스트 | full validation | 완료   |
+| Unit | Implementation                   | Check                | Status |
+| ---- | -------------------------------- | -------------------- | ------ |
+| 1    | 계획과 API 계약                  | Markdown format      | 완료   |
+| 2    | Node 테스트 실행 기반            | test pipeline        | 완료   |
+| 3    | 공유 Zod 요청·응답 스키마        | schema tests         | 완료   |
+| 4    | Bearer JWT 인증 기반             | auth tests           | 완료   |
+| 5    | 인증 사용자 태스크 생성          | service tests        | 완료   |
+| 6    | 기간·상태별 목록 조회            | service tests        | 완료   |
+| 7    | 소유 태스크 단건 조회            | service tests        | 완료   |
+| 8    | 제목·시간 수정                   | service tests        | 완료   |
+| 9    | 완료 및 완료 취소                | service tests        | 완료   |
+| 10   | soft delete                      | service tests        | 완료   |
+| 11   | 기간 조회용 복합 인덱스          | migration test       | 완료   |
+| 12   | nullable 단언의 엄격한 검사 전환 | test/type validation | 완료   |
+| 13   | 최신 main 통합과 검증 기록       | full validation      | 완료   |
 
-기준선인 `dummy` 커밋 `7a3ee70`에서 `pnpm validate`가 통과했다.
+통합 기준선은 PR #10이 병합된 `origin/main`의 `7fc33c2`다. 캘린더 커밋은
+이 기준선 바로 위에 기능 단위로 재배치했다.
 
 Node 내장 test runner와 기존 `tsx`를 사용한다. 테스트는
 `apps/api/test/calendar`에 두며 `pnpm test`는 공유 패키지를 먼저 빌드한
@@ -97,14 +103,41 @@ strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거�
 기간 목록 조회는 TypeORM이 자동으로 붙이는 `deletedAt IS NULL`까지
 포함하여 `userId, deletedAt, startedAt, dueAt` 순서의 복합 인덱스를
 사용한다. 기존 초기 마이그레이션을 고치지 않고 별도 추가
-마이그레이션으로 적용한다.
+마이그레이션으로 적용하며, 최신 main의 초기 마이그레이션 두 개보다 늦게
+실행된다.
+
+### 5.1 전체 자동 검증
 
 최종 검증 결과는 다음과 같다.
 
 - `pnpm test`: 테스트 20개 모두 통과
 - `pnpm validate`: 타입·린트·포맷 작업 16개 모두 통과
 - `pnpm build`: API와 웹을 포함한 빌드 작업 4개 모두 통과
+- `pnpm exec commitlint --from origin/main --to HEAD`: 커밋 메시지 규칙
+  통과
 - `git diff --check`: 공백 오류 없음
+
+`pnpm validate`와 `pnpm build`는 Next의 `.next` 산출물을 동시에 쓰지
+않도록 순서대로 실행한다.
+
+### 5.2 실제 MySQL 및 HTTP 통합 검증
+
+- `infra/.env.database`가 지정한 별도 로컬 `app_production` 스키마를
+  사용해 기존 `app_development` 데이터는 수정하지 않았다.
+- 최신 main의 `InitialSchema1787551378141`,
+  `AddInitialCheckConstraints1787551480827`와 캘린더의
+  `AddCalendarTaskRangeIndex1787564726192`를 빈 DB에 순서대로 적용했다.
+- TypeORM 이력 3개가 모두 완료 상태이고,
+  `idx_calendar_tasks_user_deleted_started_due`가
+  `(user_id, deleted_at, started_at, due_at)` 순서로 생성된 것을
+  확인했다.
+- Nest API를 기동해 무인증 목록 `401`, 생성 `201`, 목록·단건·수정·완료
+  `200`, 삭제 `204`, 삭제 후 조회 `404`를 확인했다.
+- 삭제 후 `deleted_at` 저장까지 확인했으며, 스모크 테스트 사용자와
+  태스크는 테스트 종료 시 제거했다.
+- 현재 WSL에는 Docker가 설치되어 있지 않아 Compose와 Redis 컨테이너
+  기동은 실행하지 못했다. DB 검증은 실행 중이던 로컬 MySQL을 사용했으며
+  캘린더 모듈 자체는 Redis에 의존하지 않는다.
 
 ## 6. 리뷰 순서
 
@@ -121,30 +154,71 @@ strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거�
 커밋별 변경은 다음 명령으로 오래된 순서부터 볼 수 있다.
 
 ```bash
-git log --reverse --oneline dummy..calendar_module
+git log --reverse --oneline origin/main..calendar_module
 ```
 
-## 7. 통합 주의사항
+## 7. 최신 main 통합 주의사항
 
-- 현재 기준 브랜치의 JWT guard와 strategy는 파일만 있고 로그인 토큰 발급
-  및 모듈 등록이 빠져 있었다. 캘린더 소유권 검증에 필요하므로 기존
-  Bearer JWT strategy를 등록하고 로그인 응답에서 `accessToken`을
-  발급하도록 별도 `api/auth` 커밋으로 연결했다.
-- 기존 초기 마이그레이션에는 캘린더와 무관한 chat 테이블 불일치가 있다.
-  따라서 빈 DB에서 전체 마이그레이션을 실행하는 통합 검증은 이번 결과에
-  포함하지 않았고, 새 인덱스 마이그레이션의 적용·롤백 SQL을 단위
-  테스트했다. 기존 마이그레이션은 이 브랜치에서 수정하지 않는다.
+- 최신 main의 `AppModule`과 `ChatModule` 구성을 유지한 채
+  `CalendarModule`을 함께 등록했다.
+- 최신 main에는 로그인 토큰 발급 코드가 있었지만 해당 코드가 참조하는
+  JWT guard, strategy와 `@Public()` 데코레이터 파일이 없었다. 캘린더
+  브랜치의 인증 기반 커밋 안에 이 파일들을 복원해 각 기능 커밋이
+  독립적으로 빌드되도록 정리했다.
+- `JWT_SECRET`과 `JWT_EXPIRES_IN_SECONDS`는 API 환경변수 스키마로
+  검증하며 `apps/api/.env.development.example`과
+  `infra/.env.api.example`에 계약을 반영했다. 운영 환경에서는 개발 기본
+  secret을 사용할 수 없다.
+- 최신 main의 초기 마이그레이션 파일은 수정하지 않았다. 캘린더 인덱스는
+  그 뒤에 실행되는 별도 마이그레이션이며 `down()`에서 해당 인덱스만
+  제거한다.
+- Redis는 채팅 저장소용 컨테이너 구성만 추가된 상태다. 캘린더 저장
+  경로에 Redis 클라이언트나 캐시 의존성을 추가하지 않았다.
 - 알림 모듈은 캘린더 저장 트랜잭션 안에서 직접 호출하지 않는다. 알림
   계약이 정해지면 생성·수정·완료·삭제 후 도메인 이벤트를 발행하는
   방식으로 연결한다.
 - 채팅 모듈은 `calendar_tasks`를 참조하지만 캘린더 모듈은 채팅 엔티티를
   참조하지 않는다. 이 단방향을 유지한다.
 
-## 8. 로컬 검증 명령
+## 8. 로컬 실행과 DB 초기화
+
+먼저 `infra/README.md`를 읽고 모노레포 루트에서 실행한다.
+
+```bash
+cd /home/ho/projects/ft_transcendence
+make up
+pnpm --filter=api migration:run
+pnpm dev
+```
+
+- `make` 명령은 반드시 모노레포 루트에서 실행한다.
+- 호스트 MySQL이 실행 중이면 컨테이너의 `3306` 포트와 충돌하므로
+  `infra/README.md` 지침에 따라 먼저 중지한다.
+- `make down`은 볼륨을 유지하지만 `make clean`과 `make prune`은 데이터를
+  지울 수 있으므로 명시적으로 초기화할 때만 사용한다.
+- `pnpm dev`는 API와 웹의 watch 모드를 실행해 코드 변경을 실시간
+  반영한다. 기본 포트는 API `4000`, 웹 `3000`이다.
+- 새 DB에서는 최초 한 번 마이그레이션을 실행하고, 이후 main에 새
+  마이그레이션 파일이 추가될 때마다 같은 명령을 다시 실행한다.
+
+## 9. 레포 작업 규칙과 최종 검증
+
+- 보호 브랜치인 `main`에서 직접 작업하지 않고 `calendar_module`에서만
+  작업한다.
+- 커밋 제목은 commitlint의 `type(scope): subject` 형식을 따르고 72자를
+  넘기지 않는다. 이 작업에서는 `feat`, `fix`, `perf`, `test`, `docs`와
+  등록된 `api/calendar`, `api/auth`, `api/db`, `schemas/calendar`,
+  `repo` scope만 사용한다.
+- pre-commit hook은 lint-staged로 staged 파일의 Prettier를 검사한다.
+- pre-push hook은 `pnpm turbo run check-types build`를 실행한다.
+- 모든 캘린더 커밋은 설정된 작성자와 SSH 서명으로 기록한다.
+
+최종 검증은 서로의 산출물 경합을 피하도록 다음 순서로 실행한다.
 
 ```bash
 pnpm test
 pnpm validate
 pnpm build
+pnpm exec commitlint --from origin/main --to HEAD
 git diff --check
 ```
