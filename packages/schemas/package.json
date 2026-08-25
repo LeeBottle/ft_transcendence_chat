@@ -17,6 +17,10 @@
     "./user": {
       "types": "./src/user/user.schema.ts",
       "default": "./dist/user/user.schema.js"
+    },
+    "./chat": {
+      "types": "./src/chat/index.ts",
+      "default": "./dist/chat/index.js"
     }
   },
   "scripts": {
