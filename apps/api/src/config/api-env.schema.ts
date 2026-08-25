@@ -32,6 +32,10 @@ const apiEnvSchema = z
     UPLOAD_BASE_DIR: z.string().min(1).default('uploads'),
 
     BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(4).max(12).default(10),
+
+    REDIS_HOST: z.string().min(1).default('127.0.0.1'),
+    REDIS_PORT: createPortSchema({ default: 6379 }),
+    REDIS_PASSWORD: z.string().optional().default(''),
   })
   .readonly();
 
