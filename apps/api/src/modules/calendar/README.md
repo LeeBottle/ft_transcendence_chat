@@ -88,6 +88,7 @@ startedAt < to AND dueAt >= from
 | 11   | 기간 조회용 복합 인덱스          | migration test       | 완료   |
 | 12   | nullable 단언의 엄격한 검사 전환 | test/type validation | 완료   |
 | 13   | 최신 main 통합과 검증 기록       | full validation      | 완료   |
+| 14   | Docker DB/API 스모크 자동화      | smoke test           | 완료   |
 
 통합 기준선은 PR #10이 병합된 `origin/main`의 `7fc33c2`다. 캘린더 커밋은
 이 기준선 바로 위에 기능 단위로 재배치했다.
@@ -122,22 +123,23 @@ strict 검증을 사용하므로 명세에 없는 `userId` 같은 필드는 거�
 
 ### 5.2 실제 MySQL 및 HTTP 통합 검증
 
-- `infra/.env.database`가 지정한 별도 로컬 `app_production` 스키마를
-  사용해 기존 `app_development` 데이터는 수정하지 않았다.
-- 최신 main의 `InitialSchema1787551378141`,
-  `AddInitialCheckConstraints1787551480827`와 캘린더의
-  `AddCalendarTaskRangeIndex1787564726192`를 빈 DB에 순서대로 적용했다.
-- TypeORM 이력 3개가 모두 완료 상태이고,
-  `idx_calendar_tasks_user_deleted_started_due`가
-  `(user_id, deleted_at, started_at, due_at)` 순서로 생성된 것을
-  확인했다.
-- Nest API를 기동해 무인증 목록 `401`, 생성 `201`, 목록·단건·수정·완료
-  `200`, 삭제 `204`, 삭제 후 조회 `404`를 확인했다.
-- 삭제 후 `deleted_at` 저장까지 확인했으며, 스모크 테스트 사용자와
-  태스크는 테스트 종료 시 제거했다.
-- 현재 WSL에는 Docker가 설치되어 있지 않아 Compose와 Redis 컨테이너
-  기동은 실행하지 못했다. DB 검증은 실행 중이던 로컬 MySQL을 사용했으며
-  캘린더 모듈 자체는 Redis에 의존하지 않는다.
+- WSL의 호스트 MySQL을 중지하고 Compose의 `db`와 `chat-store`를 기동해
+  두 서비스가 모두 `healthy`인 것을 확인했다.
+- Docker MySQL에 일반 애플리케이션 계정으로 연결해
+  `InitialSchema1787551378141`,
+  `AddInitialCheckConstraints1787551480827`,
+  `AddCalendarTaskRangeIndex1787564726192`가 모두 적용된 것을 확인했다.
+- `pnpm test:calendar:smoke`가 공유 패키지와 API를 먼저 빌드하고 실제
+  Nest 애플리케이션을 임시 loopback 포트에 기동하도록 자동화했다.
+- 자동 테스트에서
+  `idx_calendar_tasks_user_deleted_started_due (user_id, deleted_at, started_at, due_at)`와
+  무인증 `401`, 가입 `201`, 로그인·목록·단건·수정·완료·재개 `200`, 생성
+  `201`, 삭제 `204`, 삭제 후 조회 `404`를 확인했다.
+- 삭제 후 `deleted_at` 저장과 테스트 사용자·태스크 제거까지 확인했으며
+  테스트 2개가 모두 통과했다.
+- Redis는 Compose 인증 healthcheck 기준으로 `healthy`다. 캘린더 저장
+  경로는 Redis에 의존하지 않으므로 이번 스모크 테스트는 Redis 데이터를
+  읽거나 쓰지 않는다.
 
 ## 6. 리뷰 순서
 
@@ -222,3 +224,126 @@ pnpm build
 pnpm exec commitlint --from origin/main --to HEAD
 git diff --check
 ```
+
+## 10. Docker DB/API 스모크 테스트
+
+`apps/api/test/calendar/calendar-db-api.smoke.ts`는 실제 Docker MySQL과
+Nest HTTP 경로를 함께 검증하는 로컬 통합 테스트다. 일반 단위 테스트와
+분리되어 있으므로 `pnpm test`에는 자동으로 포함되지 않는다.
+
+### 10.1 사전 조건
+
+실제 값이 작성된 다음 파일이 필요하다. `.example` 파일은 형식 설명용이며
+비밀값을 작성하거나 커밋하지 않는다.
+
+- `infra/.env.database`
+- `infra/.env.api`
+- `apps/api/.env.development`
+
+호스트 MySQL이 `3306` 포트를 사용 중이면 중지하고, 모노레포 루트에서
+Compose와 마이그레이션을 준비한다.
+
+```bash
+cd /home/ho/projects/ft_transcendence
+sudo systemctl stop mysql
+make up
+make ps
+pnpm --filter=api migration:run
+```
+
+`make ps`에서 `db`와 `chat-store`가 모두 `healthy`여야 한다.
+`migration:run`이 `No migrations are pending`을 출력하는 것은 필요한
+마이그레이션이 이미 모두 적용됐다는 뜻이므로 정상이다.
+
+### 10.2 실행 방법
+
+모노레포 루트에서 다음 한 줄을 실행한다.
+
+```bash
+pnpm test:calendar:smoke
+```
+
+Turbo가 공유 constants·schemas와 API를 먼저 빌드한다. 테스트가 Nest를
+사용 가능한 임시 loopback 포트에 직접 기동하고 종료하므로 별도의
+`pnpm dev` 또는 `pnpm start`는 필요하지 않다. 테스트가 끝나도 Docker
+컨테이너와 볼륨은 유지된다.
+
+### 10.3 검증 범위와 성공 로그
+
+테스트는 다음을 실제 DB와 HTTP 요청으로 검증한다.
+
+- 캘린더 기간 조회 복합 인덱스의 이름과 컬럼 순서
+- JWT가 없는 캘린더 요청의 `401`
+- 테스트 사용자 가입과 로그인 토큰 발급
+- 태스크 생성·목록·단건·제목 수정
+- 완료와 재개
+- soft delete와 삭제 후 `404`
+- DB의 `deleted_at` 저장
+- 테스트 사용자·로그인 이력·태스크 자동 제거
+
+성공 시 핵심 출력은 다음과 같고 프로세스 종료 코드는 `0`이다.
+
+```text
+✔ has the expected range-query index in MySQL
+ℹ unauthorized=401
+ℹ register=201
+ℹ login=200
+ℹ create=201
+ℹ list=200
+ℹ read=200
+ℹ update=200
+ℹ complete=200
+ℹ reopen=200
+ℹ delete=204
+ℹ readAfterDelete=404
+ℹ softDeletePersisted=true
+ℹ cleanup=true
+ℹ pass 2
+ℹ fail 0
+```
+
+### 10.4 안전장치와 테스트 데이터
+
+- 스크립트는 `NODE_ENV=test`로 고정한다.
+- `DB_HOST`가 `127.0.0.1`, `localhost`, `::1` 중 하나가 아니면 DB 연결
+  전에 실패시킨다.
+- 매 실행마다 고유한 로그인 ID와 `calendar-smoke-...@example.test`
+  이메일을 사용한다.
+- 정상 종료와 테스트 실패 모두 `after` hook에서 생성한 행만 hard
+  delete한다. 스키마 초기화나 다른 사용자 데이터 삭제는 하지 않는다.
+- 프로세스를 강제 종료하거나 WSL 자체를 종료하면 정리 hook이 실행되지
+  않을 수 있으므로 테스트 중에는 `kill -9`를 사용하지 않는다.
+- 로컬 호스트 검사는 최소 안전장치일 뿐이다. 운영 DB를 로컬 포트로
+  터널링한 상태에서도 실행하지 않는다.
+
+### 10.5 일반 테스트와의 차이
+
+| Command                    | External dependency | Purpose                   |
+| -------------------------- | ------------------- | ------------------------- |
+| `pnpm test`                | 없음                | 서비스·스키마 격리 테스트 |
+| `pnpm test:calendar:smoke` | Docker MySQL        | 실제 DB와 HTTP 통합 검증  |
+
+PR 전에는 먼저 `pnpm test`로 빠른 회귀 검사를 하고, Docker 인프라가
+준비된 로컬 환경에서 스모크 테스트를 추가 실행한다.
+
+### 10.6 문제 해결
+
+- `Bind for 0.0.0.0:3306 failed`: `sudo systemctl stop mysql` 후
+  `make up`을 다시 실행한다.
+- `permission denied`로 Docker 소켓에 접근하지 못함: `newgrp docker`를
+  실행하거나 WSL/VS Code 터미널을 다시 연다.
+- `db` 또는 `chat-store`가 `unhealthy`: `make logs c=db` 또는
+  `make logs c=chat-store`로 확인하고 `Ctrl+C`로 로그 추적을 종료한다.
+- 테이블 또는 인덱스가 없다는 오류: `pnpm --filter=api migration:run`을
+  다시 실행하고 migration 3개가 완료 상태인지 확인한다.
+- 환경변수 검증 실패: 실제 `.env` 파일이 올바른 위치에 있는지 확인하고,
+  값이 비어 있는 `.example` 파일을 실행용으로 사용하지 않는다.
+
+테스트 후 인프라를 내릴 때는 볼륨을 보존하는 다음 명령을 사용한다.
+
+```bash
+make down
+```
+
+`make clean`과 `make prune`은 데이터 볼륨 또는 다른 Docker 리소스를
+삭제할 수 있으므로 일반 테스트 정리 용도로 사용하지 않는다.
