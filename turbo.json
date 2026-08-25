@@ -25,6 +25,13 @@
       "inputs": ["src/**/*.ts", "test/**/*.ts"],
       "outputs": []
     },
+    "test:calendar:smoke": {
+      "cache": false,
+      "dependsOn": ["build", "^build"],
+      "env": ["DB_HOST"],
+      "inputs": ["src/**/*.ts", "test/calendar/**/*.smoke.ts"],
+      "outputs": []
+    },
 
     "//#_lint:root": {
       "inputs": [

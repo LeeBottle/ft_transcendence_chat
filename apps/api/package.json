@@ -28,7 +28,8 @@
     "prod": "NODE_ENV=production node --enable-source-maps dist/main.js",
     "reset-schema": "tsx --conditions=development --env-file=../../infra/.env.database  --env-file=.env.development src/database/scripts/reset-schema.ts",
     "start": "NODE_ENV=development NODE_OPTIONS=--enable-source-maps nest start --env-file=../../infra/.env.database --env-file=../../infra/.env.api --env-file=.env.development",
-    "test": "TZ=UTC NODE_ENV=test tsx --conditions=development --test test/**/*.test.ts"
+    "test": "TZ=UTC NODE_ENV=test tsx --conditions=development --test test/**/*.test.ts",
+    "test:calendar:smoke": "TZ=UTC NODE_ENV=test node --enable-source-maps --env-file=../../infra/.env.database --env-file=../../infra/.env.api --env-file=.env.development --import tsx --test test/calendar/calendar-db-api.smoke.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

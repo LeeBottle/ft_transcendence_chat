@@ -18,6 +18,7 @@
     "lint": "turbo run //#_lint:root lint",
     "prepare": "husky",
     "test": "turbo run test",
+    "test:calendar:smoke": "turbo run test:calendar:smoke --filter=api",
     "validate": "turbo run check-types //#_lint:root lint //#_format:check",
     "vscode:merge-settings": "node ./scripts/merge-vscode-settings.js"
   },
