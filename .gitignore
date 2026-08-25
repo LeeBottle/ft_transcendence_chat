@@ -12,7 +12,8 @@ next-env.d.ts
 !.vscode/settings.shared.json
 !.vscode/tasks.json
 
-uploads/
+uploads/*
+!uploads/**/.gitkeep
 
 .env
 .env.*
