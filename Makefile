@@ -5,7 +5,7 @@ COMPOSE := docker compose -f ./infra/compose.yaml --env-file ./infra/.env.databa
 # 특정 서비스 지정 변수 (예: make up c=api, make logs c=web, make shell c=redis)
 c ?=
 
-.PHONY: all help build up up-build down start stop restart ps top logs shell pull clean prune setup-docker
+.PHONY: all help build up up-build down start stop restart ps top logs shell pull clean prune setup-host
 
 all: help
 
@@ -29,6 +29,7 @@ help:
 	@echo "  make pull [c=서비스명]     - 베이스/원격 이미지 최신화"
 	@echo "  make clean                 - 컨테이너, 네트워크 및 [모든 볼륨] 완전 삭제"
 	@echo "  make prune                 - 미사용 도커 리소스 일괄 정리 (주의)"
+	@echo "  make setup-host            - 호스트 환경 설정 스크립트 실행 (all-in-one) (일반 유저 권한으로 실행할 것)"
 
 up: BUILD_FLAG :=
 up-build: BUILD_FLAG := --build
@@ -91,5 +92,5 @@ clean:
 prune:
 	docker system prune -af --volumes
 
-setup-docker:
-	@./infra/scripts/setup-docker.sh
+setup-host:
+	@./infra/scripts/setup-host.sh
