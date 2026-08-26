@@ -12,6 +12,69 @@ x-ulimit: &default-ulimit
     hard: 65535
 
 services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    env_file:
+      - .env.api
+    environment:
+      - DB_HOST=${DB_HOST:?}
+      - DB_USERNAME=${DB_USERNAME:?}
+      - DB_PASSWORD=${DB_PASSWORD:?}
+      - DB_SCHEMA_NAME=${DB_SCHEMA_NAME:?}
+      - DB_PORT
+      - DB_MAX_QUERY_EXECUTION_TIME_MS
+
+      - REDIS_HOST=${REDIS_HOST:?}
+      - REDIS_PORT=${REDIS_PORT:?}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?}
+
+      - NODE_OPTIONS=--max-old-space-size=768
+
+    volumes:
+      - uploads-data:/home/node/app/uploads:rw
+
+    networks:
+      - public-network
+      - internal-network
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    depends_on:
+      db:
+        condition: service_healthy # MySQL 준비 완료 시 기동
+      chat-store:
+        condition: service_healthy # Redis 준비 완료 시 기동
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -T 2 -t 1 --spider http://127.0.0.1:$${PORT:?}/api/healthz/live || exit 1",
+        ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s # 콜드 스타트 지연을 대비한 넉넉한 유예 시간
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
   chat-store:
     image: redis:7.4.2-alpine
     restart: unless-stopped
@@ -103,6 +166,8 @@ services:
           memory: 256M
 
 volumes:
+  uploads-data:
+    driver: local
   chat-store-data:
     driver: local
   mysql-data:
@@ -110,5 +175,7 @@ volumes:
 
 # internal-network는 프로덕션 환경에서는 `internal: true` 옵션 활성화하여 외부 접근 차단 필수
 networks:
+  public-network:
+    driver: bridge
   internal-network:
     driver: bridge
