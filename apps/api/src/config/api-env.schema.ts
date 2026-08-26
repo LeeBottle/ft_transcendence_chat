@@ -22,6 +22,21 @@ export function createPortSchema(
     .default(defaultPort);
 }
 
+type CreateHostSchemaOptions = { default: string };
+
+export function createHostSchema(options: CreateHostSchemaOptions): z.ZodDefault<z.ZodString> {
+  const { default: defaultHost } = options;
+
+  return z
+    .string()
+    .min(1)
+    .max(255)
+    .default(defaultHost)
+    .refine((val) => val !== 'localhost', {
+      error: "DB_HOST cannot be 'localhost'. Use '127.0.0.1' or a valid IP/domain instead.",
+    });
+}
+
 // DB 환경변수 이외의 것들
 const apiEnvSchema = z
   .object({
@@ -30,8 +45,11 @@ const apiEnvSchema = z
     PORT: createPortSchema({ default: 4000 }),
     CLIENT_URL: z.url({ protocol: /^https?$/ }).default('http://localhost:3000'),
     UPLOAD_BASE_DIR: z.string().min(1).default('uploads'),
-
     BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(4).max(12).default(10),
+
+    REDIS_HOST: createHostSchema({ default: '127.0.0.1' }),
+    REDIS_PORT: createPortSchema({ default: 6379 }),
+    REDIS_PASSWORD: z.string().min(1).max(256),
   })
   .readonly();
 
