@@ -15,9 +15,9 @@ services:
   chat-store:
     image: redis:7.4.2-alpine
     restart: unless-stopped
-
-    # 컨테이너 종료 시 AOF 플러시 완료를 기다려주는 안전 유예 시간
-    stop_grace_period: 20s
+    stop_grace_period: 20s # 컨테이너 종료 시 AOF 플러시 완료를 기다려주는 안전 유예 시간
+    ports:
+      - "127.0.0.1:6379:6379"
     security_opt:
       - no-new-privileges:true
     environment:
@@ -48,10 +48,9 @@ services:
   db:
     image: mysql:8.0
     restart: unless-stopped
-    stop_grace_period: 1m # 정상 종료(Graceful Shutdown) 보장 시간 확대
-    # 호스트 머신(NestJS)에서 접근할 수 있도록 포트 개방
+    stop_grace_period: 1m
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     security_opt:
       - no-new-privileges:true
     command:
