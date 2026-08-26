@@ -30,12 +30,22 @@ help:
 	@echo "  make clean                 - 컨테이너, 네트워크 및 [모든 볼륨] 완전 삭제"
 	@echo "  make prune                 - 미사용 도커 리소스 일괄 정리 (주의)"
 
-# 컨테이너 실행 및 빌드
-up:
-	$(COMPOSE) up -d $(c)
+up: BUILD_FLAG :=
+up-build: BUILD_FLAG := --build
 
-up-build:
-	$(COMPOSE) up -d --build $(c)
+up up-build:
+ifneq ($(strip $(c)),)
+	$(COMPOSE) up -d $(BUILD_FLAG) $(c)
+else
+	@# 1. DB 준비 상태 보장
+	$(COMPOSE) up -d --wait db
+
+	@# 2. api 이미지 리빌드 후 마이그레이션 검증
+	$(COMPOSE) run $(BUILD_FLAG) --rm --no-deps api node --enable-source-maps node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js
+
+	@# 3. 전체 서비스 일괄 기동 (변경된 서비스만 스마트 교체, db는 유지)
+	$(COMPOSE) up -d $(BUILD_FLAG)
+endif
 
 build:
 	$(COMPOSE) build $(c)
@@ -69,7 +79,7 @@ logs:
 # 임의의 서비스 셸 접속 (bash 우선 시도 후 sh 폴백)
 shell:
 	@if [ -z "$(c)" ]; then \
-		echo "접속할 서비스명을 지정해야 합니다. (예: make shell c=api 또는 make shell c=mysql)"; \
+		echo "접속할 서비스명을 지정해야 합니다. (예: make shell c=api 또는 make shell c=db)"; \
 		exit 1; \
 	fi
 	$(COMPOSE) exec -it $(c) /bin/sh -c "[ -x /bin/bash ] && exec /bin/bash || exec /bin/sh"
