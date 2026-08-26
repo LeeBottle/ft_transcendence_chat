@@ -40,10 +40,9 @@ services:
       resources:
         limits:
           cpus: "1.5"
-          memory: 1.8G
+          memory: 1800M
         reservations:
-          cpus: "0.5"
-          memory: 1G
+          memory: 256M
 
   db:
     image: mysql:8.0
@@ -77,14 +76,13 @@ services:
       start_period: 30s
     logging: *default-logging
     ulimits: *default-ulimit
-
-    # 리소스 점유 상한선 제어 (OOM 방어)
     deploy:
       resources:
         limits:
           cpus: "1.5"
           memory: 1024M
         reservations:
+          cpus: "0.5"
           memory: 256M
 
 volumes:
