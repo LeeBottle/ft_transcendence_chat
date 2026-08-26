@@ -13,7 +13,7 @@ x-ulimit: &default-ulimit
 
 services:
   gateway:
-    image: nginxinc/nginx-unprivileged:1.27-alpine
+    image: nginxinc/nginx-unprivileged:1.30-alpine3.24
     restart: unless-stopped
     stop_signal: SIGQUIT
     stop_grace_period: 15s
@@ -171,7 +171,7 @@ services:
           memory: 256M
 
   chat-store:
-    image: redis:7.4.2-alpine
+    image: redis:7.4.11-alpine3.21
     restart: unless-stopped
     stop_grace_period: 20s # 컨테이너 종료 시 AOF 플러시 완료를 기다려주는 안전 유예 시간
 
@@ -210,7 +210,7 @@ services:
           memory: 256M
 
   db:
-    image: mysql:8.0
+    image: mysql:8.4.11
     restart: unless-stopped
     stop_grace_period: 1m
 
