@@ -22,5 +22,7 @@ uploads/*
 
 *.tsbuildinfo
 
+*.pem
+
 # Each member's private ignores
 .cspell.json
