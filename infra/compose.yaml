@@ -18,7 +18,8 @@ services:
 
     # 컨테이너 종료 시 AOF 플러시 완료를 기다려주는 안전 유예 시간
     stop_grace_period: 20s
-
+    security_opt:
+      - no-new-privileges:true
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD:?}
     command:
@@ -51,6 +52,8 @@ services:
     # 호스트 머신(NestJS)에서 접근할 수 있도록 포트 개방
     ports:
       - "3306:3306"
+    security_opt:
+      - no-new-privileges:true
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
@@ -69,7 +72,10 @@ services:
       - internal-network
     healthcheck:
       test:
-        ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+        [
+          "CMD-SHELL",
+          'MYSQL_PWD="$$MYSQL_PASSWORD" mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER || exit 1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
