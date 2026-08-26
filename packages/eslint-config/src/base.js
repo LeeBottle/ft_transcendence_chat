@@ -247,6 +247,13 @@ export const baseConfig = defineConfig([
       ],
     },
   },
+  {
+    files: ['**/scripts/**/*.{js,ts}'],
+    languageOptions: { sourceType: 'module' },
+    rules: {
+      'no-console': 'off', // 스크립트에서는 console.log 허용
+    },
+  },
 
   {
     files: JS_TARGET_FILES,

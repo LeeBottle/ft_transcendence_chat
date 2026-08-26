@@ -17,19 +17,22 @@ async function resetSchema(): Promise<void> {
     password: dbEnv.DB_PASSWORD,
   });
 
+  const charset = 'utf8mb4';
+  const collation = 'utf8mb4_0900_ai_ci';
+
   /*
   에러를 이 함수 안에서 먹어버리지(Swallow) 않고 상위로 던지면서도,
   자원 해제는 무조건 보장하기 위해 try-finally 구문 사용
   */
   try {
     await bootstrapDataSource.initialize(); // DB 커넥션 풀 수립
-    console.error(`[DB Reset] Resetting schema: \`${schemaName}\`...`);
+    console.log(`[DB Reset] Resetting schema: \`${schemaName}\`...`);
 
     await bootstrapDataSource.query(`DROP DATABASE IF EXISTS \`${schemaName}\`;`);
-    await bootstrapDataSource.query(/* sql */ `
-      CREATE DATABASE \`${schemaName}\` DEFAULT CHARACTER SET \`${dbEnv.DB_CHARSET}\` COLLATE \`${dbEnv.DB_COLLATION}\`;
-    `);
-    console.error(`[DB Reset] Successfully recreated schema: \`${schemaName}\``);
+    await bootstrapDataSource.query(
+      `CREATE DATABASE \`${schemaName}\` DEFAULT CHARACTER SET ${charset} COLLATE ${collation};`,
+    );
+    console.log(`[DB Reset] Successfully recreated schema: \`${schemaName}\``);
   } finally {
     // 커넥션 풀 완전 종료
     if (bootstrapDataSource.isInitialized) {

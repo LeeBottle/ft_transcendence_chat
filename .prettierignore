@@ -15,3 +15,5 @@ next-env.d.ts
 pnpm-lock.yaml
 
 .husky/
+
+infra/nginx/**/*.conf

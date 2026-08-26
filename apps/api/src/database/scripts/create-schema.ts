@@ -13,15 +13,18 @@ async function createSchema(): Promise<void> {
     password: dbEnv.DB_PASSWORD,
   });
 
+  const charset = 'utf8mb4';
+  const collation = 'utf8mb4_0900_ai_ci';
+
   try {
     await bootstrapDataSource.initialize();
-    console.error(` Connected to MySQL server at ${dbEnv.DB_HOST}:${dbEnv.DB_PORT}`);
+    console.log(` Connected to MySQL server at ${dbEnv.DB_HOST}:${dbEnv.DB_PORT}`);
 
-    const createDatabaseQuery = `CREATE DATABASE IF NOT EXISTS \`${dbEnv.DB_SCHEMA_NAME}\` CHARACTER SET ${dbEnv.DB_CHARSET} COLLATE ${dbEnv.DB_COLLATION};`;
+    const createDatabaseQuery = `CREATE DATABASE IF NOT EXISTS \`${dbEnv.DB_SCHEMA_NAME}\` CHARACTER SET ${charset} COLLATE ${collation};`;
 
     await bootstrapDataSource.query(createDatabaseQuery);
-    console.error(
-      ` Schema '${dbEnv.DB_SCHEMA_NAME}' checked/created successfully (Charset: ${dbEnv.DB_CHARSET}, Collation:${dbEnv.DB_COLLATION}).`,
+    console.log(
+      ` Schema '${dbEnv.DB_SCHEMA_NAME}' checked/created successfully (Charset: ${charset}, Collation:${collation}).`,
     );
   } finally {
     if (bootstrapDataSource.isInitialized) {

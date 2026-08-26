@@ -26,7 +26,7 @@
 // }
 
 // interface CustomHttpExceptionResponse {
-//   statusCode?: number
+//   statusCode?: number;
 //   error?: string;
 //   message?: string | string[];
 //   errors?: ValidationErrorDetail[];

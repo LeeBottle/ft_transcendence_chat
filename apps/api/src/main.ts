@@ -1,12 +1,13 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module.js';
 import type { ApiEnv } from './config/api-env.schema.js';
 import { ApiEnvError } from './config/exceptions/environment-validation.error.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get<ConfigService<ApiEnv, true>>(ConfigService);
 
   const clientUrl = configService.getOrThrow('CLIENT_URL', { infer: true });
@@ -19,9 +20,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
 
-  const apiPort = configService.getOrThrow('API_PORT', { infer: true });
+  app.set('trust proxy', 1);
 
-  await app.listen(apiPort);
+  const apiPort = configService.getOrThrow('PORT', { infer: true });
+
+  await app.listen(apiPort, '0.0.0.0');
 }
 
 bootstrap().catch((error: unknown) => {

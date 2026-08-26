@@ -1,6 +1,6 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddInitialCheckConstraints1787324648032 implements MigrationInterface {
+export class AddInitialCheckConstraints1787551480827 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     // PostgreSQL 마이그레이션 전 데이터 오염 방지용
     await queryRunner.query(/* sql */ `

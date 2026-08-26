@@ -8,7 +8,7 @@ const commitTypes = [
   'perf', // 성능 개선
   'chore', // 기타 잡무, 패키지 설정 변경
   'test', // 테스트 코드 추가/수정
-  'build', // 빌드 시스템, 외부 의존성 패키지 수정 (pnpm, turbo 등)
+  'build', // 빌드 시스템, 컴파일러, 번들러, 외부 의존성에 영향을 주는 변경
   'ci', // CI 설정 변경
   'revert', // 이전 커밋 되돌리기
 ];
@@ -39,13 +39,6 @@ const commitScopes = [
   'constants/calendar',
   'constants/chat',
   'constants/user',
-
-  /* Package local */
-  // 각 application 혹은 shared package에서 내부적으로 공통으로 사용하는 코드(횡단 관심사)
-  'api/common',
-  'web/common',
-  'constants/common',
-  'schemas/common',
 
   /* Shared Configs */
   'lint', // eslint-config 패키지 내부 설정 파일 수정 (개별 패키지 eslint.config.js 수정은 chore(해당 패키지 스코프) 사용)
@@ -81,5 +74,6 @@ export default {
     'footer-max-line-length': [0, 'always', Infinity],
     'header-max-length': [2, 'always', 72],
     'scope-case': [2, 'always', { cases: ['lower-case', 'kebab-case'], delimiters: ['/'] }],
+    'subject-case': [0, 'always'],
   },
 };

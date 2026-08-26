@@ -51,7 +51,7 @@ export const dataSourceOptions = {
   maxQueryExecutionTime:
     dbEnv.DB_MAX_QUERY_EXECUTION_TIME_MS ?? MaxQueryExecutionTimeMs[dbEnv.NODE_ENV],
 
-  charset: dbEnv.DB_COLLATION,
+  charset: 'utf8mb4_0900_ai_ci',
   timezone: 'Z', // UTC
 
   entities,
@@ -82,7 +82,7 @@ export const dataSourceOptions = {
     connectAttributes: {
       _client_name: 'nest-main-api',
       _app_version: '1.0.0',
-      _env: process.env.NODE_ENV,
+      _env: dbEnv.NODE_ENV,
     },
   } satisfies PureMysqlExtraOptions,
 } satisfies MysqlDataSourceOptions;

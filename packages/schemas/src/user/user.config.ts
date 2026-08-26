@@ -165,7 +165,7 @@ export const USER_CONFIGS = {
   id: {
     constraints: {
       maxLength: 19, // 2^63 - 1 = 9,223,372,036,854,775,807 (19자리) // 형식 맞추기용
-      fullRegex: /^[1-9]\d+$/,
+      fullRegex: /^[1-9]\d*$/,
     },
     messages: {}, // 형식 맞추기용
   },

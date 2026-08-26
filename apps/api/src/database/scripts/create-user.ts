@@ -40,7 +40,7 @@ async function createUserAndGrantPrivileges(): Promise<void> {
 
   try {
     await adminDataSource.initialize();
-    console.error(` Connected as '${DB_ROOT_USERNAME}' at ${DB_HOST}:${DB_PORT}`);
+    console.log(` Connected as '${DB_ROOT_USERNAME}' at ${DB_HOST}:${DB_PORT}`);
 
     // DDL 파라미터 바인딩 불가에 따른 백슬래시 및 작은따옴표 이스케이프 처리
     const sanitizedPassword = DB_PASSWORD.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -63,7 +63,7 @@ async function createUserAndGrantPrivileges(): Promise<void> {
     // 3-4. 권한 캐시 플러시
     await adminDataSource.query('FLUSH PRIVILEGES;');
 
-    console.error(
+    console.log(
       ` User '${DB_USERNAME}'@'%' created/updated and privileges granted for schema '${DB_SCHEMA_NAME}'.`,
     );
   } finally {

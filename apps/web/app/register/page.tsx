@@ -13,7 +13,7 @@ export default function RegisterPage() {
 
   const handleRegister = async (payload: Record<string, unknown>) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
