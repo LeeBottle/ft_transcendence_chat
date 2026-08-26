@@ -12,6 +12,50 @@ x-ulimit: &default-ulimit
     hard: 65535
 
 services:
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      target: runner
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    env_file:
+      - .env.web
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=512
+
+    volumes:
+      - web-cache:/home/node/app/apps/web/.next/cache:rw
+
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - public-network
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -q -T 2 -t 1 --spider http://127.0.0.1:$${PORT:?}/healthz || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 25s # Next.js 서버 초기화 대기
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+        reservations:
+          cpus: "0.15"
+          memory: 256M
+
   api:
     build:
       context: ..
@@ -167,6 +211,8 @@ services:
 
 volumes:
   uploads-data:
+    driver: local
+  web-cache:
     driver: local
   chat-store-data:
     driver: local

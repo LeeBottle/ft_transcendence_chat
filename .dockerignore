@@ -24,6 +24,13 @@
 !apps/api/.swcrc
 !apps/api/nest-cli.json
 
+!apps/web/app/**
+!apps/web/components/**
+!apps/web/features/**
+!apps/web/public/**
+!apps/web/next.config.*
+!apps/web/postcss.config.*
+
 !packages/*/src/**
 !packages/*/tsup.config.ts
 !packages/*/configs/**
@@ -37,6 +44,7 @@ packages/eslint-config/**
 **/node_modules
 **/.turbo
 **/dist
+**/.next
 **/.env
 **/.env.*
 **/*.log
