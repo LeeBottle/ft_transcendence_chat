@@ -10,6 +10,7 @@ import { io, type Socket } from 'socket.io-client';
 import type { ChatMessageResponse } from '@repo/schemas/chat';
 
 import {
+  createMockJwtToken,
   DEFAULT_USER,
   getStoredActiveUser,
   getStoredMessages,
@@ -104,8 +105,9 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
       let roomObj: ChatRoom | null = null;
 
       try {
+        const token = createMockJwtToken(selectedUser);
         const response = await fetch(`${apiUrl}/api/chat/rooms/${roomId}`, {
-          headers: { 'x-user-id': selectedUser.id },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.ok) {
@@ -239,8 +241,9 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
     void (async () => {
       try {
+        const token = createMockJwtToken(selectedUser);
         const response = await fetch(`${apiUrl}/api/chat/rooms/${roomId}/messages`, {
-          headers: { 'x-user-id': selectedUser.id },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.ok) {
@@ -304,9 +307,10 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
       return;
     }
 
+    const token = createMockJwtToken(selectedUser);
     const socket: Socket = io(`${apiUrl}/chat`, {
-      auth: { userId: selectedUser.id },
-      extraHeaders: { 'x-user-id': selectedUser.id },
+      auth: { token },
+      extraHeaders: { Authorization: `Bearer ${token}` },
       transports: ['websocket', 'polling'],
     });
 
@@ -336,6 +340,17 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
     socket.on('disconnect', (reason: string) => {
       setSocketConnected(false);
       logApi('소켓 연결 끊김 (disconnect)', { reason });
+    });
+
+    socket.on('exception', (error: any) => {
+      const msg = typeof error === 'string' ? error : error?.message || '소켓 요청 처리 실패';
+      logApi('소켓 예외 발생 (exception)', error);
+      alert(`[소켓 권한/오류] ${msg}`);
+    });
+
+    socket.on('error', (error: any) => {
+      const msg = typeof error === 'string' ? error : error?.message || '소켓 에러 발생';
+      logApi('소켓 에러 발생 (error)', error);
     });
 
     socket.on('new_message', (msg: ChatMessageResponse) => {
@@ -376,7 +391,6 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
         saveStoredMessages(updated);
 
-        // 본인이 작성한 메시지 수신 또는 하단 부근에 위치할 때 자동 하단 스크롤
         if (incomingMsg.senderId === selectedUser.id) {
           setTimeout(() => scrollToBottom(true), 50);
         } else if (messageBoxRef.current) {
@@ -621,10 +635,11 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
       );
 
       try {
+        const token = createMockJwtToken(selectedUser);
         const response = await fetch(
           `${apiUrl}/api/chat/rooms/${roomId}/messages?cursor=${cursorId}&limit=10&direction=BEFORE`,
           {
-            headers: { 'x-user-id': selectedUser.id },
+            headers: { Authorization: `Bearer ${token}` },
           },
         );
 
@@ -768,9 +783,10 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${currentRoom.id}/members`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(invitePayload),
           });
 
@@ -870,7 +886,7 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
     });
 
     // 1) 소켓 연결 상태인 경우 소켓 이벤트로 전송
-    if (socketInstance && socketConnected) {
+    if (socketInstance) {
       logApi('send_message (실시간 소켓 전송)', payload);
       socketInstance.emit('send_message', payload);
 
@@ -883,9 +899,10 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${targetRoomId}/messages`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ roomId: targetRoomId, content, type: 'TEXT' }),
           });
 
@@ -942,9 +959,10 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${currentRoom.id}/password`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(payload),
           });
 
@@ -1006,9 +1024,10 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${currentRoom.id}/topic`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(payload),
           });
 
@@ -1063,11 +1082,12 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(
             `${apiUrl}/api/chat/rooms/${currentRoom.id}/members/${targetUserId}`,
             {
               method: 'DELETE',
-              headers: { 'x-user-id': selectedUser.id },
+              headers: { Authorization: `Bearer ${token}` },
             },
           );
 
@@ -1129,11 +1149,12 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(
             `${apiUrl}/api/chat/rooms/${currentRoom.id}/bans/${targetUserId}`,
             {
               method: 'POST',
-              headers: { 'x-user-id': selectedUser.id },
+              headers: { Authorization: `Bearer ${token}` },
             },
           );
 
@@ -1207,11 +1228,12 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(
             `${apiUrl}/api/chat/rooms/${currentRoom.id}/bans/${targetUserId}`,
             {
               method: 'DELETE',
-              headers: { 'x-user-id': selectedUser.id },
+              headers: { Authorization: `Bearer ${token}` },
             },
           );
 
@@ -1265,11 +1287,12 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(
             `${apiUrl}/api/chat/rooms/${currentRoom.id}/members/${targetUserId}/role`,
             {
               method: 'PATCH',
-              headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
               body: JSON.stringify(payload),
             },
           );
@@ -1343,9 +1366,10 @@ export default function ChatRoomDetailPage({ params }: RoomPageProps) {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${currentRoom.id}/end-session`, {
             method: 'POST',
-            headers: { 'x-user-id': selectedUser.id },
+            headers: { Authorization: `Bearer ${token}` },
           });
 
           if (response.ok) {

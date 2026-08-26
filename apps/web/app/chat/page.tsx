@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { io, type Socket } from 'socket.io-client';
 
 import {
+  createMockJwtToken,
   DEFAULT_USER,
   getStoredActiveUser,
   getStoredDeletedRoomIds,
@@ -75,8 +76,9 @@ export default function ChatListPage() {
       let apiRooms: ChatRoom[] = [];
 
       try {
+        const token = createMockJwtToken(selectedUser);
         const response = await fetch(`${apiUrl}/api/chat/rooms`, {
-          headers: { 'x-user-id': selectedUser.id },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.ok) {
@@ -170,9 +172,10 @@ export default function ChatListPage() {
 
   // Socket.IO 실시간 연결 및 room_updated, session_ended, room_created 이벤트 수신
   useEffect(() => {
+    const token = createMockJwtToken(selectedUser);
     const socket: Socket = io(`${apiUrl}/chat`, {
-      auth: { userId: selectedUser.id },
-      extraHeaders: { 'x-user-id': selectedUser.id },
+      auth: { token },
+      extraHeaders: { Authorization: `Bearer ${token}` },
       transports: ['websocket', 'polling'],
     });
 
@@ -319,9 +322,10 @@ export default function ChatListPage() {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(apiPayload),
           });
 
@@ -456,9 +460,10 @@ export default function ChatListPage() {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${room.id}/verify-password`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-user-id': selectedUser.id },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ password: inputPassword }),
           });
 
@@ -493,9 +498,10 @@ export default function ChatListPage() {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(`${apiUrl}/api/chat/rooms/${roomId}`, {
             method: 'DELETE',
-            headers: { 'x-user-id': selectedUser.id },
+            headers: { Authorization: `Bearer ${token}` },
           });
 
           if (response.ok) {
@@ -534,11 +540,12 @@ export default function ChatListPage() {
 
       if (useRealApi) {
         try {
+          const token = createMockJwtToken(selectedUser);
           const response = await fetch(
             `${apiUrl}/api/chat/rooms/${roomId}/members/${selectedUser.id}`,
             {
               method: 'DELETE',
-              headers: { 'x-user-id': selectedUser.id },
+              headers: { Authorization: `Bearer ${token}` },
             },
           );
 

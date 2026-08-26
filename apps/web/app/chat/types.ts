@@ -205,3 +205,29 @@ export function saveStoredActiveUser(user: TempUser): void {
     localStorage.setItem(STORAGE_KEY_ACTIVE_USER, user.loginId);
   }
 }
+
+export function createMockJwtToken(user: TempUser): string {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const payload = {
+    sub: user.id,
+    loginId: user.loginId,
+    name: user.name,
+    email: user.email,
+    iat: Math.floor(Date.now() / 1000),
+  };
+
+  const base64UrlEncode = (obj: object) => {
+    const jsonStr = JSON.stringify(obj);
+    if (typeof window !== 'undefined') {
+      const base64 = btoa(
+        encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+          String.fromCharCode(parseInt(p1, 16)),
+        ),
+      );
+      return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    }
+    return Buffer.from(jsonStr).toString('base64url');
+  };
+
+  return `${base64UrlEncode(header)}.${base64UrlEncode(payload)}.mock_signature`;
+}
