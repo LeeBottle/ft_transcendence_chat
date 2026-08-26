@@ -22,6 +22,7 @@ import {
 } from '#modules/chat/guards/ws-jwt.guard.js';
 import { ChatCacheBatchService } from '#modules/chat/services/chat-cache-batch.service.js';
 import { ChatMessageService } from '#modules/chat/services/chat-message.service.js';
+import { ChatService } from '#modules/chat/services/chat.service.js';
 import { RedisService } from '#modules/chat/services/redis.service.js';
 
 interface JoinRoomPayload {
@@ -51,7 +52,11 @@ interface ReadMessagePayload {
 function getSocketUserId(client: AuthenticatedSocket): string {
   const socketData = client.data as { user?: WsUser };
 
-  return socketData.user?.sub ?? '1';
+  if (typeof socketData.user?.sub === 'string' && socketData.user.sub.length > 0) {
+    return socketData.user.sub;
+  }
+
+  throw new WsException('인증 자격 증명이 제공되지 않았습니다.');
 }
 
 function validateWsPayload<T>(schema: ZodType<T>, data: unknown): T {
@@ -80,6 +85,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server!: Server;
 
   constructor(
+    private readonly chatService: ChatService,
     private readonly chatMessageService: ChatMessageService,
     private readonly chatCacheBatchService: ChatCacheBatchService,
     private readonly redisService: RedisService,
@@ -98,14 +104,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() payload?: JoinRoomPayload,
   ): Promise<void> {
-    if (payload === undefined || typeof payload.roomId !== 'string') {
-      return;
+    if (payload === undefined || payload.roomId === undefined || payload.roomId === null) {
+      throw new WsException('유효하지 않은 요청 데이터입니다.');
     }
 
-    const { roomId } = payload;
+    const roomId = String(payload.roomId);
     const userId = getSocketUserId(client);
 
     try {
+      await this.chatService.validateRoomAccess(roomId, userId);
+
       await client.join(roomId);
 
       try {
@@ -123,8 +131,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     } catch (error) {
       this.logger.error(`handleJoinRoom 에러 (roomId: ${roomId})`, error);
-
-      throw new WsException('채팅방 입장 처리에 실패했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '채팅방 입장 처리에 실패했습니다.';
+      throw new WsException(errorMessage);
     }
   }
 
@@ -161,43 +169,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() payload?: SendMessagePayload,
   ): Promise<void> {
-    if (payload === undefined || typeof payload.roomId !== 'string') {
-      return;
+    if (payload === undefined || payload.roomId === undefined || payload.roomId === null) {
+      throw new WsException('유효하지 않은 요청 데이터입니다.');
     }
 
     const userId = getSocketUserId(client);
+    const roomId = String(payload.roomId);
 
     try {
       const validated = validateWsPayload(sendMessageRequestSchema, payload);
-      const { roomId } = payload;
       const type = validated.type;
 
-      let savedMessage;
-      try {
-        savedMessage = await this.chatMessageService.saveMessage(
-          roomId,
-          userId,
-          validated.content,
-          type,
-        );
-      } catch (dbError) {
-        this.logger.warn(
-          `DB 메시지 저장 실패 (임시 채팅방 또는 미등록 멤버 fallback): roomId=${roomId}, userId=${userId}`,
-        );
+      await this.chatService.validateRoomAccess(roomId, userId);
 
-        const socketData = client.data as { user?: WsUser };
-        const senderName = socketData.user?.name ?? `사용자 ${userId}`;
-
-        savedMessage = {
-          id: `temp-msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          chatRoomId: roomId,
-          senderUserId: userId,
-          senderName,
-          type: type ?? 'TEXT',
-          content: validated.content,
-          sentAt: new Date().toISOString(),
-        };
-      }
+      const savedMessage = await this.chatMessageService.saveMessage(
+        roomId,
+        userId,
+        validated.content,
+        type,
+      );
 
       try {
         await this.chatCacheBatchService.pushMessageToCache(roomId, {
@@ -221,7 +211,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         throw error;
       }
 
-      throw new WsException('메시지 전송 처리에 실패했습니다.');
+      const message = error instanceof Error ? error.message : '메시지 전송 처리에 실패했습니다.';
+      throw new WsException(message);
     }
   }
 

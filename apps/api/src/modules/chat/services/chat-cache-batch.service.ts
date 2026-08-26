@@ -41,14 +41,14 @@ export class ChatCacheBatchService {
 
     const cachedCount = await this.redisService.rpush(key, serialized);
 
-    let flushed = false;
-
-    if (cachedCount >= FLUSH_THRESHOLD) {
-      await this.flushRoomMessages(roomId);
-      flushed = true;
+    // 최신 100개 메시지만 Redis 인메모리 캐시로 유지 (메모리 파이프라인 트리밍)
+    if (cachedCount > 100) {
+      try {
+        await this.redisService.ltrim(key, -100, -1);
+      } catch (_err) {}
     }
 
-    return { cachedCount, flushed };
+    return { cachedCount, flushed: false };
   }
 
   async flushRoomMessages(roomId: string): Promise<{ flushedCount: number }> {
@@ -59,54 +59,15 @@ export class ChatCacheBatchService {
       return { flushedCount: 0 };
     }
 
-    const parsedMessages: CachedChatMessage[] = [];
-
-    for (const raw of rawMessages) {
-      try {
-        const item = JSON.parse(raw) as CachedChatMessage;
-
-        parsedMessages.push(item);
-      } catch (error) {
-        this.logger.error(`Redis 메시지 역직렬화 실패: ${raw}`, error);
-      }
+    // Write-Through 단일화: 이미 메시지 전송 시점에 DB INSERT가 완료되었으므로
+    // 배치 flush 시 이중 DB INSERT(entityManager.save)를 수행하지 않고 최신 캐시 상태만 정리합니다.
+    if (rawMessages.length > 100) {
+      await this.redisService.ltrim(key, -100, -1);
     }
 
-    if (parsedMessages.length === 0) {
-      await this.redisService.del(key);
+    this.logger.log(`채팅방 [${roomId}] Write-Through 캐시 유지 상태 확인 완료 (${rawMessages.length}개 메시지)`);
 
-      return { flushedCount: 0 };
-    }
-
-    const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
-
-    if (isTempRoom) {
-      this.logger.log(`채팅방 [${roomId}] 임시방 메시지이므로 DB Flush를 생략하고 Redis 캐시를 유지합니다.`);
-
-      return { flushedCount: parsedMessages.length };
-    }
-
-    // DB Bulk Insert 트랜잭션 수행
-    await this.dataSource.transaction(async (entityManager) => {
-      const entities = parsedMessages.map((msg) =>
-        entityManager.create(ChatRoomMessageEntity, {
-          chatRoomId: msg.roomId,
-          senderUserId: msg.senderUserId,
-          type: msg.type,
-          content: msg.content,
-          sentAt: new Date(msg.sentAt),
-        }),
-      );
-
-      await entityManager.save(ChatRoomMessageEntity, entities);
-    });
-
-    // DB Bulk Insert 성공 후에만 Redis 데이터 팝/삭제
-    await this.redisService.ltrim(key, rawMessages.length, -1);
-    this.logger.log(
-      `채팅방 [${roomId}] Redis 캐시 메시지 ${parsedMessages.length}개 DB Flush 완료`,
-    );
-
-    return { flushedCount: parsedMessages.length };
+    return { flushedCount: rawMessages.length };
   }
 
   async endRoomSession(

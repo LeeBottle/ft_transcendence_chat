@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 import type { Request } from 'express';
@@ -38,13 +39,30 @@ function extractUserId(req: Request): string {
     return reqWithUser.user.sub;
   }
 
-  const headerVal = req.headers['x-user-id'];
-
-  if (typeof headerVal === 'string' && headerVal.trim().length > 0) {
-    return headerVal.trim();
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader === 'string' && authHeader.length > 0) {
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (token.length > 0) {
+      try {
+        const parts = token.split('.');
+        if (parts.length >= 2 && parts[1]) {
+          let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          while (base64.length % 4 !== 0) {
+            base64 += '=';
+          }
+          const jsonStr = Buffer.from(base64, 'base64').toString('utf-8');
+          const parsed = JSON.parse(jsonStr) as { sub?: string };
+          if (typeof parsed.sub === 'string' && parsed.sub.length > 0) {
+            return parsed.sub;
+          }
+        }
+      } catch (_err) {
+        // ignore
+      }
+    }
   }
 
-  return '1';
+  throw new UnauthorizedException('인증 자격 증명이 제공되지 않았거나 유효하지 않습니다.');
 }
 
 @Controller('chat/rooms')

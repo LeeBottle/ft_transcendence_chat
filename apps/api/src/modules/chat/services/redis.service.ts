@@ -98,4 +98,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async smembers(key: string): Promise<string[]> {
     return await this.client.smembers(key);
   }
+
+  async sismember(key: string, member: string): Promise<number> {
+    return await this.client.sismember(key, member);
+  }
 }
