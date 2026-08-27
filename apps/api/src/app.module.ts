@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { parseApiEnv } from '#config/api-env.schema.js';
 
@@ -14,6 +15,7 @@ import { UserModule } from './modules/user/user.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: parseApiEnv }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
 
     AuthModule,
