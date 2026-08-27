@@ -1,56 +1,75 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { UserRole, UserStatus } from '@repo/constants/user';
+
+import {
+  idSchema,
+  createNameSchema,
+  createProfileImagePathSchema,
+  createLoginIdSchema,
+  createEmailSchema,
+  roleSchema,
+  statusSchema,
+  USER_REQUEST_VALIDATION_OPTIONS,
+  USER_RESPONSE_VALIDATION_OPTIONS,
+} from '#user/user.schema.js';
 
 
-// 유저 프로필 페이지
+// 타인 공개용 프로필 (민감 정보 제외)
 
-export const userProfileResponseSchema = z.object({
-  id: z.string(),
-  loginId: z.string(),
-  name: z.string(),
-  email: z.email(),
-  role: z.enum(UserRole),
-  status: z.enum(UserStatus),
-  profileImagePath: z.string().nullable(),
-  createdAt: z.union([z.date(), z.string()]).optional(),
-  isOnline: z.boolean().optional(),
+export const publicUserProfileResponseSchema = z.object({
+  id: idSchema,
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  profileImagePath: createProfileImagePathSchema(),
+  isOnline: z.boolean().default(false),
 });
-export type UserProfileResponse = z.infer<typeof userProfileResponseSchema>;
-export class UserProfileResponseDto extends createZodDto(userProfileResponseSchema) {}
+export type PublicUserProfileResponse = z.infer<typeof publicUserProfileResponseSchema>;
+export class PublicUserProfileResponseDto extends createZodDto(publicUserProfileResponseSchema) {}
+
+
+// 본인 조회용 프로필
+
+export const selfUserProfileResponseSchema = z.object({
+  id: idSchema,
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+  role: roleSchema,
+  status: statusSchema,
+  profileImagePath: createProfileImagePathSchema(),
+  isOnline: z.boolean().default(true),
+});
+export type SelfUserProfileResponse = z.infer<typeof selfUserProfileResponseSchema>;
+export class SelfUserProfileResponseDto extends createZodDto(selfUserProfileResponseSchema) {}
+
+
 
 
 // 유저 회원 정보 수정
 
 export const updateUserProfileRequestSchema = z.object({
-  name: z.string().min(1, '이름을 입력해 주세요.').max(50).optional(),
+  name: createNameSchema(USER_REQUEST_VALIDATION_OPTIONS.name).optional(),
   profileImagePath: z.string().max(255).nullable().optional(),
 });
 export type UpdateUserProfileRequest = z.infer<typeof updateUserProfileRequestSchema>;
 export class UpdateUserProfileRequestDto extends createZodDto(updateUserProfileRequestSchema) {}
 
 
-// 친구 추가
+
+// 친구 추가 (idSchema를 사용)
 
 export const addFriendRequestSchema = z.object({
-  friendUserId: z.string().min(1, '친구 유저 ID가 필요합니다.'),
+  friendUserId: idSchema,
 });
 export type AddFriendRequest = z.infer<typeof addFriendRequestSchema>;
 export class AddFriendRequestDto extends createZodDto(addFriendRequestSchema) {}
 
 
-// 친구 프로필 확인, 친구 온라인 접속 상태 확인
+// 친구 프로필 확인
 
 export const friendItemResponseSchema = z.object({
-  id: z.string(),
-  friendUser: z.object({
-    id: z.string(),
-    loginId: z.string(),
-    name: z.string(),
-    profileImagePath: z.string().nullable(),
-    isOnline: z.boolean().default(false),
-  }),
-  createdAt: z.union([z.date(), z.string()]).optional(),
+  id: idSchema,
+  friendUser: publicUserProfileResponseSchema,
 });
 export type FriendItemResponse = z.infer<typeof friendItemResponseSchema>;
 export class FriendItemResponseDto extends createZodDto(friendItemResponseSchema) {}

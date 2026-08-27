@@ -1,7 +1,19 @@
-import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
+import type { Request } from 'express';
+
 import { UserService } from '#modules/user/services/user.service.js';
 import {
-  UserProfileResponseDto,
+  PublicUserProfileResponseDto,
+  SelfUserProfileResponseDto,
   UpdateUserProfileRequestDto,
   AddFriendRequestDto,
   GetFriendsResponseDto,
@@ -11,30 +23,52 @@ import {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // 타인/본인 프로필 조회 (GET /users/:id)
+  // 타인 프로필 조회
   @Get(':id')
-  async getProfile(@Param('id') id: string): Promise<UserProfileResponseDto> {
-    return (await this.userService.findById(id)) as unknown as UserProfileResponseDto;
+  async getPublicProfile(@Param('id') id: string): Promise<PublicUserProfileResponseDto> {
+    return await this.userService.getPublicProfile(id);
+  }
+
+  // 본인 프로필 조회
+  @Get('me')
+  async getSelfProfile(@Req() req: Request): Promise<SelfUserProfileResponseDto> {
+    const userId = this.extractUserId(req);
+    return await this.userService.getSelfProfile(userId);
   }
 
   // 본인 프로필 수정 (PATCH /users/me)
   @Patch('me')
-  async updateProfile(@Body() body: UpdateUserProfileRequestDto): Promise<UserProfileResponseDto> {
-    const currentUserId = '1'; // 추후 JWT 인증 가드 적용 시 로그인 유저 ID로 교체
-    return (await this.userService.updateProfile(currentUserId, body)) as unknown as UserProfileResponseDto;
+  async updateProfile(
+    @Req() req: Request,
+    @Body() body: UpdateUserProfileRequestDto,
+  ): Promise<SelfUserProfileResponseDto> {
+    const userId = this.extractUserId(req);
+    return await this.userService.updateProfile(userId, body);
   }
 
-  // 내 친구 목록 및 상태 조회 (GET /users/me/friends)
+  // 친구 목록 조회 (GET /users/me/frineds)
   @Get('me/friends')
-  async getFriends(): Promise<GetFriendsResponseDto> {
-    const currentUserId = '1';
-    return (await this.userService.getFriends(currentUserId)) as unknown as GetFriendsResponseDto;
+  async getFriends(@Req() req: Request): Promise<GetFriendsResponseDto> {
+    const userId = this.extractUserId(req);
+    return await this.userService.getFriends(userId);
   }
 
   // 친구 추가 (POST /users/me/friends)
   @Post('me/friends')
-  async addFriend(@Body() body: AddFriendRequestDto) {
-    const currentUserId = '1';
-    return await this.userService.addFriend(currentUserId, body);
+  async addFriend(@Req() req: Request, @Body() body: AddFriendRequestDto) {
+    const userId = this.extractUserId(req);
+    return await this.userService.addFriend(userId, body);
+  }
+
+  
+  // Request Context에서 인증된 사용자 ID(sub) 추출
+  private extractUserId(req: Request): string {
+    const user = (req as unknown as { user?: { sub?: string; id?: string } }).user;
+    const userId = user?.sub ?? user?.id;
+
+    if (!userId) {
+      throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
+    }
+    return String(userId);
   }
 }

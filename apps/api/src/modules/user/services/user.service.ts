@@ -6,7 +6,13 @@ import type { Repository } from 'typeorm';
 
 import { UserEntity } from '#modules/user/entities/user.entity.js';
 import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
-import type { UpdateUserProfileRequest, AddFriendRequest } from '../controllers/user.dto.js';
+import type {
+  PublicUserProfileResponse,
+  SelfUserProfileResponse,
+  UpdateUserProfileRequest,
+  AddFriendRequest,
+  FriendItemResponse,
+} from '../controllers/user.dto.js';
 
 interface AssertUniquenessParams {
   readonly loginId: string;
@@ -25,7 +31,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(UserFriendEntity) // 추가
+    @InjectRepository(UserFriendEntity)
     private readonly friendRepository: Repository<UserFriendEntity>,
   ) {}
 
@@ -55,9 +61,7 @@ export class UserService {
 
   async create(params: CreateUserParams): Promise<UserEntity> {
     const { loginId, passwordHash, name, email } = params;
-
     const user = this.userRepository.create({ loginId, passwordHash, name, email });
-
     return await this.userRepository.save(user);
   }
 
@@ -74,37 +78,82 @@ export class UserService {
 
 
   
+  // 보안 매퍼 적용
   // 신규 추가 / 프로필 조회, 수정, 친구 관리 로직
 
-  // 유저 ID로 상세 프로필 조회 (타인/본인 공용)
-  async findById(id: string): Promise<UserEntity> {
-    const user = await this.userRepository.findOne({ where: { id } });
+  // 타인 프로필 조회 (민감 정보 제외)
+  async getPublicProfile(userId: string): Promise<PublicUserProfileResponse> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
     }
-    return user;
+
+    return {
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      profileImagePath: user.profileImagePath,
+      isOnline: false,
+    };
   }
 
-  // 본인 회원 정보 수정
-  async updateProfile(userId: string, dto: UpdateUserProfileRequest): Promise<UserEntity> {
-    const user = await this.findById(userId);
+  // 본인 프로필 조회
+  async getSelfProfile(userId: string): Promise<SelfUserProfileResponse> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
+
+    return {
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImagePath: user.profileImagePath,
+      isOnline: true,
+    };
+  }
+
+  // 본인 프로필 수정
+  async updateProfile(
+    userId: string,
+    dto: UpdateUserProfileRequest,
+  ): Promise<SelfUserProfileResponse> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
 
     if (dto.name !== undefined) user.name = dto.name;
     if (dto.profileImagePath !== undefined) user.profileImagePath = dto.profileImagePath;
 
-    return await this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
+
+    return {
+      id: updatedUser.id,
+      loginId: updatedUser.loginId,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      status: updatedUser.status,
+      profileImagePath: updatedUser.profileImagePath,
+      isOnline: true,
+    };
   }
 
   // 친구 추가 요청
-  async addFriend(userId: string, dto: AddFriendRequest): Promise<UserFriendEntity> {
+  async addFriend(userId: string, dto: AddFriendRequest): Promise<{ id: string }> {
     if (userId === dto.friendUserId) {
       throw new ConflictException('자기 자신을 친구로 추가할 수 없습니다.');
     }
 
-    // 대상 유저 존재 여부 검증
-    await this.findById(dto.friendUserId);
+    const targetUser = await this.userRepository.findOne({ where: { id: dto.friendUserId } });
+    if (!targetUser) {
+      throw new NotFoundException('추가하려는 사용자가 존재하지 않습니다.');
+    }
 
-    // 중복 친구 여부 검증
     const existing = await this.friendRepository.findOne({
       where: { userId, friendUserId: dto.friendUserId },
     });
@@ -116,11 +165,13 @@ export class UserService {
       userId,
       friendUserId: dto.friendUserId,
     });
-    return await this.friendRepository.save(friendship);
+    const saved = await this.friendRepository.save(friendship);
+
+    return { id: saved.id };
   }
 
-  // 내 친구 목록 및 실시간 상태 조회
-  async getFriends(userId: string) {
+  // 친구 목록 조회
+  async getFriends(userId: string): Promise<FriendItemResponse[]> {
     const friendships = await this.friendRepository.find({
       where: { userId },
       relations: { friendUser: true },
@@ -133,9 +184,8 @@ export class UserService {
         loginId: f.friendUser?.loginId ?? '',
         name: f.friendUser?.name ?? '',
         profileImagePath: f.friendUser?.profileImagePath ?? null,
-        isOnline: false, // 웹소켓 게이트웨이 연동 전 기본값
+        isOnline: false,
       },
-      createdAt: f.createdAt,
     }));
   }
 }
