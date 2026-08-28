@@ -1,57 +1,28 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { useAuth } from '@/features/auth/AuthContext';
+
 import { loginUserRequestSchema } from '@repo/schemas/auth';
-
-// import { loginUserResponseSchema, loginUserRequestSchema, type LoginUserRequest, type LoginUserResponse } from '@repo/schemas/auth';
-
-// 뼈대 함수 - 실제 백엔드 연동 전 mock. SUCCESS/FAIL 분기만 미리 정의해둔다.
-async function mockLoginApi(
-  id: string,
-  password: string,
-): Promise<{ success: boolean; role: 'admin' | 'user' }> {
-  return await new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (id !== '' && password !== '') {
-        // SUCCESS: 로그인 성공 - role에 따라 이동할 화면이 달라짐 (호출부에서 분기)
-        resolve({ success: true, role: id === 'admin' ? 'admin' : 'user' });
-      } else {
-        // FAIL: 아이디/비밀번호 중 하나라도 빈 값이면 실패
-        reject(new Error('아이디/비밀번호를 확인해주세요.'));
-      }
-    }, 800);
-  });
-}
-
-//로그인 API 구현되면 사용할 함수 -> mockLoginApi 삭제 -> LoginResponse 랑 맞는지 확인 (loginId, role)
-// async function loginApi(payload: LoginRequest): Promise<LoginResponse> {
-//   const res = await fetch('/api/auth/login', {
-//     method: 'POST',
-//     credentials: 'include',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify(payload),
-//   });
-//  const json: unknown = await res.json();
-//  const result = loginResponseSchema.safeParse(json);
-//
-//   if (!result.success)
-// {
-//     throw new Error('서버 응답 형식이 올바르지 않습니다.');
-//   }
-
-//   return result.data;
-// }
 
 export default function LoginView() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>('');
-  const [userPassword, setUserPassword] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { login, status } = useAuth();
+  const [userId, setUserId] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 이미 로그인된 상태면 로그인 화면을 보여줄 이유가 없음
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/calendar');
+    }
+  }, [status, router]);
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,19 +31,17 @@ export default function LoginView() {
 
     try {
       const check = loginUserRequestSchema.safeParse({ loginId: userId, password: userPassword });
-      //.parse()
 
       if (!check.success) {
-        setErrorMessage(check.error.issues[0]?.message ?? '입력값을 확인해주세요.');
+        setErrorMessage(check.error.issues[0]?.message ?? '입력값을 확인해 주세요.');
         return;
       }
 
-      const result = await mockLoginApi(userId, userPassword); //상태 코드 -> 400 ,500 받으면
+      const user = await login(userId, userPassword);
 
-      // SUCCESS: role별로 이동할 화면 분기 (관리자 -> 관리자 화면, 일반 유저 -> 캘린더)
-      router.push(result.role === 'admin' ? '/admin/users' : '/calendar');
+      // role 별 이동 (관리자 → 관리자 화면, 일반 유저 → 캘린더)
+      router.push(user.role === 'ADMIN' ? '/admin/users' : '/calendar');
     } catch (error) {
-      // FAIL: 에러 메시지를 화면에 노출
       setErrorMessage(error instanceof Error ? error.message : '로그인에 실패했어요.');
     } finally {
       setIsLoading(false);
@@ -104,6 +73,7 @@ export default function LoginView() {
               id="login-id"
               type="text"
               placeholder="아이디 입력"
+              autoComplete="username"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
@@ -120,6 +90,7 @@ export default function LoginView() {
               id="login-pw"
               type="password"
               placeholder="비밀번호 입력"
+              autoComplete="current-password"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               value={userPassword}
               onChange={(e) => setUserPassword(e.target.value)}
@@ -143,6 +114,21 @@ export default function LoginView() {
             회원가입
           </Link>
         </p>
+        <div className="flex justify-center gap-3 text-[11px] text-gray-400">
+          <Link
+            href="/terms"
+            className="hover:text-gray-600 hover:underline"
+          >
+            이용약관
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/privacy"
+            className="hover:text-gray-600 hover:underline"
+          >
+            개인정보 처리방침
+          </Link>
+        </div>
       </div>
     </main>
   );

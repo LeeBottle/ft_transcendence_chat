@@ -1,12 +1,14 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { usePathname, useRouter } from 'next/navigation';
 
 import Header from '@/components/Header';
 import Sidebar, { type SidebarItem } from '@/components/Sidebar';
+import { useAuth } from '@/features/auth/AuthContext';
 import RoomList from '@/features/room/components/RoomList';
 import { RoomProvider, useRoomContext } from '@/features/room/RoomContext';
-import { MOCK_USER } from '@/features/user/mockUser';
 
 const NAV_ITEMS: SidebarItem[] = [
   { id: 'calendar', label: '캘린더' },
@@ -50,15 +52,34 @@ function RoomSection() {
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { status, user, logout } = useAuth();
+
+  // 미인증이면 로그인 화면으로
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+    }
+  }, [status, router]);
+
+  if (status !== 'authenticated' || user === null) {
+    return (
+      <div className="flex h-screen items-center justify-center text-sm text-gray-400">
+        {status === 'loading' ? '불러오는 중…' : '로그인이 필요합니다.'}
+      </div>
+    );
+  }
+
   const activeId = NAV_ITEMS.find((item) => pathname.startsWith(`/${item.id}`))?.id;
 
   return (
     <RoomProvider>
       <div className="flex h-screen flex-col">
         <Header
-          username={MOCK_USER.username}
+          username={user.name}
           onLogout={() => {
-            router.push('/login');
+            void logout().then(() => {
+              router.replace('/login');
+            });
           }}
         />
         <div className="flex flex-1 overflow-hidden">

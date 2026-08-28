@@ -4,6 +4,8 @@
 //	vite.config.ts '@assets': '/src/assets'
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 
+import Link from 'next/link';
+
 import Avatar from '@/components/Avatar';
 import {
   getPwErrors,
@@ -326,6 +328,23 @@ function MyPageView({
         >
           로그아웃
         </button>
+
+        {/* 약관 및 정책 */}
+        <div className="flex justify-center gap-3 text-[11px] text-gray-400">
+          <Link
+            href="/terms"
+            className="hover:text-gray-600 hover:underline"
+          >
+            이용약관
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/privacy"
+            className="hover:text-gray-600 hover:underline"
+          >
+            개인정보 처리방침
+          </Link>
+        </div>
       </div>
     </main>
   );

@@ -1,7 +1,9 @@
-import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
+import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+
+import { AuthProvider } from '@/features/auth/AuthContext';
 
 import './globals.css';
 
@@ -23,7 +25,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
