@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { loginUserRequestSchema } from '@repo/schemas/auth';
@@ -135,12 +136,12 @@ export default function LoginView() {
         </form>
         <p className="text-center text-xs text-gray-400">
           계정이 없으신가요?{' '}
-          <span
+          <Link
+            href="/register"
             className="cursor-pointer font-semibold text-purple-600"
-            onClick={() => console.log('회원가입 클릭')}
           >
             회원가입
-          </span>
+          </Link>
         </p>
       </div>
     </main>
