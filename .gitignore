@@ -24,5 +24,7 @@ uploads/*
 
 *.pem
 
+.husky/_/
+
 # Each member's private ignores
 .cspell.json
