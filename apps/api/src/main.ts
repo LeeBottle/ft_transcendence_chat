@@ -22,9 +22,9 @@ async function bootstrap() {
 
   app.set('trust proxy', 1);
 
-  const apiPort = configService.getOrThrow('API_PORT', { infer: true });
+  const apiPort = configService.getOrThrow('PORT', { infer: true });
 
-  await app.listen(apiPort);
+  await app.listen(apiPort, '0.0.0.0');
 }
 
 bootstrap().catch((error: unknown) => {
