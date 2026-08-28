@@ -2,19 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import type { UserRole } from '@repo/constants/user';
+import type { TokenInputPayload, TokenPayload } from '@repo/constants/token';
 
 import type { ApiEnv } from '#config/api-env.schema.js';
-
-interface TokenPayload {
-  readonly sub: string; // id
-  readonly loginId: string; // loginId
-  readonly role: UserRole; // role
-  readonly iat: number; // 발급 시각 (Unix Timestamp, 초)
-  readonly exp: number; // 만료 시각 (Unix Timestamp, 초)
-}
-
-type TokenInputPayload = Omit<TokenPayload, 'iat' | 'exp'>;
 
 export interface GeneratedTokenPair {
   readonly accessToken: string;
