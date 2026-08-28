@@ -1,18 +1,18 @@
-import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
+import { z } from 'zod';
+
 import {
-  idSchema,
+  createEmailSchema,
+  createLoginIdSchema,
   createNameSchema,
   createProfileImagePathSchema,
-  createLoginIdSchema,
-  createEmailSchema,
+  idSchema,
   roleSchema,
   statusSchema,
   USER_REQUEST_VALIDATION_OPTIONS,
   USER_RESPONSE_VALIDATION_OPTIONS,
-} from '#user/user.schema.js';
-
+} from '@repo/schemas/user';
 
 // 타인 공개용 프로필 (민감 정보 제외)
 
@@ -25,7 +25,6 @@ export const publicUserProfileResponseSchema = z.object({
 });
 export type PublicUserProfileResponse = z.infer<typeof publicUserProfileResponseSchema>;
 export class PublicUserProfileResponseDto extends createZodDto(publicUserProfileResponseSchema) {}
-
 
 // 본인 조회용 프로필
 
@@ -42,9 +41,6 @@ export const selfUserProfileResponseSchema = z.object({
 export type SelfUserProfileResponse = z.infer<typeof selfUserProfileResponseSchema>;
 export class SelfUserProfileResponseDto extends createZodDto(selfUserProfileResponseSchema) {}
 
-
-
-
 // 유저 회원 정보 수정
 
 export const updateUserProfileRequestSchema = z.object({
@@ -54,8 +50,6 @@ export const updateUserProfileRequestSchema = z.object({
 export type UpdateUserProfileRequest = z.infer<typeof updateUserProfileRequestSchema>;
 export class UpdateUserProfileRequestDto extends createZodDto(updateUserProfileRequestSchema) {}
 
-
-
 // 친구 추가 (idSchema를 사용)
 
 export const addFriendRequestSchema = z.object({
@@ -63,7 +57,6 @@ export const addFriendRequestSchema = z.object({
 });
 export type AddFriendRequest = z.infer<typeof addFriendRequestSchema>;
 export class AddFriendRequestDto extends createZodDto(addFriendRequestSchema) {}
-
 
 // 친구 프로필 확인
 
