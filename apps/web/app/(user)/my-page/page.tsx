@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 
-import MyPageView from '@/features/my-page/components/myPagesView';
+import MyPageView from '@/features/my-page/components/MyPagesView';
 import { MOCK_USER } from '@/features/user/mockUser';
 
 export default function MyPage() {
