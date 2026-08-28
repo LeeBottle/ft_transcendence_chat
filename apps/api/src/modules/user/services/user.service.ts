@@ -1,17 +1,26 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import type { Repository } from 'typeorm';
 
+import { UserStatus } from '@repo/constants/user';
+
+import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
 // import { buildUserEntitySelectMap } from '#common/utils/typeorm.util.js';
 
 import { UserEntity } from '#modules/user/entities/user.entity.js';
-import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
+
 import type {
+  AddFriendRequest,
+  FriendItemResponse,
   PublicUserProfileResponse,
   SelfUserProfileResponse,
   UpdateUserProfileRequest,
-  AddFriendRequest,
-  FriendItemResponse,
 } from '../controllers/user.dto.js';
 
 interface AssertUniquenessParams {
@@ -76,8 +85,6 @@ export class UserService {
   //   });
   // }
 
-
-  
   // 보안 매퍼 적용
   // 신규 추가 / 프로필 조회, 수정, 친구 관리 로직
 
@@ -104,16 +111,7 @@ export class UserService {
       throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
     }
 
-    return {
-      id: user.id,
-      loginId: user.loginId,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      profileImagePath: user.profileImagePath,
-      isOnline: true,
-    };
+    return this.toSelfProfileResponse(user);
   }
 
   // 본인 프로필 수정
@@ -131,14 +129,28 @@ export class UserService {
 
     const updatedUser = await this.userRepository.save(user);
 
+    return this.toSelfProfileResponse(updatedUser);
+  }
+
+  // 본인 프로필 응답 매퍼 (활성 상태 가드 포함)
+  private toSelfProfileResponse(user: UserEntity): SelfUserProfileResponse {
+    if (user.status === UserStatus.WITHDRAWN) {
+      throw new ForbiddenException('탈퇴 처리된 계정입니다.');
+    }
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new ForbiddenException(
+        '이용이 정지된 계정입니다. 자세한 사항은 고객센터로 문의해 주세요.',
+      );
+    }
+
     return {
-      id: updatedUser.id,
-      loginId: updatedUser.loginId,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      status: updatedUser.status,
-      profileImagePath: updatedUser.profileImagePath,
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImagePath: user.profileImagePath,
       isOnline: true,
     };
   }
