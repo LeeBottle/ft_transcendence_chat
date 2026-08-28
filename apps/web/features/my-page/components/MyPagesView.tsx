@@ -5,6 +5,12 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 
 import Avatar from '@/components/Avatar';
+import {
+  getPwErrors,
+  getPwStrength,
+  PW_RULES,
+  STRENGTH_META,
+} from '@/features/auth/passwordPolicy';
 
 export interface MyPageViewProps {
   username: string;
@@ -17,78 +23,6 @@ export interface MyPageViewProps {
   onSaveInfo?: (data: { name: string; email: string }) => void;
   onChangePassword?: (data: { currentPassword: string; newPassword: string }) => void;
 }
-
-// ── 비밀번호 규칙 (validatePw() / getPwErrors() 대체) ──
-const COMMON_WORDS = [
-  'password',
-  'qwerty',
-  'letmein',
-  'welcome',
-  'monkey',
-  'dragon',
-  'master',
-  'abc',
-  'iloveyou',
-];
-const SEQ_NUM = /012|123|234|345|456|567|678|789|890|987|876|765|654|543|432|321|210/;
-const SPECIAL_CHAR = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
-
-interface PwRule {
-  id: string;
-  label: string;
-  pass: (pw: string, loginId: string) => boolean;
-}
-
-const PW_RULES: PwRule[] = [
-  { id: 'length', label: '최소 10자 이상', pass: (pw) => pw.length >= 10 },
-  { id: 'upper', label: '대문자 1자 이상 포함', pass: (pw) => /[A-Z]/.test(pw) },
-  { id: 'number', label: '숫자 1자 이상 포함', pass: (pw) => /[0-9]/.test(pw) },
-  {
-    id: 'special',
-    label: '특수문자 1자 이상 포함 (!@#$%^&* 등)',
-    pass: (pw) => SPECIAL_CHAR.test(pw),
-  },
-  { id: 'seq', label: '연속된 숫자 3자 이상 금지 (123, 456 등)', pass: (pw) => !SEQ_NUM.test(pw) },
-  {
-    id: 'id',
-    label: '아이디와 유사한 문자 금지',
-    pass: (pw, loginId) => !loginId || !pw.toLowerCase().includes(loginId.toLowerCase()),
-  },
-];
-
-function getPwErrors(pw: string, loginId: string): string[] {
-  const errors: string[] = [];
-  if (pw.length < 10) errors.push('최소 10자 이상이어야 해요');
-  if (!/[A-Z]/.test(pw)) errors.push('대문자를 1자 이상 포함해야 해요');
-  if (!/[0-9]/.test(pw)) errors.push('숫자를 1자 이상 포함해야 해요');
-  if (!SPECIAL_CHAR.test(pw)) errors.push('특수문자를 1자 이상 포함해야 해요');
-  if (SEQ_NUM.test(pw)) errors.push('연속된 숫자 3자 이상은 사용할 수 없어요 (예: 123, 456)');
-  if (loginId && pw.toLowerCase().includes(loginId.toLowerCase()))
-    errors.push('아이디와 유사한 문자는 사용할 수 없어요');
-  const matched = COMMON_WORDS.find((w) => pw.toLowerCase().includes(w));
-  if (matched) errors.push(`자주 쓰이는 단어 "${matched}"는 사용할 수 없어요`);
-  return errors;
-}
-
-function getPwStrength(pw: string): number {
-  let score = 0;
-  if (pw.length >= 10) score++;
-  if (pw.length >= 14) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[!@#$%^&*]/.test(pw)) score++;
-  if (pw.length >= 18) score++;
-  return Math.min(score, 5);
-}
-
-const STRENGTH_META = [
-  { pct: 0, color: '', label: '' },
-  { pct: 20, color: '#D92D20', label: '매우 약함' },
-  { pct: 40, color: '#F79009', label: '약함' },
-  { pct: 60, color: '#FCD34D', label: '보통' },
-  { pct: 80, color: '#6C63FF', label: '강함' },
-  { pct: 100, color: '#0F6E56', label: '매우 강함' },
-];
 
 function MyPageView({
   username,
