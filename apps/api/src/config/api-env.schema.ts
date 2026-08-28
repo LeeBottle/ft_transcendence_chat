@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { createDurationSchema } from './duration.schema.js';
 import { ApiEnvError } from './exceptions/environment-validation.error.js';
 
 export const nodeEnvSchema = z.enum(['development', 'production', 'test']).default('development');
@@ -46,6 +47,12 @@ const apiEnvSchema = z
     CLIENT_URL: z.url({ protocol: /^https?$/ }).default('http://localhost:3000'),
     UPLOAD_BASE_DIR: z.string().min(1).default('uploads'),
     BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(4).max(12).default(10),
+
+    JWT_ACCESS_SECRET: z.string().min(32).max(64),
+    JWT_REFRESH_SECRET: z.string().min(32).max(64),
+
+    JWT_ACCESS_EXPIRATION: createDurationSchema({ minMsStr: '5m', maxMsStr: '1h' }).default('15m'),
+    JWT_REFRESH_EXPIRATION: createDurationSchema({ minMsStr: '1d', maxMsStr: '30d' }).default('7d'),
 
     REDIS_HOST: createHostSchema({ default: '127.0.0.1' }),
     REDIS_PORT: createPortSchema({ default: 6379 }),

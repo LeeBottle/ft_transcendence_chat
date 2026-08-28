@@ -42,4 +42,4 @@ export function createProfileImagePathSchema(): z.ZodType<string | null> {
 export const idSchema = z.string().regex(USER_CONFIGS.id.constraints.fullRegex);
 export const emailVerifiedAtSchema = z.iso.datetime().nullable();
 export const roleSchema = z.enum(UserRole);
-export const statusSchema = z.literal(UserStatus.ACTIVE);
+export const statusSchema = z.enum(UserStatus);
