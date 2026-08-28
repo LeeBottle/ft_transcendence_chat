@@ -13,10 +13,6 @@ export function createDurationSchema(options: DurationValidationOptions): z.ZodS
     const minMs = parseDurationToMs(options.minMsStr);
     const maxMs = parseDurationToMs(options.maxMsStr);
 
-    if (ms === null || minMs === null || maxMs === null) {
-      return false;
-    }
-
     return ms >= minMs && ms <= maxMs;
   });
 }

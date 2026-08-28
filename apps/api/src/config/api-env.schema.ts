@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { createDurationSchema } from './duration.schema.js';
+import { createDurationSchema } from '#common/schemas/duration.schema.js';
+
 import { ApiEnvError } from './exceptions/environment-validation.error.js';
 
 export const nodeEnvSchema = z.enum(['development', 'production', 'test']).default('development');
