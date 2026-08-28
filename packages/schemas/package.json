@@ -23,6 +23,9 @@
       "default": "./dist/chat/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "check-types": "tsc --noEmit",

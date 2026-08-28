@@ -1,35 +1,278 @@
 name: ft_transcendence
 
+x-logging: &default-logging # 디스크 용량 고갈 방지 (Log Rotation)
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-ulimit: &default-ulimit
+  nofile:
+    soft: 65535
+    hard: 65535
+
 services:
-  mysql:
-    image: mysql:8.4
-    container_name: ft_transcendence_mysql
+  gateway:
+    image: nginxinc/nginx-unprivileged:1.30-alpine3.24
     restart: unless-stopped
-    ports:
-      - "${DB_PORT:-3306}:3306"
+    stop_signal: SIGQUIT
+    stop_grace_period: 15s
+
     environment:
-      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:-your_password}"
-      MYSQL_DATABASE: "${DB_SCHEMA_NAME:-ft_transcendence}"
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - TZ=UTC
 
-  redis:
-    image: redis:7-alpine
-    container_name: ft_transcendence_redis
-    restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    command: redis-server --appendonly yes
+    read_only: true
+    tmpfs: # read_only: true 설정시 필수
+      - /tmp:rw,noexec,nosuid,size=128m,uid=101,gid=101
+      - /var/cache/nginx:rw,noexec,nosuid,size=256m,uid=101,gid=101
     volumes:
-      - redis_data:/data
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - uploads-data:/var/www/uploads:ro
 
-  adminer:
-    image: adminer:latest
-    container_name: ft_transcendence_adminer
-    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "80:8080"
+      - "443:8443"
+    networks:
+      - public-network
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    depends_on:
+      web:
+        condition: service_healthy # Next.js 준비 완료 시 기동
+      api:
+        condition: service_healthy # NestJS 준비 완료 시 기동
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 1 -t 1 --spider http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 768M
+        reservations:
+          memory: 128M
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      target: runner
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    env_file:
+      - .env.web
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=512
+
+    volumes:
+      - web-cache:/home/node/app/apps/web/.next/cache:rw
+
+    networks:
+      - public-network
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -q -T 2 -t 1 --spider http://127.0.0.1:$${PORT:?}/healthz || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 25s # Next.js 서버 초기화 대기
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+        reservations:
+          cpus: "0.15"
+          memory: 256M
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    env_file:
+      - .env.api
+    environment:
+      - DB_HOST=${DB_HOST:?}
+      - DB_USERNAME=${DB_USERNAME:?}
+      - DB_PASSWORD=${DB_PASSWORD:?}
+      - DB_SCHEMA_NAME=${DB_SCHEMA_NAME:?}
+      - DB_PORT
+      - DB_MAX_QUERY_EXECUTION_TIME_MS
+
+      - REDIS_HOST=${REDIS_HOST:?}
+      - REDIS_PORT=${REDIS_PORT:?}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?}
+
+      - NODE_OPTIONS=--max-old-space-size=768
+
+    volumes:
+      - uploads-data:/home/node/app/uploads:rw
+
+    networks:
+      - public-network
+      - internal-network
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    depends_on:
+      db:
+        condition: service_healthy # MySQL 준비 완료 시 기동
+      chat-store:
+        condition: service_healthy # Redis 준비 완료 시 기동
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -T 2 -t 1 --spider http://127.0.0.1:$${PORT:?}/api/healthz/live || exit 1",
+        ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s # 콜드 스타트 지연을 대비한 넉넉한 유예 시간
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
+  chat-store:
+    image: redis:7.4.11-alpine3.21
+    restart: unless-stopped
+    stop_grace_period: 20s # 컨테이너 종료 시 AOF 플러시 완료를 기다려주는 안전 유예 시간
+
+    command:
+      ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD}"]
+
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?}
+
+    volumes:
+      - ./redis/chat-store.conf:/usr/local/etc/redis/redis.conf:ro
+      - chat-store-data:/data:rw
+
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - internal-network
+    security_opt:
+      - no-new-privileges:true
+
+    healthcheck:
+      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep PONG || exit 1']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1800M
+        reservations:
+          memory: 256M
+
+  db:
+    image: mysql:8.4.11
+    restart: unless-stopped
+    stop_grace_period: 1m
+
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=60
+
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:?}
+      - MYSQL_USER=${DB_USERNAME:?}
+      - MYSQL_PASSWORD=${DB_PASSWORD:?}
+      - MYSQL_DATABASE=${DB_SCHEMA_NAME:?}
+      - TZ=UTC
+
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+    ports:
+      - "127.0.0.1:3306:3306"
+    networks:
+      - internal-network
+    security_opt:
+      - no-new-privileges:true
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'MYSQL_PWD="$$MYSQL_PASSWORD" mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *default-logging
+
+    ulimits: *default-ulimit
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
 
 volumes:
-  mysql_data:
-  redis_data:
+  uploads-data:
+    driver: local
+  web-cache:
+    driver: local
+  chat-store-data:
+    driver: local
+  mysql-data:
+    driver: local
+
+# internal-network는 프로덕션 환경에서는 `internal: true` 옵션 활성화하여 외부 접근 차단 필수
+networks:
+  public-network:
+    driver: bridge
+  internal-network:
+    driver: bridge

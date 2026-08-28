@@ -1,184 +1,152 @@
-# Turborepo starter
+# ft_transcendence
 
-This Turborepo starter is maintained by the Turborepo core team.
+## 1. 개요
 
-## Using this example
+채팅 회의 & AI 자동 태스크 추출
 
-Run the following command:
+## 2. 실행 방법
 
-```sh
-npx create-turbo@latest
+### 2-1. `git clone <repository> [<directory>]` (to user home directory)
+
+### 2-2. `make setup-host`
+
+### 2-3. `newgrp docker`
+
+### 2-4. Place the environment variable files
+
+- `infra/.env.api`, `infra/.env.web`, `infra/.env.database`
+
+### 2-5. Run batch startup and migration of Docker containers
+
+- `make up-build`
+
+## 3. 프로덕션 환경 구성
+
+### 3-1. Run provisioning script
+
+- Run `make setup-host` only
+
+### 3-2. Docker compose 및 각 컨테이너 관리
+
+- See `./infra/README.md`
+
+## 4. 개발 환경 구성
+
+### 4-1. Volta 설치 (터미널 전역 설치)
+
+- `https://volta.sh/`
+- 설치 후 깃 클론한 레포지토리 접속(터미널 cd)하면 자동으로 pnpm
+  11.17.0, node 24.18.0 설치됨
+
+### 4-2. 패키지 설치 (모노레포 내부 (이하 동일))
+
+프로젝트 루트에서 `pnpm install`
+
+### 4-3. .vscode/settings.json 설정
+
+1. 기존에 개인적으로 사용하던 설정이 있다면
+   `.vscode/settings.local.jsonc`에 복사 (없으면 이 파일 생성할 필요
+   없이 다음 절차 진행)
+2. 모노레포 루트에서 `pnpm vscode:merge-settings` 실행
+3. 개인 설정(`.vscode/settings.local.jsonc`), 팀 공유
+   설정(`.vscode/settings.shared.json`)이 합쳐져 `.vscode/settings.json`
+   생성됨 (개인 설정이 공유 설정을 덮어쓰는 구조(중복 설정 존재시))
+
+### 4-4. .vscode/extensions.json
+
+여기 있는 익스텐션 반드시 모두 설치
+
+## 5. 모노레포 루트 package.json scripts
+
+### 5-1. pnpm cleanup:artifacts
+
+빌드 결과물, 캐시 모두 제거
+
+### 5-2. pnpm cleanup:node_modules
+
+node_modules 모두 제거
+
+### 5-3. pnpm cleanup:all
+
+빌드 결과물, 캐시, node_modules 모두 제거
+
+### 5-4. pnpm dev
+
+- 개발 모드. 코드 변경 사항을 실시간 반영. 개발시 이 명령을 실행시켜놓고
+  하는걸 매우 권장.
+- 코드 변경 사항 있거나, 최초 실행시에는 반드시 `pnpm build` 수행이
+  선행되어야함
+
+### 5-5. pnpm build
+
+모노레포 전체 패키지 빌드
+
+### 5-6. pnpm validate
+
+모노레포 전체 코드 타입 체크, 린트, 포맷 검사
+
+### 5-7. pnpm fix
+
+모노레포 전체 코드 린트, 포맷 규칙을 준수하도록 코드 수정
+
+### 5-8. pnpm vscode:merge-settings
+
+1. [선택사항] `.vscode/settings.local.jsonc`에 개인 VS Code 설정 작성
+2. 이 명령어 실행
+3. 팀 공통 설정인 `.vscode/settings.shared.json`과 개인 설정인
+   `.vscode/settings.local.jsonc`가 병합되어 `.vscode/settings.json`가
+   생성됨
+
+## 6. 전체 디렉토리 구조
+
+```text
+.
+├── .vscode
+│   ├── extensions.json
+│   ├── settings.shared.json
+│   └── tasks.json
+├── apps
+│   ├── api : 백엔드(NestJS)
+│   │   ├── src
+│   │   │   ├── app.module.ts : 모듈 의존성 그래프 최상위 모듈
+│   │   │   ├── common : 각 모듈 공통 사용 코드
+│   │   │   │   ├── decorators
+│   │   │   │   ├── exceptions
+│   │   │   │   ├── filters
+│   │   │   │   ├── interceptors
+│   │   │   │   ├── pipes
+│   │   │   │   └── utils
+│   │   │   ├── config : 환경변수 검증
+│   │   │   ├── database : TypeORM DB 설정
+│   │   │   ├── main.ts : 서버 실행부
+│   │   │   └── modules
+│   │   │       ├── auth : 인증/인가 (e.g., 로그인, 회원가입)
+│   │   │       ├── calendar : 캘린더 페이지 기능
+│   │   │       ├── chat : 채팅(방, 멤버, 채팅 태스크, )
+│   │   │       └── user : 유저 프로필 관리, 정보 수정 등
+│   │   └── uploads : 서버 데이터(e.g., 유저 프로필 사진) 저장 루트
+│   └── web : 프론트엔드(Next.js)
+├── infra : 환경 변수 파일, 도커 및 도커 컴포즈 파일
+├── packages : 프론트/백 공용 사용자 정의 패키지 모음
+│   ├── build-tools : 공용 패키지 빌드 설정 모음
+│   ├── constants : 각 모듈별 상수 (enum 성격의 객체 등)
+│   └── schemas : 각 모듈별 Zod 스키마 (API 요청/응답 객체 구조 및 검증)
+└── scripts : 개발용 스크립트
 ```
 
-## What's inside?
+### 6-1. apps
 
-This Turborepo includes the following packages/apps:
+- api: 백엔드 NestJS
+- web: 프론트엔드 Next.js
 
-### Apps and Packages
+### 6-2. infra
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and
-  `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes
-  `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the
-  monorepo
+- 개발/프로덕션 환경 공용 환경변수 파일
+- 프로덕션 환경용 환경 변수 파일
+- 도커 컴포즈 구성
+- NGINX, MySQL, Redis 설정 파일
+- 인프라 환경 구성 스크립트 파일
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### 6-3. packages
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With
-[global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation)
-installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a
-[filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With
-[global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation)
-installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With
-[global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation)
-installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a
-[filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With
-[global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation)
-installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP] Vercel Remote Cache is free for all plans. Get started today at
-> [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as
-[Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-to share cache artifacts across machines, enabling you to share build
-caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you
-will need an account with Vercel. If you don't have an account you can
-[create one](https://vercel.com/signup?utm_source=turborepo-examples),
-then enter the following commands:
-
-With
-[global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation)
-installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your
-[Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the
-following command from the root of your Turborepo:
-
-With
-[global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation)
-installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- 프론트엔드/백엔드 공유 패키지들

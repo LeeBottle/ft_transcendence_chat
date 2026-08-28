@@ -10,6 +10,10 @@
       "default": "./dist/*.js"
     }
   },
+  "files": [
+    "dist",
+    "uploads"
+  ],
   "scripts": {
     "_typeorm": "NODE_ENV=development node --conditions=development --enable-source-maps --env-file=../../infra/.env.database --env-file=.env.development --import tsx node_modules/typeorm/cli.js",
     "build": "nest build",
