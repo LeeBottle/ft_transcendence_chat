@@ -31,7 +31,6 @@ export class TokenService {
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.getOrThrow('JWT_ACCESS_SECRET', { infer: true }),
       expiresIn: this.configService.getOrThrow('JWT_ACCESS_EXPIRATION', { infer: true }),
-      algorithm: 'HS256',
     });
   }
 
@@ -39,7 +38,6 @@ export class TokenService {
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.getOrThrow('JWT_REFRESH_SECRET', { infer: true }),
       expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRATION', { infer: true }),
-      algorithm: 'HS256',
     });
   }
 

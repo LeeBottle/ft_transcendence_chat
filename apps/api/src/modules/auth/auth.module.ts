@@ -18,7 +18,11 @@ import { UserSessionService } from './services/user-session.service.js';
   imports: [
     TypeOrmModule.forFeature([UserLoginHistoryEntity]),
     TypeOrmModule.forFeature([UserSessionEntity]),
-    JwtModule,
+    JwtModule.register({
+      signOptions: {
+        algorithm: 'HS256', // JwtService 전체에 기본 알고리즘으로 적용
+      },
+    }),
     UserModule,
   ],
   controllers: [AuthController],
