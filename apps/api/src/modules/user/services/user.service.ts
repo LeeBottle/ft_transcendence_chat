@@ -1,11 +1,18 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
 import type { Repository } from 'typeorm';
 
 // import { buildUserEntitySelectMap } from '#common/utils/typeorm.util.js';
 
 import { UserEntity } from '#modules/user/entities/user.entity.js';
+import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
+import type {
+  PublicUserProfileResponse,
+  SelfUserProfileResponse,
+  UpdateUserProfileRequest,
+  AddFriendRequest,
+  FriendItemResponse,
+} from '../controllers/user.dto.js';
 
 interface AssertUniquenessParams {
   readonly loginId: string;
@@ -24,6 +31,8 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(UserFriendEntity)
+    private readonly friendRepository: Repository<UserFriendEntity>,
   ) {}
 
   async assertUniqueness(params: AssertUniquenessParams): Promise<void> {
@@ -52,9 +61,7 @@ export class UserService {
 
   async create(params: CreateUserParams): Promise<UserEntity> {
     const { loginId, passwordHash, name, email } = params;
-
     const user = this.userRepository.create({ loginId, passwordHash, name, email });
-
     return await this.userRepository.save(user);
   }
 
@@ -68,4 +75,117 @@ export class UserService {
   //     select: buildUserEntitySelectMap<UserEntity>(select),
   //   });
   // }
+
+
+  
+  // 보안 매퍼 적용
+  // 신규 추가 / 프로필 조회, 수정, 친구 관리 로직
+
+  // 타인 프로필 조회 (민감 정보 제외)
+  async getPublicProfile(userId: string): Promise<PublicUserProfileResponse> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
+    }
+
+    return {
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      profileImagePath: user.profileImagePath,
+      isOnline: false,
+    };
+  }
+
+  // 본인 프로필 조회
+  async getSelfProfile(userId: string): Promise<SelfUserProfileResponse> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
+
+    return {
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImagePath: user.profileImagePath,
+      isOnline: true,
+    };
+  }
+
+  // 본인 프로필 수정
+  async updateProfile(
+    userId: string,
+    dto: UpdateUserProfileRequest,
+  ): Promise<SelfUserProfileResponse> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
+
+    if (dto.name !== undefined) user.name = dto.name;
+    if (dto.profileImagePath !== undefined) user.profileImagePath = dto.profileImagePath;
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return {
+      id: updatedUser.id,
+      loginId: updatedUser.loginId,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      status: updatedUser.status,
+      profileImagePath: updatedUser.profileImagePath,
+      isOnline: true,
+    };
+  }
+
+  // 친구 추가 요청
+  async addFriend(userId: string, dto: AddFriendRequest): Promise<{ id: string }> {
+    if (userId === dto.friendUserId) {
+      throw new ConflictException('자기 자신을 친구로 추가할 수 없습니다.');
+    }
+
+    const targetUser = await this.userRepository.findOne({ where: { id: dto.friendUserId } });
+    if (!targetUser) {
+      throw new NotFoundException('추가하려는 사용자가 존재하지 않습니다.');
+    }
+
+    const existing = await this.friendRepository.findOne({
+      where: { userId, friendUserId: dto.friendUserId },
+    });
+    if (existing) {
+      throw new ConflictException('이미 친구로 등록된 사용자입니다.');
+    }
+
+    const friendship = this.friendRepository.create({
+      userId,
+      friendUserId: dto.friendUserId,
+    });
+    const saved = await this.friendRepository.save(friendship);
+
+    return { id: saved.id };
+  }
+
+  // 친구 목록 조회
+  async getFriends(userId: string): Promise<FriendItemResponse[]> {
+    const friendships = await this.friendRepository.find({
+      where: { userId },
+      relations: { friendUser: true },
+    });
+
+    return friendships.map((f) => ({
+      id: f.id,
+      friendUser: {
+        id: f.friendUser?.id ?? f.friendUserId,
+        loginId: f.friendUser?.loginId ?? '',
+        name: f.friendUser?.name ?? '',
+        profileImagePath: f.friendUser?.profileImagePath ?? null,
+        isOnline: false,
+      },
+    }));
+  }
 }
