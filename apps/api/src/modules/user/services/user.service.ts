@@ -74,8 +74,16 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
+  async findById(id: string): Promise<UserEntity | null> {
+    return await this.userRepository.findOne({ where: { id } });
+  }
+
   async findByLoginId(loginId: string): Promise<UserEntity | null> {
     return await this.userRepository.findOne({ where: { loginId } });
+  }
+
+  async findByLoginIdWithDeleted(loginId: string): Promise<UserEntity | null> {
+    return await this.userRepository.findOne({ where: { loginId }, withDeleted: true });
   }
 
   // async findByLoginIdAndSelect(loginId: string, select?: (keyof UserEntity)[]): Promise<UserEntity | null> {

@@ -96,13 +96,16 @@ export const loginUserRequestSchema = z
 export type LoginUserRequest = z.infer<typeof loginUserRequestSchema>;
 
 export const loginUserResponseSchema = z.object({
-  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
-  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
-  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
-  emailVerifiedAt: emailVerifiedAtSchema,
-  role: roleSchema,
-  status: statusSchema,
-  profileImagePath: createProfileImagePathSchema(),
+  accessToken: z.string().min(1),
+  user: z.object({
+    loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+    name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+    email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+    emailVerifiedAt: emailVerifiedAtSchema,
+    role: roleSchema,
+    status: statusSchema,
+    profileImagePath: createProfileImagePathSchema(),
+  }),
 });
 export type LoginUserResponse = z.infer<typeof loginUserResponseSchema>;
 
@@ -118,3 +121,7 @@ function createPasswordConfirmSchema(): z.ZodType<string> {
     AUTH_REQUEST_VALIDATION_OPTIONS.passwordConfirm,
   );
 }
+
+/* 응답 전용 */
+
+export const refreshTokenResponseSchema = z.object({ accessToken: z.string().min(1) });

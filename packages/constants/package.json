@@ -3,7 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*.js": {
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  },
   "exports": {
+    "./token": {
+      "types": "./src/auth/token.ts",
+      "development": "./src/auth/token.ts",
+      "default": "./dist/auth/token.js"
+    },
     "./user-login-history": {
       "types": "./src/auth/user-login-history.ts",
       "default": "./dist/auth/user-login-history.js"

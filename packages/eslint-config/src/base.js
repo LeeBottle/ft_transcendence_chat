@@ -75,7 +75,6 @@ export const baseConfig = defineConfig([
 
       eqeqeq: ['error', 'always'], // ===, !== 만 사용하도록 강제
       'grouped-accessor-pairs': ['error', 'getBeforeSet'], // getter, setter 인접 강제, getter 먼저 배치
-      'max-params': ['error', 4], // 파라미터 4개 초과 금지
       radix: 'error', // parseInt() 10진수 변환시 10 명시 강제
 
       // 'no-alert': 'error',
@@ -258,6 +257,7 @@ export const baseConfig = defineConfig([
   {
     files: JS_TARGET_FILES,
     ...tseslint.configs.disableTypeChecked,
+    rules: { 'max-params': ['error', 5] },
   },
 
   {
@@ -269,6 +269,7 @@ export const baseConfig = defineConfig([
       },
     },
     rules: {
+      '@typescript-eslint/max-params': ['error', { max: 6 }],
       'no-restricted-syntax': [
         'error',
         ...commonRestrictedSyntax,
