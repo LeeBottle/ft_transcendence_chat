@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UserModule } from '#modules/user/user.module.js';
@@ -13,6 +14,7 @@ import { PasswordService } from './services/password.service.js';
 import { TokenService } from './services/token.service.js';
 import { UserLoginHistoryService } from './services/user-login-history.service.js';
 import { UserSessionService } from './services/user-session.service.js';
+import { JwtAccessStrategy } from './strategies/jwt-access.strategy.js';
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { UserSessionService } from './services/user-session.service.js';
         algorithm: 'HS256', // JwtService 전체에 기본 알고리즘으로 적용
       },
     }),
+    PassportModule,
     UserModule,
   ],
   controllers: [AuthController],
@@ -31,6 +34,7 @@ import { UserSessionService } from './services/user-session.service.js';
     TokenService,
     UserLoginHistoryService,
     UserSessionService,
+    JwtAccessStrategy,
     { provide: PasswordService, useClass: BcryptPasswordService },
   ],
   exports: [],

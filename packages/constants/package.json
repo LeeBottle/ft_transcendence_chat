@@ -10,11 +10,6 @@
     }
   },
   "exports": {
-    "./token": {
-      "types": "./src/auth/token.ts",
-      "development": "./src/auth/token.ts",
-      "default": "./dist/auth/token.js"
-    },
     "./user-login-history": {
       "types": "./src/auth/user-login-history.ts",
       "development": "./src/auth/user-login-history.ts",

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { createdAtSchema } from '#common/timestamp.schema.js';
+import type { Prettify } from '#common/types.js';
 import { createStringFieldSchema, validateNestedSchema } from '#common/utils.js';
 import {
   createEmailSchema,
@@ -125,3 +126,18 @@ function createPasswordConfirmSchema(): z.ZodType<string> {
 /* 응답 전용 */
 
 export const refreshTokenResponseSchema = z.object({ accessToken: z.string().min(1) });
+
+/* JWT 토큰 페이로드 스키마 */
+
+export const tokenPayloadSchema = z.object({
+  sub: z.string().regex(/^\d+$/), // id
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId), // loginId
+  role: roleSchema, // role
+  iat: z.number(), // 발급 시각 (Unix Timestamp, 초)
+  exp: z.number(), // 만료 시각 (Unix Timestamp, 초)
+});
+export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
+export type TokenInputPayload = Omit<TokenPayload, 'iat' | 'exp'>;
+export type AuthenticatedUser = Prettify<
+  Omit<TokenPayload, 'sub' | 'iat' | 'exp'> & { id: string }
+>;
