@@ -23,7 +23,8 @@ export interface MyPageViewProps {
   joinDate: string;
   imageUrl?: string | null;
   onLogout: () => void;
-  onSaveInfo?: (data: { name: string; email: string }) => void;
+  /** 이름 저장. 성공 시 resolve, 실패 시 서버 메시지로 throw */
+  onSaveInfo?: (data: { name: string }) => void | Promise<void>;
   onChangePassword?: (data: { currentPassword: string; newPassword: string }) => void;
 }
 
@@ -41,8 +42,9 @@ function MyPageView({
   // 프로필 카드에 표시되는 값(저장 버튼을 눌러야 반영됨)과, 입력 중인 값을 분리
   const [savedName, setSavedName] = useState(displayName);
   const [nameInput, setNameInput] = useState(displayName);
-  const [emailInput, setEmailInput] = useState(email);
   const [infoError, setInfoError] = useState('');
+  const [infoSaving, setInfoSaving] = useState(false);
+  const [infoSaved, setInfoSaved] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const [currentPw, setCurrentPw] = useState('');
@@ -66,16 +68,34 @@ function MyPageView({
     reader.readAsDataURL(file);
   }
 
-  function handleSaveInfo(e: FormEvent): void {
+  async function handleSaveInfo(e: FormEvent): Promise<void> {
     e.preventDefault();
-    if (!nameInput.trim()) {
+
+    const trimmed = nameInput.trim();
+
+    if (trimmed === '') {
       setInfoError('이름을 입력해주세요');
 
       return;
     }
+
+    if (trimmed === savedName) {
+      return;
+    }
+
     setInfoError('');
-    setSavedName(nameInput.trim());
-    onSaveInfo?.({ name: nameInput.trim(), email: emailInput.trim() });
+    setInfoSaved(false);
+    setInfoSaving(true);
+
+    try {
+      await onSaveInfo?.({ name: trimmed });
+      setSavedName(trimmed);
+      setInfoSaved(true);
+    } catch (error) {
+      setInfoError(error instanceof Error ? error.message : '저장하지 못했어요');
+    } finally {
+      setInfoSaving(false);
+    }
   }
 
   const pwErrors = newPw ? getPwErrors(newPw, username) : [];
@@ -140,7 +160,9 @@ function MyPageView({
 
         {/* 내 정보 수정 */}
         <form
-          onSubmit={handleSaveInfo}
+          onSubmit={(e) => {
+            void handleSaveInfo(e);
+          }}
           className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
         >
           <div className="flex items-center gap-1.5 border-b border-gray-100 px-5 py-3.5 text-sm font-semibold text-gray-900">
@@ -159,6 +181,7 @@ function MyPageView({
                 value={nameInput}
                 onChange={(e) => {
                   setNameInput(e.target.value);
+                  setInfoSaved(false);
                 }}
                 placeholder="이름 입력"
                 className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
@@ -169,25 +192,25 @@ function MyPageView({
                 htmlFor="edit-email"
                 className="text-xs font-medium text-gray-500"
               >
-                이메일 <span className="font-normal text-gray-400">(선택)</span>
+                이메일
               </label>
               <input
                 id="edit-email"
                 type="email"
-                value={emailInput}
-                onChange={(e) => {
-                  setEmailInput(e.target.value);
-                }}
-                placeholder="이메일 입력"
-                className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
+                value={email}
+                readOnly
+                className="h-9 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 outline-none"
               />
+              <p className="text-[11px] text-gray-400">이메일 변경은 아직 준비 중이에요.</p>
             </div>
-            {infoError && <p className="text-xs text-red-500">{infoError}</p>}
+            {infoError !== '' && <p className="text-xs text-red-500">{infoError}</p>}
+            {infoSaved && <p className="text-xs text-green-600">✓ 저장했어요</p>}
             <button
               type="submit"
-              className="flex h-9.5 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-purple-500 text-sm font-medium text-white transition-colors hover:bg-purple-600"
+              disabled={infoSaving || nameInput.trim() === '' || nameInput.trim() === savedName}
+              className="flex h-9.5 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-purple-500 text-sm font-medium text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              ✓ 변경 저장
+              {infoSaving ? '저장 중…' : '✓ 변경 저장'}
             </button>
           </div>
         </form>

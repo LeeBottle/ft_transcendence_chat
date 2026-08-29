@@ -32,6 +32,8 @@ interface AuthContextValue {
   /** 성공 시 로그인된 유저 반환, 실패 시 서버 메시지로 throw */
   login: (loginId: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
+  /** 프로필 일부(이름 등)를 바꾼 뒤 헤더·캐시에 반영 */
+  patchUser: (partial: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -153,9 +155,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const getAccessToken = useCallback(() => accessTokenRef.current, []);
 
+  const patchUser = useCallback((partial: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (prev === null) {
+        return prev;
+      }
+
+      const next = { ...prev, ...partial };
+
+      writeCachedUser(next);
+
+      return next;
+    });
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, userId, getAccessToken, login, logout }),
-    [status, user, userId, getAccessToken, login, logout],
+    () => ({ status, user, userId, getAccessToken, login, logout, patchUser }),
+    [status, user, userId, getAccessToken, login, logout, patchUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
