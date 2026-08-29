@@ -109,3 +109,23 @@ export const STRENGTH_META: StrengthMeta[] = [
   { pct: 80, color: '#6C63FF', label: '강함' },
   { pct: 100, color: '#0F6E56', label: '매우 강함' },
 ];
+
+const STRENGTH_FALLBACK: StrengthMeta = { pct: 0, color: '', label: '' };
+
+/** score(0~5)에 해당하는 강도 메타. 범위를 벗어나면 빈 메타를 돌려준다. */
+export function getStrengthMeta(score: number): StrengthMeta {
+  return STRENGTH_META[score] ?? STRENGTH_FALLBACK;
+}
+
+/** 비밀번호 규칙 체크리스트 한 줄의 색 클래스 (통과=초록 / 실패=빨강 / 미입력=회색). */
+export function pwRuleColorClass(pass: boolean, fail: boolean): string {
+  if (pass) {
+    return 'text-green-600';
+  }
+
+  if (fail) {
+    return 'text-red-500';
+  }
+
+  return 'text-gray-400';
+}

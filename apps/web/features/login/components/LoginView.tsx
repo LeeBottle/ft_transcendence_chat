@@ -61,7 +61,9 @@ export default function LoginView() {
         </div>
         <form
           className="flex flex-col gap-4"
-          onSubmit={handleLogin}
+          onSubmit={(e) => {
+            void handleLogin(e);
+          }}
         >
           <div className="flex flex-col gap-1">
             <label

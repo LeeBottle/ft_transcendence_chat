@@ -25,6 +25,8 @@ type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthContextValue {
   status: AuthStatus;
   user: AuthUser | null;
+  /** 로그인한 유저의 id (토큰 payload 의 sub). 미로그인 시 null */
+  userId: string | null;
   /** 현재 메모리에 있는 access token (소켓 연결 등에 사용). 없으면 null */
   getAccessToken: () => string | null;
   /** 성공 시 로그인된 유저 반환, 실패 시 서버 메시지로 throw */
@@ -63,12 +65,14 @@ function writeCachedUser(user: AuthUser | null): void {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const accessTokenRef = useRef<string | null>(null);
   const didInit = useRef(false);
 
   const clearAuth = useCallback(() => {
     accessTokenRef.current = null;
     setUser(null);
+    setUserId(null);
     writeCachedUser(null);
     setStatus('unauthenticated');
   }, []);
@@ -101,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       accessTokenRef.current = token;
+      setUserId(decodeTokenPayload(token)?.sub ?? null);
 
       const cached = readCachedUser();
 
@@ -133,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { accessToken, user: loggedIn } = await loginRequest(loginId, password);
 
     accessTokenRef.current = accessToken;
+    setUserId(decodeTokenPayload(accessToken)?.sub ?? null);
     setUser(loggedIn);
     writeCachedUser(loggedIn);
     setStatus('authenticated');
@@ -148,8 +154,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getAccessToken = useCallback(() => accessTokenRef.current, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, getAccessToken, login, logout }),
-    [status, user, getAccessToken, login, logout],
+    () => ({ status, user, userId, getAccessToken, login, logout }),
+    [status, user, userId, getAccessToken, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

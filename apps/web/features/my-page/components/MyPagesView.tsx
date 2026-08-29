@@ -10,8 +10,9 @@ import Avatar from '@/components/Avatar';
 import {
   getPwErrors,
   getPwStrength,
+  getStrengthMeta,
   PW_RULES,
-  STRENGTH_META,
+  pwRuleColorClass,
 } from '@/features/auth/passwordPolicy';
 
 export interface MyPageViewProps {
@@ -79,7 +80,7 @@ function MyPageView({
 
   const pwErrors = newPw ? getPwErrors(newPw, username) : [];
   const pwStrength = newPw ? getPwStrength(newPw) : 0;
-  const strengthMeta = STRENGTH_META[pwStrength] ?? STRENGTH_META[0]!;
+  const strengthMeta = getStrengthMeta(pwStrength);
   const pwMatch = confirmPw.length > 0 ? newPw === confirmPw : null;
   const canSubmitPw =
     currentPw.length > 0 && newPw.length > 0 && pwErrors.length === 0 && pwMatch === true;
@@ -212,7 +213,7 @@ function MyPageView({
                 return (
                   <div
                     key={rule.id}
-                    className={`flex items-center gap-1 text-[11px] ${pass ? 'text-green-600' : fail ? 'text-red-500' : 'text-gray-400'}`}
+                    className={`flex items-center gap-1 text-[11px] ${pwRuleColorClass(pass, fail)}`}
                   >
                     <span>{pass ? '●' : '○'}</span>
                     {rule.label}

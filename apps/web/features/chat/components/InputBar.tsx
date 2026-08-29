@@ -10,7 +10,7 @@ interface InputBarProps {
   disabled?: boolean;
 }
 
-function InputBar({ value, onChange, onSend, disabled }: InputBarProps) {
+function InputBar({ value, onChange, onSend, disabled = false }: InputBarProps) {
   function handleSubmit(e: FormEvent): void {
     e.preventDefault();
     if (!value.trim() || disabled) {
