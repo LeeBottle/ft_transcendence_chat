@@ -25,6 +25,8 @@ type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthContextValue {
   status: AuthStatus;
   user: AuthUser | null;
+  /** 현재 메모리에 있는 access token (소켓 연결 등에 사용). 없으면 null */
+  getAccessToken: () => string | null;
   /** 성공 시 로그인된 유저 반환, 실패 시 서버 메시지로 throw */
   login: (loginId: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
@@ -139,9 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuth();
   }, [clearAuth]);
 
+  const getAccessToken = useCallback(() => accessTokenRef.current, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, login, logout }),
-    [status, user, login, logout],
+    () => ({ status, user, getAccessToken, login, logout }),
+    [status, user, getAccessToken, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
