@@ -5,16 +5,28 @@ import { UserRole, UserStatus } from '@repo/constants/user';
 import type { StringValidationOptions } from '#common/types.js';
 import { createStringFieldSchema } from '#common/utils.js';
 
-import { USER_CONFIGS, USER_RESPONSE_VALIDATION_OPTIONS } from './user.config.js';
+import {
+  USER_CONFIGS,
+  USER_REQUEST_VALIDATION_OPTIONS,
+  USER_RESPONSE_VALIDATION_OPTIONS,
+} from './user.config.js';
 
 export {
-  USER_REQUEST_VALIDATION_OPTIONS,
-
   /* For UX */
   LOGIN_ID_ALLOWED_REGEX,
 } from './user.config.js';
 
-export { USER_RESPONSE_VALIDATION_OPTIONS };
+export { USER_REQUEST_VALIDATION_OPTIONS, USER_RESPONSE_VALIDATION_OPTIONS };
+
+export const updateProfileRequestSchema = z.object({
+  name: createNameSchema(USER_REQUEST_VALIDATION_OPTIONS.name),
+  email: createEmailSchema(USER_REQUEST_VALIDATION_OPTIONS.email).optional(),
+});
+
+export const updateProfileResponseSchema = z.object({
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+});
 
 /* 요청 & 응답 공용 */
 

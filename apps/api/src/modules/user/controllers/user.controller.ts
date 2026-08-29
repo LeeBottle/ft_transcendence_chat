@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 
 import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
 import { UserService } from '#modules/user/services/user.service.js';
@@ -8,35 +8,36 @@ import {
   GetFriendsResponseDto,
   PublicUserProfileResponseDto,
   SelfUserProfileResponseDto,
-  UpdateUserProfileRequestDto,
+  UpdateProfileRequestDto,
+  UpdateProfileResponseDto,
 } from './user.dto.js';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // 본인 프로필 조회
+  // 프로필 조회
   @Get('me')
   async getSelfProfile(@CurrentUserId() userId: string): Promise<SelfUserProfileResponseDto> {
     return await this.userService.getSelfProfile(userId);
   }
 
-  // 본인 프로필 수정 (PATCH /users/me)
+  // 프로필 수정
   @Patch('me')
   async updateProfile(
-    @CurrentUserId() userId: string,
-    @Body() body: UpdateUserProfileRequestDto,
-  ): Promise<SelfUserProfileResponseDto> {
-    return await this.userService.updateProfile(userId, body);
+    @CurrentUserId() id: string,
+    @Body() dto: UpdateProfileRequestDto,
+  ): Promise<UpdateProfileResponseDto> {
+    return await this.userService.updateProfile(id, dto);
   }
 
-  // 친구 목록 조회 (GET /users/me/friends)
+  // 친구 목록 조회
   @Get('me/friends')
   async getFriends(@CurrentUserId() userId: string): Promise<GetFriendsResponseDto> {
     return await this.userService.getFriends(userId);
   }
 
-  // 친구 추가 (POST /users/me/friends)
+  // 친구 추가
   @Post('me/friends')
   async addFriend(
     @CurrentUserId() userId: string,

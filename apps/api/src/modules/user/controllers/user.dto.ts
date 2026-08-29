@@ -10,9 +10,14 @@ import {
   idSchema,
   roleSchema,
   statusSchema,
+  updateProfileRequestSchema,
+  updateProfileResponseSchema,
   USER_REQUEST_VALIDATION_OPTIONS,
   USER_RESPONSE_VALIDATION_OPTIONS,
 } from '@repo/schemas/user';
+
+export class UpdateProfileRequestDto extends createZodDto(updateProfileRequestSchema) {}
+export class UpdateProfileResponseDto extends createZodDto(updateProfileResponseSchema) {}
 
 // 타인 공개용 프로필 (민감 정보 제외)
 
@@ -40,15 +45,6 @@ export const selfUserProfileResponseSchema = z.object({
 });
 export type SelfUserProfileResponse = z.infer<typeof selfUserProfileResponseSchema>;
 export class SelfUserProfileResponseDto extends createZodDto(selfUserProfileResponseSchema) {}
-
-// 유저 회원 정보 수정
-
-export const updateUserProfileRequestSchema = z.object({
-  name: createNameSchema(USER_REQUEST_VALIDATION_OPTIONS.name).optional(),
-  profileImagePath: z.string().max(255).nullable().optional(),
-});
-export type UpdateUserProfileRequest = z.infer<typeof updateUserProfileRequestSchema>;
-export class UpdateUserProfileRequestDto extends createZodDto(updateUserProfileRequestSchema) {}
 
 // 친구 추가 (idSchema를 사용)
 
