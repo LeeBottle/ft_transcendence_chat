@@ -1,33 +1,29 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Patch,
-  Body,
   Param,
+  Patch,
+  Post,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
+
 import type { Request } from 'express';
 
 import { UserService } from '#modules/user/services/user.service.js';
+
 import {
+  AddFriendRequestDto,
+  GetFriendsResponseDto,
   PublicUserProfileResponseDto,
   SelfUserProfileResponseDto,
   UpdateUserProfileRequestDto,
-  AddFriendRequestDto,
-  GetFriendsResponseDto,
 } from './user.dto.js';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  // 타인 프로필 조회
-  @Get(':id')
-  async getPublicProfile(@Param('id') id: string): Promise<PublicUserProfileResponseDto> {
-    return await this.userService.getPublicProfile(id);
-  }
 
   // 본인 프로필 조회
   @Get('me')
@@ -60,15 +56,19 @@ export class UserController {
     return await this.userService.addFriend(userId, body);
   }
 
-  
-  // Request Context에서 인증된 사용자 ID(sub) 추출
-  private extractUserId(req: Request): string {
-    const user = (req as unknown as { user?: { sub?: string; id?: string } }).user;
-    const userId = user?.sub ?? user?.id;
+  // 타인 프로필 조회 — 반드시 'me' 라우트들보다 아래에 둘 것 (':id' 가 'me' 를 가로채므로)
+  @Get(':id')
+  async getPublicProfile(@Param('id') id: string): Promise<PublicUserProfileResponseDto> {
+    return await this.userService.getPublicProfile(id);
+  }
 
-    if (!userId) {
+  // 전역 JwtAuthGuard 가 검증 후 req.user = { id, loginId, role } 를 채워준다.
+  private extractUserId(req: Request): string {
+    const user = (req as unknown as { user?: { id?: string } }).user;
+
+    if (typeof user?.id !== 'string' || user.id.length === 0) {
       throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
     }
-    return String(userId);
+    return user.id;
   }
 }

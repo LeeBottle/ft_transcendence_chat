@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -20,14 +19,8 @@ import { RedisService } from './services/redis.service.js';
 
 @Module({
   imports: [
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'secret',
-        signOptions: { expiresIn: '1d' },
-      }),
-    }),
+    // 시크릿은 WsJwtGuard 가 검증 시 JWT_ACCESS_SECRET 으로 명시적으로 전달한다.
+    JwtModule.register({}),
     TypeOrmModule.forFeature([
       ChatRoomMessageEntity,
       ChatRoomMemberEntity,

@@ -1,15 +1,15 @@
 import { Injectable, type CanActivate, type ExecutionContext } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 
 import type { Socket } from 'socket.io';
 
-export interface WsUser {
-  sub: string;
-  loginId?: string;
-  name?: string;
-  email?: string;
-}
+import { tokenPayloadSchema, type AuthenticatedUser } from '@repo/schemas/auth';
+
+import type { ApiEnv } from '#config/api-env.schema.js';
+
+export type WsUser = AuthenticatedUser; // { id, loginId, role }
 
 export type AuthenticatedSocket = Socket & {
   data: {
@@ -17,27 +17,19 @@ export type AuthenticatedSocket = Socket & {
   };
 };
 
-function extractToken(
-  handshake: Socket['handshake'],
-): string | undefined {
-  const auth = (handshake.auth || {}) as Record<string, unknown>;
-  const query = (handshake.query || {}) as Record<string, unknown>;
-  const headers = handshake.headers || {};
+// 소켓 핸드셰이크에서 토큰 추출: auth.token → Authorization 헤더 순
+function extractToken(handshake: Socket['handshake']): string | undefined {
+  const auth = (handshake.auth ?? {}) as Record<string, unknown>;
 
   if (typeof auth['token'] === 'string' && auth['token'].trim().length > 0) {
     return auth['token'].trim();
   }
 
-  if (typeof query['token'] === 'string' && query['token'].trim().length > 0) {
-    return query['token'].trim();
-  }
+  const rawHeader = handshake.headers?.authorization;
+  const headerStr = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
 
-  const authHeaderStr = Array.isArray(headers.authorization)
-    ? headers.authorization[0]
-    : headers.authorization;
-
-  if (typeof authHeaderStr === 'string' && authHeaderStr.trim().length > 0) {
-    return authHeaderStr.replace(/^Bearer\s+/i, '').trim();
+  if (typeof headerStr === 'string' && headerStr.trim().length > 0) {
+    return headerStr.replace(/^Bearer\s+/i, '').trim();
   }
 
   return undefined;
@@ -45,48 +37,44 @@ function extractToken(
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService<ApiEnv, true>,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient<AuthenticatedSocket>();
 
-    // 이미 handleConnection에서 client.data.user가 정상 설정된 경우 통과
-    if (client.data?.user?.sub && typeof client.data.user.sub === 'string') {
+    // 같은 연결에서 이미 검증된 경우 통과
+    if (typeof client.data?.user?.id === 'string' && client.data.user.id.length > 0) {
       return true;
     }
 
     const token = extractToken(client.handshake);
 
-    if (typeof token === 'string' && token.length > 0) {
-      try {
-        let payload: WsUser | null = null;
-        try {
-          payload = this.jwtService.verify<WsUser>(token);
-        } catch (_err) {
-          payload = this.jwtService.decode<WsUser>(token);
-        }
-
-        if (!payload || typeof payload !== 'object' || typeof payload.sub !== 'string') {
-          const parts = token.split('.');
-          if (parts.length >= 2 && parts[1]) {
-            let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            while (base64.length % 4 !== 0) {
-              base64 += '=';
-            }
-            const jsonStr = Buffer.from(base64, 'base64').toString('utf-8');
-            payload = JSON.parse(jsonStr) as WsUser;
-          }
-        }
-
-        if (payload && typeof payload.sub === 'string' && payload.sub.length > 0) {
-          client.data = { user: payload };
-          return true;
-        }
-      } catch (_error) {
-        throw new WsException('유효하지 않은 소켓 인증 토큰입니다.');
-      }
+    if (token === undefined) {
+      throw new WsException('인증 자격 증명이 제공되지 않았습니다.');
     }
 
-    throw new WsException('인증 자격 증명이 제공되지 않았습니다.');
+    let rawPayload: unknown;
+    try {
+      rawPayload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.getOrThrow('JWT_ACCESS_SECRET', { infer: true }),
+      });
+    } catch {
+      throw new WsException('유효하지 않거나 만료된 토큰입니다.');
+    }
+
+    const result = tokenPayloadSchema.safeParse(rawPayload);
+
+    if (!result.success) {
+      throw new WsException('유효하지 않은 토큰 페이로드입니다.');
+    }
+
+    client.data = {
+      user: { id: result.data.sub, loginId: result.data.loginId, role: result.data.role },
+    };
+
+    return true;
   }
 }

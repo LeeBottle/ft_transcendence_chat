@@ -17,6 +17,8 @@ import {
 
 import type { Request } from 'express';
 
+import type { AuthenticatedUser } from '@repo/schemas/auth';
+
 import {
   ChatMessageResponseDto,
   ChatRoomMemberResponseDto,
@@ -32,37 +34,15 @@ import { ChatCacheBatchService } from '#modules/chat/services/chat-cache-batch.s
 import { ChatMessageService } from '#modules/chat/services/chat-message.service.js';
 import { ChatService } from '#modules/chat/services/chat.service.js';
 
+// 전역 JwtAuthGuard 가 토큰 검증 후 req.user = { id, loginId, role } 를 채워준다.
 function extractUserId(req: Request): string {
-  const reqWithUser = req as Request & { user?: { sub?: string } };
+  const user = (req as Request & { user?: AuthenticatedUser }).user;
 
-  if (typeof reqWithUser.user?.sub === 'string' && reqWithUser.user.sub.length > 0) {
-    return reqWithUser.user.sub;
+  if (typeof user?.id === 'string' && user.id.length > 0) {
+    return user.id;
   }
 
-  const authHeader = req.headers.authorization;
-  if (typeof authHeader === 'string' && authHeader.length > 0) {
-    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-    if (token.length > 0) {
-      try {
-        const parts = token.split('.');
-        if (parts.length >= 2 && parts[1]) {
-          let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-          while (base64.length % 4 !== 0) {
-            base64 += '=';
-          }
-          const jsonStr = Buffer.from(base64, 'base64').toString('utf-8');
-          const parsed = JSON.parse(jsonStr) as { sub?: string };
-          if (typeof parsed.sub === 'string' && parsed.sub.length > 0) {
-            return parsed.sub;
-          }
-        }
-      } catch (_err) {
-        // ignore
-      }
-    }
-  }
-
-  throw new UnauthorizedException('인증 자격 증명이 제공되지 않았거나 유효하지 않습니다.');
+  throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
 }
 
 @Controller('chat/rooms')
@@ -266,7 +246,12 @@ export class ChatController {
 
     let result: ChatRoomMemberResponseDto;
     try {
-      result = await this.chatService.updateMemberRole(roomId, userId, targetUserId, dto.role as any);
+      result = await this.chatService.updateMemberRole(
+        roomId,
+        userId,
+        targetUserId,
+        dto.role as any,
+      );
     } catch (err) {
       if (
         err instanceof ForbiddenException ||

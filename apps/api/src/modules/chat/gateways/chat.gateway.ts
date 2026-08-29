@@ -52,8 +52,8 @@ interface ReadMessagePayload {
 function getSocketUserId(client: AuthenticatedSocket): string {
   const socketData = client.data as { user?: WsUser };
 
-  if (typeof socketData.user?.sub === 'string' && socketData.user.sub.length > 0) {
-    return socketData.user.sub;
+  if (typeof socketData.user?.id === 'string' && socketData.user.id.length > 0) {
+    return socketData.user.id;
   }
 
   throw new WsException('인증 자격 증명이 제공되지 않았습니다.');
@@ -131,7 +131,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     } catch (error) {
       this.logger.error(`handleJoinRoom 에러 (roomId: ${roomId})`, error);
-      const errorMessage = error instanceof Error ? error.message : '채팅방 입장 처리에 실패했습니다.';
+      const errorMessage =
+        error instanceof Error ? error.message : '채팅방 입장 처리에 실패했습니다.';
       throw new WsException(errorMessage);
     }
   }
@@ -199,13 +200,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           sentAt: savedMessage.sentAt,
         });
       } catch (cacheError) {
-        this.logger.warn(`Redis 캐시 저장은 실패하였으나 소켓 메시지 브로드캐스트는 계속 진행합니다: ${cacheError}`);
+        this.logger.warn(
+          `Redis 캐시 저장은 실패하였으나 소켓 메시지 브로드캐스트는 계속 진행합니다: ${cacheError}`,
+        );
       }
 
-      this.logger.log(`소켓 방 [${roomId}] 실시간 new_message 브로드캐스팅 성공 (content: "${savedMessage.content}")`);
+      this.logger.log(
+        `소켓 방 [${roomId}] 실시간 new_message 브로드캐스팅 성공 (content: "${savedMessage.content}")`,
+      );
       this.server.to(roomId).emit('new_message', savedMessage);
     } catch (error) {
-      this.logger.error(`handleSendMessage 상세 에러: ${error instanceof Error ? error.stack : String(error)}`);
+      this.logger.error(
+        `handleSendMessage 상세 에러: ${error instanceof Error ? error.stack : String(error)}`,
+      );
 
       if (error instanceof WsException) {
         throw error;
@@ -248,7 +255,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = getSocketUserId(client);
 
     try {
-      const readState = await this.chatMessageService.updateLastRead(roomId, userId, lastReadMessageId,);
+      const readState = await this.chatMessageService.updateLastRead(
+        roomId,
+        userId,
+        lastReadMessageId,
+      );
 
       client.to(roomId).emit('read_receipt', {
         roomId,
