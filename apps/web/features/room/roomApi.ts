@@ -32,6 +32,11 @@ export function toRoom(res: ChatRoomResponse): Room {
     avatarLabel: name.slice(0, 2),
     avatarColor: pickAvatarColor(res.id),
     unreadCount: res.unreadCount,
+    members: res.members?.map((m) => ({
+      userId: m.userId,
+      name: m.name ?? m.loginId ?? '알 수 없음',
+      role: m.role,
+    })),
   };
 }
 
@@ -82,4 +87,15 @@ export async function createRoom(title: string): Promise<Room> {
   }
 
   return toRoom(parsed.data);
+}
+
+/** 채팅방 나가기 (본인 탈퇴). 백엔드가 status 를 LEFT 로 바꾸고 room_updated 를 브로드캐스트한다. */
+export async function leaveRoom(roomId: string, myUserId: string): Promise<void> {
+  const res = await apiFetch(`/api/chat/rooms/${roomId}/members/${myUserId}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, `채팅방을 나가지 못했어요 (${res.status})`));
+  }
 }

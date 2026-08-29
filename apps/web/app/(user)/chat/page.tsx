@@ -167,6 +167,14 @@ export default function ChatPage() {
 
   const canSync = tasks.some((task) => task.isAi && task.checked === true);
 
+  // 헤더 부제목: 나를 뺀 멤버 이름들 · 전체 인원수 (예: "김지수, 박민준 · 3명")
+  const members = activeRoom?.members ?? [];
+  const otherNames = members.filter((m) => m.userId !== userId).map((m) => m.name);
+  const memberSubtitle =
+    members.length === 0
+      ? ''
+      : `${otherNames.length > 0 ? otherNames.join(', ') : '나만 있는 방'} · ${members.length}명`;
+
   if (!activeRoom) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-gray-400">
@@ -218,7 +226,7 @@ export default function ChatPage() {
           avatarLabel={activeRoom.avatarLabel}
           avatarColorClass="bg-indigo-100 text-indigo-600"
           roomName={activeRoom.name}
-          subtitle=""
+          subtitle={memberSubtitle}
           taskPanelOpen={taskPanelOpen}
           onToggleTaskPanel={() => {
             setTaskPanelOpen((prev) => !prev);
