@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 
-import type { Socket } from 'socket.io';
+import type { DefaultEventsMap, Socket } from 'socket.io';
 
 import { tokenPayloadSchema, type AuthenticatedUser } from '@repo/schemas/auth';
 
@@ -11,29 +11,12 @@ import type { ApiEnv } from '#config/api-env.schema.js';
 
 export type WsUser = AuthenticatedUser; // { id, loginId, role }
 
-export type AuthenticatedSocket = Socket & {
-  data: {
-    user: WsUser;
-  };
-};
-
-// 소켓 핸드셰이크에서 토큰 추출: auth.token → Authorization 헤더 순
-function extractToken(handshake: Socket['handshake']): string | undefined {
-  const auth = (handshake.auth ?? {}) as Record<string, unknown>;
-
-  if (typeof auth['token'] === 'string' && auth['token'].trim().length > 0) {
-    return auth['token'].trim();
-  }
-
-  const rawHeader = handshake.headers?.authorization;
-  const headerStr = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
-
-  if (typeof headerStr === 'string' && headerStr.trim().length > 0) {
-    return headerStr.replace(/^Bearer\s+/i, '').trim();
-  }
-
-  return undefined;
-}
+export type AuthenticatedSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  { user?: WsUser }
+>;
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
@@ -46,7 +29,10 @@ export class WsJwtGuard implements CanActivate {
     const client = context.switchToWs().getClient<AuthenticatedSocket>();
 
     // 같은 연결에서 이미 검증된 경우 통과
-    if (typeof client.data?.user?.id === 'string' && client.data.user.id.length > 0) {
+
+    const user = client.data.user;
+
+    if (user !== undefined && user.id.length > 0) {
       return true;
     }
 
@@ -57,6 +43,7 @@ export class WsJwtGuard implements CanActivate {
     }
 
     let rawPayload: unknown;
+
     try {
       rawPayload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.getOrThrow('JWT_ACCESS_SECRET', { infer: true }),
@@ -77,4 +64,21 @@ export class WsJwtGuard implements CanActivate {
 
     return true;
   }
+}
+
+// 소켓 핸드셰이크에서 토큰 추출: auth.token → Authorization 헤더 순
+function extractToken(handshake: Socket['handshake']): string | undefined {
+  const auth = handshake.auth as Record<string, unknown>;
+
+  if (typeof auth['token'] === 'string' && auth['token'].trim().length > 0) {
+    return auth['token'].trim();
+  }
+
+  const rawHeader = handshake.headers.authorization;
+
+  if (typeof rawHeader === 'string' && rawHeader.trim().length > 0) {
+    return rawHeader.replace(/^Bearer\s+/i, '').trim();
+  }
+
+  return undefined;
 }

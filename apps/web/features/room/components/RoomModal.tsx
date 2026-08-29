@@ -20,10 +20,14 @@ function RoomModal({ open, mode, initialValues, onSubmit, onCancel }: RoomModalP
   const [values, setValues] = useState<RoomFormValues>(initialValues ?? EMPTY_VALUES);
 
   useEffect(() => {
-    if (open) setValues(initialValues ?? EMPTY_VALUES);
+    if (open) {
+      setValues(initialValues ?? EMPTY_VALUES);
+    }
   }, [open, initialValues]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   function handleSubmit(e: FormEvent): void {
     e.preventDefault();
@@ -61,7 +65,9 @@ function RoomModal({ open, mode, initialValues, onSubmit, onCancel }: RoomModalP
             <input
               id="rm-name"
               value={values.name}
-              onChange={(e) => setValues({ ...values, name: e.target.value })}
+              onChange={(e) => {
+                setValues({ ...values, name: e.target.value });
+              }}
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             />
           </div>
@@ -75,7 +81,9 @@ function RoomModal({ open, mode, initialValues, onSubmit, onCancel }: RoomModalP
             <input
               id="rm-id"
               value={values.id}
-              onChange={(e) => setValues({ ...values, id: e.target.value })}
+              onChange={(e) => {
+                setValues({ ...values, id: e.target.value });
+              }}
               placeholder="자동 생성"
               disabled={mode === 'edit'}
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400 disabled:bg-gray-50 disabled:text-gray-400"
@@ -91,7 +99,9 @@ function RoomModal({ open, mode, initialValues, onSubmit, onCancel }: RoomModalP
             <input
               id="rm-owner"
               value={values.owner}
-              onChange={(e) => setValues({ ...values, owner: e.target.value })}
+              onChange={(e) => {
+                setValues({ ...values, owner: e.target.value });
+              }}
               placeholder="user_id"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             />

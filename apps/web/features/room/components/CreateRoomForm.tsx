@@ -16,9 +16,13 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
 
   function addMember(): void {
     const id = inviteInput.trim();
-    if (!id) return;
+
+    if (!id) {
+      return;
+    }
     if (memberIds.includes(id)) {
       setInviteInput('');
+
       return;
     }
     setMemberIds([...memberIds, id]);
@@ -63,7 +67,9 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
             <input
               id="room-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
               placeholder="예: 디자인 팀, 3분기 프로젝트…"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             />
@@ -80,7 +86,9 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
               <input
                 id="invite-id"
                 value={inviteInput}
-                onChange={(e) => setInviteInput(e.target.value)}
+                onChange={(e) => {
+                  setInviteInput(e.target.value);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -112,7 +120,9 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
                     <span>{id}</span>
                     <button
                       type="button"
-                      onClick={() => removeMember(id)}
+                      onClick={() => {
+                        removeMember(id);
+                      }}
                       aria-label={`${id} 제거`}
                       className="flex h-4 w-4 cursor-pointer items-center justify-center text-gray-400 hover:text-gray-600"
                     >

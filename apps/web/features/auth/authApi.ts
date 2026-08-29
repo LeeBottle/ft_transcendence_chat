@@ -24,6 +24,7 @@ interface RefreshResponse {
 /** 실패 시 서버 메시지를 담아 throw */
 async function readError(response: Response, fallback: string): Promise<never> {
   const body = (await response.json().catch(() => ({}))) as { message?: string };
+
   throw new Error(body.message ?? fallback);
 }
 
@@ -54,6 +55,7 @@ export async function refreshRequest(): Promise<string | null> {
   }
 
   const body = (await response.json()) as RefreshResponse;
+
   return body.accessToken;
 }
 
@@ -72,9 +74,11 @@ export function decodeTokenPayload(
 ): { sub: string; loginId: string; role: 'USER' | 'ADMIN'; exp: number } | null {
   try {
     const [, payload] = token.split('.');
+
     if (payload === undefined) {
       return null;
     }
+
     return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
       sub: string;
       loginId: string;

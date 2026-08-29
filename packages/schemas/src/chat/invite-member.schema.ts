@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ChatRoomMemberRole } from '@repo/constants/chat-room-member';
 
 export const inviteMemberRequestSchema = z.object({
   userId: z.string(),

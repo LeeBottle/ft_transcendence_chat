@@ -26,7 +26,9 @@ function RoomList({ rooms, activeRoomId, onSelectRoom }: RoomListProps) {
         return (
           <button
             key={room.id}
-            onClick={() => onSelectRoom(room.id)}
+            onClick={() => {
+              onSelectRoom(room.id);
+            }}
             className={`flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-left text-sm transition-colors ${isActive ? 'bg-purple-500 text-white' : 'text-gray-600 hover:bg-gray-50'} `}
           >
             <span
@@ -35,7 +37,7 @@ function RoomList({ rooms, activeRoomId, onSelectRoom }: RoomListProps) {
               {room.avatarLabel}
             </span>
             <span className="flex-1 truncate">{room.name}</span>
-            {!!room.unreadCount && (
+            {Boolean(room.unreadCount) && (
               <span
                 className={`flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold ${isActive ? 'bg-white/20 text-white' : 'bg-purple-500 text-white'} `}
               >

@@ -41,6 +41,7 @@ const USER_CACHE_KEY = 'auth:user';
 function readCachedUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem(USER_CACHE_KEY);
+
     return raw === null ? null : (JSON.parse(raw) as AuthUser);
   } catch {
     return null;
@@ -95,17 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (token === null) {
         clearAuth();
+
         return;
       }
 
       accessTokenRef.current = token;
 
       const cached = readCachedUser();
+
       if (cached !== null) {
         setUser(cached);
       } else {
         // 캐시가 없으면 토큰에서 최소 정보만 복원
         const payload = decodeTokenPayload(token);
+
         setUser(
           payload === null
             ? null
@@ -153,8 +157,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
+
   if (ctx === null) {
     throw new Error('useAuth 는 AuthProvider 내부에서만 사용할 수 있어요.');
   }
+
   return ctx;
 }

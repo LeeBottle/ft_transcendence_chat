@@ -20,7 +20,9 @@ function AddUserModal({ open, onSubmit, onCancel }: AddUserModalProps) {
   const [role, setRole] = useState<NewAdminUserInput['role'] | ''>('');
   const [error, setError] = useState('');
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   function resetForm(): void {
     setUsername('');
@@ -34,9 +36,21 @@ function AddUserModal({ open, onSubmit, onCancel }: AddUserModalProps) {
   function handleSubmit(e: React.FormEvent): void {
     e.preventDefault();
 
-    if (!username.trim()) return setError('아이디를 입력해주세요');
-    if (!password.trim()) return setError('비밀번호를 입력해주세요');
-    if (!role) return setError('역할을 선택해주세요');
+    if (!username.trim()) {
+      setError('아이디를 입력해주세요');
+
+      return;
+    }
+    if (!password.trim()) {
+      setError('비밀번호를 입력해주세요');
+
+      return;
+    }
+    if (!role) {
+      setError('역할을 선택해주세요');
+
+      return;
+    }
 
     onSubmit({
       username: username.trim(),
@@ -64,27 +78,35 @@ function AddUserModal({ open, onSubmit, onCancel }: AddUserModalProps) {
         <div className="flex flex-col gap-3">
           <input
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {
+              setUsername(e.target.value);
+            }}
             placeholder="아이디 입력"
             className="h-9 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
           />
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
             placeholder="비밀번호 입력"
             className="h-9 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
           />
           <div className="grid grid-cols-2 gap-3">
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
               placeholder="이름 입력 (선택)"
               className="h-9 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             />
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value as NewAdminUserInput['role'])}
+              onChange={(e) => {
+                setRole(e.target.value as NewAdminUserInput['role']);
+              }}
               className="h-9 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             >
               <option value="">역할 선택</option>
@@ -95,7 +117,9 @@ function AddUserModal({ open, onSubmit, onCancel }: AddUserModalProps) {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
             placeholder="이메일 입력 (선택)"
             className="h-9 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
           />

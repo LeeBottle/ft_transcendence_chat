@@ -245,20 +245,16 @@ export class ChatController {
     const userId = extractUserId(req);
 
     let result: ChatRoomMemberResponseDto;
+
     try {
-      result = await this.chatService.updateMemberRole(
-        roomId,
-        userId,
-        targetUserId,
-        dto.role as any,
-      );
-    } catch (err) {
+      result = await this.chatService.updateMemberRole(roomId, userId, targetUserId, dto.role);
+    } catch (error) {
       if (
-        err instanceof ForbiddenException ||
-        err instanceof NotFoundException ||
-        err instanceof BadRequestException
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
       ) {
-        throw err;
+        throw error;
       }
 
       const targetUser = await this.chatService.ensureUserExists(targetUserId);
@@ -268,8 +264,8 @@ export class ChatController {
         userId: targetUser.id,
         loginId: targetUser.loginId,
         name: targetUser.name,
-        role: dto.role as any,
-        status: 'ACTIVE' as any,
+        role: dto.role,
+        status: 'ACTIVE',
         joinedAt: new Date().toISOString(),
       };
     }
@@ -336,15 +332,16 @@ export class ChatController {
     const userId = extractUserId(req);
 
     let saved: ChatMessageResponseDto;
+
     try {
       saved = await this.chatMessageService.saveMessage(roomId, userId, dto.content, dto.type);
-    } catch (_err) {
+    } catch (_error) {
       saved = {
         id: `temp-msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         chatRoomId: roomId,
         senderUserId: userId,
         senderName: `사용자 ${userId}`,
-        type: dto.type ?? 'TEXT',
+        type: dto.type,
         content: dto.content,
         sentAt: new Date().toISOString(),
       };
@@ -375,12 +372,13 @@ export class ChatController {
     const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
 
     let messages: ChatMessageResponseDto[] = [];
+
     if (!isTempRoom) {
       await this.chatService.closeRoom(roomId, userId);
 
       try {
         messages = await this.chatMessageService.getMessages(roomId, userId, { limit: 100 });
-      } catch (_err) {
+      } catch (_error) {
         messages = [];
       }
     }

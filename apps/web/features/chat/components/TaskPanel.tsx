@@ -48,7 +48,9 @@ function TaskPanel({
   summarySections,
   onExtractSummary,
 }: TaskPanelProps) {
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   return (
     <div className="flex w-80 shrink-0 flex-col border-l border-gray-100 bg-gray-50">
@@ -59,13 +61,17 @@ function TaskPanel({
 
       <div className="flex shrink-0 border-b border-gray-100 bg-white">
         <button
-          onClick={() => onTabChange('task')}
+          onClick={() => {
+            onTabChange('task');
+          }}
           className={`h-8.5 flex-1 cursor-pointer border-b-2 text-xs font-medium ${activeTab === 'task' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500'} `}
         >
           Task
         </button>
         <button
-          onClick={() => onTabChange('summary')}
+          onClick={() => {
+            onTabChange('summary');
+          }}
           className={`h-8.5 flex-1 cursor-pointer border-b-2 text-xs font-medium ${activeTab === 'summary' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500'} `}
         >
           채팅 요약

@@ -30,7 +30,9 @@ function Header({ username, onLogout }: HeaderProps) {
 
       <div className="relative">
         <button
-          onClick={() => setMenuOpen((prev) => !prev)}
+          onClick={() => {
+            setMenuOpen((prev) => !prev);
+          }}
           className="flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2.5 text-sm text-gray-700 hover:bg-gray-50"
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500 text-xs font-semibold text-white">
@@ -44,12 +46,16 @@ function Header({ username, onLogout }: HeaderProps) {
             {/* 메뉴 바깥 클릭 시 닫히도록 하는 투명 오버레이 */}
             <div
               className="fixed inset-0 z-10"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                setMenuOpen(false);
+              }}
             />
             <div className="absolute top-11 right-0 z-20 w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
               <Link
                 href="/my-page"
-                onClick={() => setMenuOpen(false)}
+                onClick={() => {
+                  setMenuOpen(false);
+                }}
                 className="block h-9 px-3 text-sm leading-9 text-gray-700 hover:bg-gray-50"
               >
                 마이페이지

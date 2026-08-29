@@ -34,6 +34,7 @@ function UserTable({
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
+
     return users.filter((u) => !q || (u.username + u.name + u.email).toLowerCase().includes(q));
   }, [users, search]);
 
@@ -62,12 +63,16 @@ function UserTable({
       <div className="flex items-center gap-2">
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
           placeholder="이름, 아이디 검색…"
           className="h-9 w-60 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
         />
         <button
-          onClick={() => setAddOpen(true)}
+          onClick={() => {
+            setAddOpen(true);
+          }}
           className="ml-auto h-9 cursor-pointer rounded-lg bg-purple-500 px-4 text-sm text-white transition-colors hover:bg-purple-600"
         >
           사용자 추가
@@ -102,21 +107,27 @@ function UserTable({
                     <td className="px-5 py-2">
                       <input
                         value={draft.username}
-                        onChange={(e) => setDraft({ ...draft, username: e.target.value })}
+                        onChange={(e) => {
+                          setDraft({ ...draft, username: e.target.value });
+                        }}
                         className="h-8 w-full rounded-md border border-purple-300 bg-white px-2 text-sm outline-none"
                       />
                     </td>
                     <td className="px-5 py-2">
                       <input
                         value={draft.name}
-                        onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                        onChange={(e) => {
+                          setDraft({ ...draft, name: e.target.value });
+                        }}
                         className="h-8 w-full rounded-md border border-purple-300 bg-white px-2 text-sm outline-none"
                       />
                     </td>
                     <td className="px-5 py-2">
                       <input
                         value={draft.email}
-                        onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                        onChange={(e) => {
+                          setDraft({ ...draft, email: e.target.value });
+                        }}
                         className="h-8 w-full rounded-md border border-purple-300 bg-white px-2 text-sm outline-none"
                       />
                     </td>
@@ -129,13 +140,17 @@ function UserTable({
                     </td>
                     <td className="px-5 py-2 text-center whitespace-nowrap">
                       <button
-                        onClick={() => saveEdit(user.id)}
+                        onClick={() => {
+                          saveEdit(user.id);
+                        }}
                         className="h-7 cursor-pointer rounded-md bg-green-100 px-2.5 text-xs text-green-700"
                       >
                         저장
                       </button>
                       <button
-                        onClick={() => setEditingId(null)}
+                        onClick={() => {
+                          setEditingId(null);
+                        }}
                         className="ml-1 h-7 cursor-pointer rounded-md border border-gray-300 px-2.5 text-xs text-gray-500"
                       >
                         취소
@@ -148,7 +163,9 @@ function UserTable({
               return (
                 <tr
                   key={user.id}
-                  onClick={() => startEdit(user)}
+                  onClick={() => {
+                    startEdit(user);
+                  }}
                   className="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
                 >
                   <td className="px-5 py-3 text-gray-400">{user.id}</td>
@@ -164,25 +181,33 @@ function UserTable({
                   </td>
                   <td
                     className="px-5 py-3 text-center whitespace-nowrap"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                   >
                     {user.status === 'active' ? (
                       <button
-                        onClick={() => onSuspendUser(user.id)}
+                        onClick={() => {
+                          onSuspendUser(user.id);
+                        }}
                         className="h-7 cursor-pointer rounded-md bg-amber-100 px-2.5 text-xs text-amber-700"
                       >
                         정지
                       </button>
                     ) : (
                       <button
-                        onClick={() => onRestoreUser(user.id)}
+                        onClick={() => {
+                          onRestoreUser(user.id);
+                        }}
                         className="h-7 cursor-pointer rounded-md bg-green-100 px-2.5 text-xs text-green-700"
                       >
                         복구
                       </button>
                     )}
                     <button
-                      onClick={() => setDeleteTarget(user)}
+                      onClick={() => {
+                        setDeleteTarget(user);
+                      }}
                       className="ml-1 h-7 cursor-pointer rounded-md bg-red-100 px-2.5 text-xs text-red-600"
                     >
                       삭제
@@ -206,16 +231,22 @@ function UserTable({
         confirmLabel="삭제"
         danger
         onConfirm={() => {
-          if (deleteTarget) onDeleteUser(deleteTarget.id);
+          if (deleteTarget) {
+            onDeleteUser(deleteTarget.id);
+          }
           setDeleteTarget(null);
         }}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          setDeleteTarget(null);
+        }}
       />
 
       <AddUserModal
         open={addOpen}
         onSubmit={handleAddUser}
-        onCancel={() => setAddOpen(false)}
+        onCancel={() => {
+          setAddOpen(false);
+        }}
       />
     </div>
   );

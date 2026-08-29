@@ -41,26 +41,57 @@ export const PW_RULES: PwRule[] = [
 
 export function getPwErrors(pw: string, loginId: string): string[] {
   const errors: string[] = [];
-  if (pw.length < 10) errors.push('최소 10자 이상이어야 해요');
-  if (!/[A-Z]/.test(pw)) errors.push('대문자를 1자 이상 포함해야 해요');
-  if (!/[0-9]/.test(pw)) errors.push('숫자를 1자 이상 포함해야 해요');
-  if (!SPECIAL_CHAR.test(pw)) errors.push('특수문자를 1자 이상 포함해야 해요');
-  if (SEQ_NUM.test(pw)) errors.push('연속된 숫자 3자 이상은 사용할 수 없어요 (예: 123, 456)');
-  if (loginId && pw.toLowerCase().includes(loginId.toLowerCase()))
+
+  if (pw.length < 10) {
+    errors.push('최소 10자 이상이어야 해요');
+  }
+  if (!/[A-Z]/.test(pw)) {
+    errors.push('대문자를 1자 이상 포함해야 해요');
+  }
+  if (!/[0-9]/.test(pw)) {
+    errors.push('숫자를 1자 이상 포함해야 해요');
+  }
+  if (!SPECIAL_CHAR.test(pw)) {
+    errors.push('특수문자를 1자 이상 포함해야 해요');
+  }
+  if (SEQ_NUM.test(pw)) {
+    errors.push('연속된 숫자 3자 이상은 사용할 수 없어요 (예: 123, 456)');
+  }
+  if (loginId && pw.toLowerCase().includes(loginId.toLowerCase())) {
     errors.push('아이디와 유사한 문자는 사용할 수 없어요');
+  }
+
   const matched = COMMON_WORDS.find((w) => pw.toLowerCase().includes(w));
-  if (matched) errors.push(`자주 쓰이는 단어 "${matched}"는 사용할 수 없어요`);
+
+  if (matched) {
+    errors.push(`자주 쓰이는 단어 "${matched}"는 사용할 수 없어요`);
+  }
+
   return errors;
 }
 
 export function getPwStrength(pw: string): number {
   let score = 0;
-  if (pw.length >= 10) score++;
-  if (pw.length >= 14) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[!@#$%^&*]/.test(pw)) score++;
-  if (pw.length >= 18) score++;
+
+  if (pw.length >= 10) {
+    score++;
+  }
+  if (pw.length >= 14) {
+    score++;
+  }
+  if (/[A-Z]/.test(pw)) {
+    score++;
+  }
+  if (/[0-9]/.test(pw)) {
+    score++;
+  }
+  if (/[!@#$%^&*]/.test(pw)) {
+    score++;
+  }
+  if (pw.length >= 18) {
+    score++;
+  }
+
   return Math.min(score, 5);
 }
 

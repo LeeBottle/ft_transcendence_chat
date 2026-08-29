@@ -13,7 +13,9 @@ interface InputBarProps {
 function InputBar({ value, onChange, onSend, disabled }: InputBarProps) {
   function handleSubmit(e: FormEvent): void {
     e.preventDefault();
-    if (!value.trim() || disabled) return;
+    if (!value.trim() || disabled) {
+      return;
+    }
     onSend();
   }
 
@@ -32,7 +34,9 @@ function InputBar({ value, onChange, onSend, disabled }: InputBarProps) {
       </button>
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value);
+        }}
         disabled={disabled}
         placeholder={disabled ? '회의가 종료됐어요' : '메시지를 입력하세요... (Enter로 전송)'}
         className="h-9.5 flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 text-[13.5px] outline-none focus:border-purple-400 disabled:cursor-not-allowed disabled:opacity-45"

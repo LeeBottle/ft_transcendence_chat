@@ -78,7 +78,9 @@ function CalendarTaskCreateModal({
             <input
               id="ct-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+              }}
               placeholder="태스크 이름 입력"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             />
@@ -96,7 +98,9 @@ function CalendarTaskCreateModal({
                 id="ct-start"
                 type="date"
                 value={start}
-                onChange={(e) => setStart(e.target.value)}
+                onChange={(e) => {
+                  setStart(e.target.value);
+                }}
                 className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               />
             </div>
@@ -111,7 +115,9 @@ function CalendarTaskCreateModal({
                 id="ct-end"
                 type="date"
                 value={end}
-                onChange={(e) => setEnd(e.target.value)}
+                onChange={(e) => {
+                  setEnd(e.target.value);
+                }}
                 className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               />
             </div>
@@ -124,7 +130,9 @@ function CalendarTaskCreateModal({
                 <button
                   key={preset}
                   type="button"
-                  onClick={() => setColor(preset)}
+                  onClick={() => {
+                    setColor(preset);
+                  }}
                   style={{ backgroundColor: preset }}
                   aria-label={`색상 ${preset}`}
                   className={`h-7 w-7 cursor-pointer rounded-full ${

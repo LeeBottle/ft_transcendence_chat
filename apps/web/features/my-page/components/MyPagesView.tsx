@@ -52,9 +52,16 @@ function MyPageView({
 
   function handleAvatarChange(e: ChangeEvent<HTMLInputElement>): void {
     const file = e.target.files?.[0];
-    if (!file) return;
+
+    if (!file) {
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = () => setPreviewUrl(reader.result as string);
+
+    reader.onload = () => {
+      setPreviewUrl(reader.result as string);
+    };
     reader.readAsDataURL(file);
   }
 
@@ -62,6 +69,7 @@ function MyPageView({
     e.preventDefault();
     if (!nameInput.trim()) {
       setInfoError('이름을 입력해주세요');
+
       return;
     }
     setInfoError('');
@@ -78,7 +86,9 @@ function MyPageView({
 
   function handleChangePassword(e: FormEvent): void {
     e.preventDefault();
-    if (!canSubmitPw) return;
+    if (!canSubmitPw) {
+      return;
+    }
     onChangePassword?.({ currentPassword: currentPw, newPassword: newPw });
     setCurrentPw('');
     setNewPw('');
@@ -146,7 +156,9 @@ function MyPageView({
               <input
                 id="edit-name"
                 value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
+                onChange={(e) => {
+                  setNameInput(e.target.value);
+                }}
                 placeholder="이름 입력"
                 className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               />
@@ -162,7 +174,9 @@ function MyPageView({
                 id="edit-email"
                 type="email"
                 value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
+                onChange={(e) => {
+                  setEmailInput(e.target.value);
+                }}
                 placeholder="이메일 입력"
                 className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               />
@@ -194,6 +208,7 @@ function MyPageView({
                 const active = newPw.length > 0;
                 const pass = active && rule.pass(newPw, username);
                 const fail = active && !rule.pass(newPw, username);
+
                 return (
                   <div
                     key={rule.id}
@@ -220,7 +235,9 @@ function MyPageView({
                 id="pw-current"
                 type="password"
                 value={currentPw}
-                onChange={(e) => setCurrentPw(e.target.value)}
+                onChange={(e) => {
+                  setCurrentPw(e.target.value);
+                }}
                 placeholder="현재 비밀번호 입력"
                 className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               />
@@ -238,13 +255,17 @@ function MyPageView({
                   id="pw-new"
                   type={showNewPw ? 'text' : 'password'}
                   value={newPw}
-                  onChange={(e) => setNewPw(e.target.value)}
+                  onChange={(e) => {
+                    setNewPw(e.target.value);
+                  }}
                   placeholder="새 비밀번호 입력 (10자 이상)"
                   className="h-9 w-full rounded-lg border border-gray-300 pr-9 pl-3 text-sm outline-none focus:border-purple-400"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowNewPw(!showNewPw)}
+                  onClick={() => {
+                    setShowNewPw(!showNewPw);
+                  }}
                   className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-gray-400"
                 >
                   {showNewPw ? '🙈' : '👁'}
@@ -290,13 +311,17 @@ function MyPageView({
                   id="pw-confirm"
                   type={showConfirmPw ? 'text' : 'password'}
                   value={confirmPw}
-                  onChange={(e) => setConfirmPw(e.target.value)}
+                  onChange={(e) => {
+                    setConfirmPw(e.target.value);
+                  }}
                   placeholder="새 비밀번호 다시 입력"
                   className="h-9 w-full rounded-lg border border-gray-300 pr-9 pl-3 text-sm outline-none focus:border-purple-400"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPw(!showConfirmPw)}
+                  onClick={() => {
+                    setShowConfirmPw(!showConfirmPw);
+                  }}
                   className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-gray-400"
                 >
                   {showConfirmPw ? '🙈' : '👁'}

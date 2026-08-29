@@ -29,6 +29,7 @@ export class UserController {
   @Get('me')
   async getSelfProfile(@Req() req: Request): Promise<SelfUserProfileResponseDto> {
     const userId = this.extractUserId(req);
+
     return await this.userService.getSelfProfile(userId);
   }
 
@@ -39,20 +40,23 @@ export class UserController {
     @Body() body: UpdateUserProfileRequestDto,
   ): Promise<SelfUserProfileResponseDto> {
     const userId = this.extractUserId(req);
+
     return await this.userService.updateProfile(userId, body);
   }
 
-  // 친구 목록 조회 (GET /users/me/frineds)
+  // 친구 목록 조회 (GET /users/me/friends)
   @Get('me/friends')
   async getFriends(@Req() req: Request): Promise<GetFriendsResponseDto> {
     const userId = this.extractUserId(req);
+
     return await this.userService.getFriends(userId);
   }
 
   // 친구 추가 (POST /users/me/friends)
   @Post('me/friends')
-  async addFriend(@Req() req: Request, @Body() body: AddFriendRequestDto) {
+  async addFriend(@Req() req: Request, @Body() body: AddFriendRequestDto): Promise<{ id: string }> {
     const userId = this.extractUserId(req);
+
     return await this.userService.addFriend(userId, body);
   }
 
@@ -69,6 +73,7 @@ export class UserController {
     if (typeof user?.id !== 'string' || user.id.length === 0) {
       throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
     }
+
     return user.id;
   }
 }

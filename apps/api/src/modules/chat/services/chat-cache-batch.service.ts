@@ -20,8 +20,6 @@ export interface CachedChatMessage {
   sentAt: string;
 }
 
-const FLUSH_THRESHOLD = 5;
-
 @Injectable()
 export class ChatCacheBatchService {
   private readonly logger = new Logger(ChatCacheBatchService.name);
@@ -45,7 +43,9 @@ export class ChatCacheBatchService {
     if (cachedCount > 100) {
       try {
         await this.redisService.ltrim(key, -100, -1);
-      } catch (_err) {}
+      } catch (_error) {
+        // 의도적 에러 무시
+      }
     }
 
     return { cachedCount, flushed: false };
@@ -65,7 +65,9 @@ export class ChatCacheBatchService {
       await this.redisService.ltrim(key, -100, -1);
     }
 
-    this.logger.log(`채팅방 [${roomId}] Write-Through 캐시 유지 상태 확인 완료 (${rawMessages.length}개 메시지)`);
+    this.logger.log(
+      `채팅방 [${roomId}] Write-Through 캐시 유지 상태 확인 완료 (${rawMessages.length}개 메시지)`,
+    );
 
     return { flushedCount: rawMessages.length };
   }

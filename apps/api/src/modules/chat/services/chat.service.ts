@@ -1,5 +1,3 @@
-import bcrypt from 'bcrypt';
-
 import {
   BadRequestException,
   ForbiddenException,
@@ -8,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import bcrypt from 'bcrypt';
 import { IsNull, Repository } from 'typeorm';
 
 import { ChatRoomMemberRole, ChatRoomMemberStatus } from '@repo/constants/chat-room-member';
@@ -21,8 +20,8 @@ import type {
 } from '#modules/chat/controllers/chat.dto.js';
 import { ChatRoomMemberEntity } from '#modules/chat/entities/chat-room-member.entity.js';
 import { ChatRoomEntity } from '#modules/chat/entities/chat-room.entity.js';
-import { UserEntity } from '#modules/user/entities/user.entity.js';
 import { RedisService } from '#modules/chat/services/redis.service.js';
+import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 @Injectable()
 export class ChatService {
@@ -36,21 +35,24 @@ export class ChatService {
     }
     try {
       const cached = await this.redisService.get(`chat:room:${roomId}:password`);
+
       return typeof cached === 'string' && cached.length > 0;
-    } catch (_err) {
+    } catch (_error) {
       return false;
     }
   }
 
   async isUserBanned(roomId: string, userId: string): Promise<boolean> {
     const set = this.bannedUserMap.get(roomId);
-    if (set && set.has(userId)) {
+
+    if (set?.has(userId) === true) {
       return true;
     }
     try {
       const isMember = await this.redisService.sismember(`chat:room:${roomId}:bans`, userId);
+
       return isMember === 1;
-    } catch (_err) {
+    } catch (_error) {
       return false;
     }
   }
@@ -63,6 +65,7 @@ export class ChatService {
 
     // 1. 차단(Ban) 여부 검증
     const banned = await this.isUserBanned(roomId, targetUserId);
+
     if (banned) {
       throw new ForbiddenException('차단(Ban)된 사용자는 해당 채팅방에 접근할 수 없습니다.');
     }
@@ -83,11 +86,11 @@ export class ChatService {
           const member = await this.memberRepository.findOne({
             where: [
               { chatRoomId: roomId, userId: targetUserId },
-              { chatRoomId: roomId, userId: userId },
+              { chatRoomId: roomId, userId },
             ],
           });
 
-          if (member) {
+          if (member !== null) {
             if (member.status === ChatRoomMemberStatus.KICKED) {
               throw new ForbiddenException('강퇴(Kick) 처리된 사용자는 채널에 입장할 수 없습니다.');
             }
@@ -100,12 +103,13 @@ export class ChatService {
               status: ChatRoomMemberStatus.ACTIVE,
               joinedAt: new Date(),
             });
+
             await this.memberRepository.save(newMember);
           }
         }
-      } catch (err) {
-        if (err instanceof ForbiddenException || err instanceof NotFoundException) {
-          throw err;
+      } catch (error) {
+        if (error instanceof ForbiddenException || error instanceof NotFoundException) {
+          throw error;
         }
       }
     }
@@ -128,18 +132,20 @@ export class ChatService {
 
     try {
       const cached = await this.redisService.get(`chat:room:${roomId}:topic`);
+
       if (typeof cached === 'string' && cached.length > 0) {
         this.roomTopicMap.set(roomId, cached);
+
         return cached;
       }
-    } catch (_err) {
+    } catch (_error) {
       // ignore redis error
     }
 
     return null;
   }
 
-  public async ensureUserExists(userId: string): Promise<UserEntity> {
+  async ensureUserExists(userId: string): Promise<UserEntity> {
     const loginIdMap: Record<string, string> = {
       '1': 'a',
       '2': 'b',
@@ -174,7 +180,7 @@ export class ChatService {
       });
 
       return await this.userRepository.save(user);
-    } catch (_err) {
+    } catch (_error) {
       return {
         id: userId,
         loginId,
@@ -188,7 +194,7 @@ export class ChatService {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
-      } as UserEntity;
+      };
     }
   }
 
@@ -213,10 +219,13 @@ export class ChatService {
     if (typeof dto.password === 'string' && dto.password.trim().length > 0) {
       const trimmedPwd = dto.password.trim().slice(0, 12);
       const hash = await bcrypt.hash(trimmedPwd, 10);
+
       this.roomPasswordMap.set(roomId, hash);
       try {
         await this.redisService.set(`chat:room:${roomId}:password`, hash);
-      } catch (_err) {}
+      } catch (_error) {
+        // 의도적 에러 무시
+      }
     }
 
     // 생성자 (방장/FOUNDER) 멤버 추가
@@ -231,7 +240,7 @@ export class ChatService {
     await this.memberRepository.save(ownerMember);
 
     // 초대된 멤버들 추가
-    if (dto.memberUserIds && dto.memberUserIds.length > 0) {
+    if (dto.memberUserIds !== undefined && dto.memberUserIds.length > 0) {
       const uniqueInvitedIds = Array.from(
         new Set(dto.memberUserIds.filter((id) => id !== creatorUserId && id !== creatorId)),
       );
@@ -240,22 +249,20 @@ export class ChatService {
         uniqueInvitedIds.map(async (memberUserId) => {
           const invitedUser = await this.ensureUserExists(memberUserId);
 
-          if (invitedUser) {
-            const existingMember = await this.memberRepository.findOne({
-              where: { chatRoomId: roomId, userId: invitedUser.id },
+          const existingMember = await this.memberRepository.findOne({
+            where: { chatRoomId: roomId, userId: invitedUser.id },
+          });
+
+          if (existingMember === null) {
+            const newMember = this.memberRepository.create({
+              chatRoomId: roomId,
+              userId: invitedUser.id,
+              role: ChatRoomMemberRole.USER,
+              status: ChatRoomMemberStatus.ACTIVE,
+              joinedAt: new Date(),
             });
 
-            if (!existingMember) {
-              const newMember = this.memberRepository.create({
-                chatRoomId: roomId,
-                userId: invitedUser.id,
-                role: ChatRoomMemberRole.USER,
-                status: ChatRoomMemberStatus.ACTIVE,
-                joinedAt: new Date(),
-              });
-
-              await this.memberRepository.save(newMember);
-            }
+            await this.memberRepository.save(newMember);
           }
         }),
       );
@@ -315,6 +322,7 @@ export class ChatService {
     const targetUserId = user.id;
 
     const banned = await this.isUserBanned(roomId, targetUserId);
+
     if (banned) {
       throw new ForbiddenException('차단(Ban)된 사용자는 해당 채팅방에 접근할 수 없습니다.');
     }
@@ -375,6 +383,7 @@ export class ChatService {
     const targetUser = await this.ensureUserExists(dto.userId);
 
     const banned = await this.isUserBanned(roomId, targetUser.id);
+
     if (banned) {
       throw new ForbiddenException('차단(Ban)된 사용자는 해당 채팅방에 초대할 수 없습니다.');
     }
@@ -476,7 +485,9 @@ export class ChatService {
         (targetMember.role === ChatRoomMemberRole.FOUNDER ||
           targetMember.role === ChatRoomMemberRole.OPERATOR)
       ) {
-        throw new ForbiddenException('운영자(OPERATOR)는 방장(FOUNDER) 또는 타 운영자를 강퇴할 수 없습니다.');
+        throw new ForbiddenException(
+          '운영자(OPERATOR)는 방장(FOUNDER) 또는 타 운영자를 강퇴할 수 없습니다.',
+        );
       }
     }
 
@@ -512,10 +523,7 @@ export class ChatService {
       where: { chatRoomId: roomId, userId: targetUserId, status: ChatRoomMemberStatus.ACTIVE },
     });
 
-    if (
-      currentMember?.role !== ChatRoomMemberRole.FOUNDER &&
-      room.creatorUserId !== targetUserId
-    ) {
+    if (currentMember?.role !== ChatRoomMemberRole.FOUNDER && room.creatorUserId !== targetUserId) {
       throw new ForbiddenException('채팅방 방장(FOUNDER)만 채팅방을 회의 종료/삭제할 수 있습니다.');
     }
 
@@ -524,7 +532,7 @@ export class ChatService {
 
     try {
       await this.roomRepository.softDelete(roomId);
-    } catch (_err) {
+    } catch (_error) {
       // ignore query soft-delete failure if already soft-deleted
     }
 
@@ -536,17 +544,21 @@ export class ChatService {
     password: string,
   ): Promise<{ success: boolean; message: string }> {
     let storedHash = this.roomPasswordMap.get(roomId);
-    if (!storedHash) {
+
+    if (storedHash === undefined) {
       try {
         storedHash = (await this.redisService.get(`chat:room:${roomId}:password`)) ?? undefined;
-      } catch (_err) {}
+      } catch (_error) {
+        // 의도적 에러 무시
+      }
     }
 
-    if (!storedHash) {
+    if (storedHash === undefined) {
       return { success: true, message: '비밀번호가 설정되지 않은 공개방입니다.' };
     }
 
-    const isMatch = await bcrypt.compare(password ?? '', storedHash);
+    const isMatch = await bcrypt.compare(password, storedHash);
+
     if (!isMatch) {
       throw new BadRequestException('채팅방 비밀번호가 일치하지 않습니다.');
     }
@@ -579,16 +591,21 @@ export class ChatService {
     }
 
     if (!isFounder) {
-      throw new ForbiddenException('방장(FOUNDER) 권한만 비밀번호를 수정하거나 삭제할 수 있습니다.');
+      throw new ForbiddenException(
+        '방장(FOUNDER) 권한만 비밀번호를 수정하거나 삭제할 수 있습니다.',
+      );
     }
 
     if (typeof password === 'string' && password.trim().length > 0) {
       const trimmedPwd = password.trim().slice(0, 12);
       const hash = await bcrypt.hash(trimmedPwd, 10);
+
       this.roomPasswordMap.set(roomId, hash);
       try {
         await this.redisService.set(`chat:room:${roomId}:password`, hash);
-      } catch (_err) {}
+      } catch (_error) {
+        // 의도적 에러 무시
+      }
 
       return {
         success: true,
@@ -601,7 +618,9 @@ export class ChatService {
     this.roomPasswordMap.delete(roomId);
     try {
       await this.redisService.del(`chat:room:${roomId}:password`);
-    } catch (_err) {}
+    } catch (_error) {
+      // 의도적 에러 무시
+    }
 
     return {
       success: true,
@@ -624,11 +643,13 @@ export class ChatService {
     const isRequestingFounder = requestedRole === 'FOUNDER' || requestedRole === 'OWNER';
     const isRequestingOperator = requestedRole === 'OPERATOR' || requestedRole === 'MANAGER';
 
-    const targetDbRole = isRequestingFounder
-      ? ChatRoomMemberRole.FOUNDER
-      : isRequestingOperator
-        ? ChatRoomMemberRole.OPERATOR
-        : ChatRoomMemberRole.USER;
+    let targetDbRole: ChatRoomMemberRole = ChatRoomMemberRole.USER;
+
+    if (isRequestingFounder) {
+      targetDbRole = ChatRoomMemberRole.FOUNDER;
+    } else if (isRequestingOperator) {
+      targetDbRole = ChatRoomMemberRole.OPERATOR;
+    }
 
     if (isTempRoom) {
       return {
@@ -649,16 +670,15 @@ export class ChatService {
     const room = await this.roomRepository.findOne({ where: { id: roomId } });
 
     const isFounder =
-      currentMember?.role === ChatRoomMemberRole.FOUNDER ||
-      room?.creatorUserId === currentUser.id;
+      currentMember?.role === ChatRoomMemberRole.FOUNDER || room?.creatorUserId === currentUser.id;
 
-    const isOperator =
-      isFounder ||
-      currentMember?.role === ChatRoomMemberRole.OPERATOR;
+    const isOperator = isFounder || currentMember?.role === ChatRoomMemberRole.OPERATOR;
 
     // OP 지정/해제 조작은 FOUNDER 또는 OPERATOR만 가능
     if (!isOperator) {
-      throw new ForbiddenException('방장(FOUNDER) 또는 운영자(OPERATOR)만 멤버 권한을 조작할 수 있습니다.');
+      throw new ForbiddenException(
+        '방장(FOUNDER) 또는 운영자(OPERATOR)만 멤버 권한을 조작할 수 있습니다.',
+      );
     }
 
     const targetMember = await this.memberRepository.findOne({
@@ -672,29 +692,33 @@ export class ChatService {
     // FOUNDER 권한은 "지정" 금지, "위임(양도)"만 가능하며, 기존 FOUNDER는 자동으로 OPERATOR로 전환됨
     if (isRequestingFounder) {
       if (!isFounder) {
-        throw new ForbiddenException('방장(FOUNDER) 권한 위임은 현재 방장(FOUNDER)만 수행할 수 있습니다.');
+        throw new ForbiddenException(
+          '방장(FOUNDER) 권한 위임은 현재 방장(FOUNDER)만 수행할 수 있습니다.',
+        );
       }
 
-      if (currentMember) {
+      if (currentMember !== null) {
         currentMember.role = ChatRoomMemberRole.OPERATOR;
         await this.memberRepository.save(currentMember);
       }
-      if (room) {
+      if (room !== null) {
         room.creatorUserId = targetUser.id;
         await this.roomRepository.save(room);
       }
-    } else if (isOperator && !isFounder) {
+    } else if (!isFounder) {
       // OPERATOR는 방장(FOUNDER)의 권한을 변경할 수 없음
       const isTargetFounder =
-        targetMember.role === ChatRoomMemberRole.FOUNDER ||
-        room?.creatorUserId === targetUser.id;
+        targetMember.role === ChatRoomMemberRole.FOUNDER || room?.creatorUserId === targetUser.id;
 
       if (isTargetFounder) {
-        throw new ForbiddenException('운영자(OPERATOR)는 방장(FOUNDER)의 권한을 변경할 수 없습니다.');
+        throw new ForbiddenException(
+          '운영자(OPERATOR)는 방장(FOUNDER)의 권한을 변경할 수 없습니다.',
+        );
       }
     }
 
     targetMember.role = targetDbRole;
+
     const saved = await this.memberRepository.save(targetMember);
 
     return {
@@ -731,15 +755,14 @@ export class ChatService {
       });
 
       const isFounder =
-        currentMember?.role === ChatRoomMemberRole.FOUNDER ||
-        room.creatorUserId === currentUser.id;
+        currentMember?.role === ChatRoomMemberRole.FOUNDER || room.creatorUserId === currentUser.id;
 
-      const isOperator =
-        isFounder ||
-        currentMember?.role === ChatRoomMemberRole.OPERATOR;
+      const isOperator = isFounder || currentMember?.role === ChatRoomMemberRole.OPERATOR;
 
       if (!isOperator) {
-        throw new ForbiddenException('채팅방 주제(Topic) 변경은 방장(FOUNDER) 및 운영자(OPERATOR)만 가능합니다.');
+        throw new ForbiddenException(
+          '채팅방 주제(Topic) 변경은 방장(FOUNDER) 및 운영자(OPERATOR)만 가능합니다.',
+        );
       }
     }
 
@@ -747,7 +770,7 @@ export class ChatService {
     this.roomTopicMap.set(roomId, topic);
     try {
       await this.redisService.set(`chat:room:${roomId}:topic`, topic);
-    } catch (_err) {
+    } catch (_error) {
       // ignore redis error
     }
 
@@ -777,16 +800,16 @@ export class ChatService {
         currentMember?.role === ChatRoomMemberRole.FOUNDER ||
         room?.creatorUserId === currentUser.id;
 
-      isOperator =
-        isFounder ||
-        currentMember?.role === ChatRoomMemberRole.OPERATOR;
+      isOperator = isFounder || currentMember?.role === ChatRoomMemberRole.OPERATOR;
     } else {
       isFounder = true;
       isOperator = true;
     }
 
     if (!isOperator) {
-      throw new ForbiddenException('방장(FOUNDER) 및 운영자(OPERATOR)만 멤버를 차단(Ban)할 수 있습니다.');
+      throw new ForbiddenException(
+        '방장(FOUNDER) 및 운영자(OPERATOR)만 멤버를 차단(Ban)할 수 있습니다.',
+      );
     }
 
     if (!isTempRoom) {
@@ -800,25 +823,36 @@ export class ChatService {
         !isTargetFounder && targetMember?.role === ChatRoomMemberRole.OPERATOR;
 
       if (!isFounder && (isTargetFounder || isTargetOperator)) {
-        throw new ForbiddenException('운영자(OPERATOR)는 방장(FOUNDER) 또는 타 운영자(OPERATOR)를 차단(Ban)할 수 없습니다.');
+        throw new ForbiddenException(
+          '운영자(OPERATOR)는 방장(FOUNDER) 또는 타 운영자(OPERATOR)를 차단(Ban)할 수 없습니다.',
+        );
       }
     }
 
     if (!this.bannedUserMap.has(roomId)) {
       this.bannedUserMap.set(roomId, new Set());
     }
-    this.bannedUserMap.get(roomId)!.add(targetUser.id);
+
+    let bannedSet = this.bannedUserMap.get(roomId);
+
+    if (bannedSet === undefined) {
+      bannedSet = new Set<string>();
+      this.bannedUserMap.set(roomId, bannedSet);
+    }
+    bannedSet.add(targetUser.id);
 
     try {
       await this.redisService.sadd(`chat:room:${roomId}:bans`, targetUser.id);
-    } catch (_err) {}
+    } catch (_error) {
+      // 의도적 에러 무시
+    }
 
     if (!isTempRoom) {
       const targetMember = await this.memberRepository.findOne({
         where: { chatRoomId: roomId, userId: targetUser.id, status: ChatRoomMemberStatus.ACTIVE },
       });
 
-      if (targetMember) {
+      if (targetMember !== null) {
         targetMember.status = ChatRoomMemberStatus.KICKED;
         targetMember.leftAt = new Date();
         await this.memberRepository.save(targetMember);
@@ -851,22 +885,26 @@ export class ChatService {
         currentMember?.role === ChatRoomMemberRole.FOUNDER ||
         room?.creatorUserId === currentUser.id;
 
-      const isOperator =
-        isFounder ||
-        currentMember?.role === ChatRoomMemberRole.OPERATOR;
+      const isOperator = isFounder || currentMember?.role === ChatRoomMemberRole.OPERATOR;
 
       if (!isOperator) {
-        throw new ForbiddenException('방장(FOUNDER) 및 운영자(OPERATOR)만 차단(Ban)을 해제할 수 있습니다.');
+        throw new ForbiddenException(
+          '방장(FOUNDER) 및 운영자(OPERATOR)만 차단(Ban)을 해제할 수 있습니다.',
+        );
       }
     }
 
-    if (this.bannedUserMap.has(roomId)) {
-      this.bannedUserMap.get(roomId)!.delete(targetUser.id);
+    const bannedSet = this.bannedUserMap.get(roomId);
+
+    if (bannedSet !== undefined) {
+      bannedSet.delete(targetUser.id);
     }
 
     try {
       await this.redisService.srem(`chat:room:${roomId}:bans`, targetUser.id);
-    } catch (_err) {}
+    } catch (_error) {
+      // 의도적 에러 무시
+    }
 
     return { message: '성공적으로 차단(Unban) 해제되었습니다.', targetUserId: targetUser.id };
   }
@@ -875,22 +913,27 @@ export class ChatService {
     roomId: string,
     currentUserId: string,
   ): Promise<Array<{ userId: string; loginId: string; name: string; bannedAt: string }>> {
+    const bannedSet = this.bannedUserMap.get(roomId);
     let bannedUserIds: string[] = [];
 
-    if (this.bannedUserMap.has(roomId)) {
-      bannedUserIds = Array.from(this.bannedUserMap.get(roomId)!);
+    if (bannedSet !== undefined) {
+      bannedUserIds = Array.from(bannedSet);
     }
 
     try {
       const redisBanned = await this.redisService.smembers(`chat:room:${roomId}:bans`);
+
       if (Array.isArray(redisBanned) && redisBanned.length > 0) {
         bannedUserIds = Array.from(new Set([...bannedUserIds, ...redisBanned]));
       }
-    } catch (_err) {}
+    } catch (_error) {
+      // 의도적 에러 무시
+    }
 
     const bannedUsers = await Promise.all(
       bannedUserIds.map(async (userId) => {
         const user = await this.ensureUserExists(userId);
+
         return {
           userId: user.id,
           loginId: user.loginId,

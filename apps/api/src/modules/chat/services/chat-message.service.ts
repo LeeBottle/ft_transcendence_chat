@@ -12,7 +12,8 @@ import type {
 import { ChatRoomMemberEntity } from '#modules/chat/entities/chat-room-member.entity.js';
 import { ChatRoomMessageEntity } from '#modules/chat/entities/chat-room-message.entity.js';
 import { ChatRoomEntity } from '#modules/chat/entities/chat-room.entity.js';
-import { RedisService } from '#modules/chat/services/redis.service.js';
+
+import { RedisService } from './redis.service.js';
 
 export interface LastReadState {
   lastReadAt: string;
@@ -85,8 +86,10 @@ export class ChatMessageService {
         if (direction === 'AFTER') {
           return msg.id > cursor;
         }
+
         return msg.id < cursor;
       }
+
       return true;
     });
 
@@ -144,7 +147,9 @@ export class ChatMessageService {
     const room = await this.roomRepository.findOne({ where: { id: roomId } });
 
     if (room !== null && room.closedAt !== null) {
-      throw new ForbiddenException('이미 회의/채팅 세션이 종료된 채팅방에는 신규 메시지를 전송할 수 없습니다.');
+      throw new ForbiddenException(
+        '이미 회의/채팅 세션이 종료된 채팅방에는 신규 메시지를 전송할 수 없습니다.',
+      );
     }
 
     const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
