@@ -133,12 +133,12 @@ export class AuthService {
     }
 
     const tokens = await this.tokenService.generateTokenPair({
-      sub: user.id,
+      id: user.id,
       loginId: user.loginId,
       role: user.role,
     });
-    const tokenHash = hashSha256(tokens.refreshToken);
 
+    const refreshTokenHash = hashSha256(tokens.refreshToken);
     const refreshTokenExpiration = parseDurationToMs(
       this.configService.getOrThrow('JWT_REFRESH_EXPIRATION', { infer: true }),
     );
@@ -155,7 +155,7 @@ export class AuthService {
       }),
       this.userSessionService.create({
         userId: user.id,
-        refreshTokenHash: tokenHash,
+        refreshTokenHash,
         ipAddress,
         userAgent,
         expiresAt: refreshTokenExpiresAt,
@@ -189,8 +189,9 @@ export class AuthService {
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
 
     // 2. DB 세션 조회 (해시값 기반 매칭)
-    const incomingTokenHash = hashSha256(refreshToken);
-    const userSession = await this.userSessionService.findByRefreshTokenHash(incomingTokenHash);
+    const incomingRefreshTokenHash = hashSha256(refreshToken);
+    const userSession =
+      await this.userSessionService.findByRefreshTokenHash(incomingRefreshTokenHash);
 
     if (userSession === null) {
       // 세션이 없거나 이미 회전되어 폐기된 토큰인 경우
@@ -201,14 +202,14 @@ export class AuthService {
     const user = await this.userService.findById(payload.sub);
 
     if (user?.status !== UserStatus.ACTIVE) {
-      await this.userSessionService.deleteByRefreshTokenHash(incomingTokenHash);
+      await this.userSessionService.deleteByRefreshTokenHash(incomingRefreshTokenHash);
 
       throw new UnauthorizedException('계정이 비활성화되었거나 존재하지 않습니다.');
     }
 
     // 4. 새로운 토큰 쌍 발급 (Refresh Token Rotation)
     const newTokens = await this.tokenService.generateTokenPair({
-      sub: user.id,
+      id: user.id,
       loginId: user.loginId,
       role: user.role,
     });

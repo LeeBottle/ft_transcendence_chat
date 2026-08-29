@@ -11,6 +11,9 @@ import { ConfigService } from '@nestjs/config';
 
 import type { CookieOptions, Response } from 'express';
 
+import { ClientIp, UserAgent } from '#common/decorators/client-info.decorator.js';
+import { Cookies } from '#common/decorators/cookies.decorator.js';
+import { Public } from '#common/decorators/public.decorator.js';
 import { parseDurationToMs } from '#common/utils/duration.util.js';
 import type { ApiEnv } from '#config/api-env.schema.js';
 import {
@@ -20,10 +23,9 @@ import {
   RegisterUserRequestDto,
   RegisterUserResponseDto,
 } from '#modules/auth/controllers/auth.dto.js';
-import { ClientIp, UserAgent } from '#modules/auth/decorators/client-info.decorator.js';
-import { Cookies } from '#modules/auth/decorators/cookies.decorator.js';
 import { AuthService } from '#modules/auth/services/auth.service.js';
 
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(

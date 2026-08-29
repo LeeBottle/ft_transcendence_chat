@@ -2,7 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import type { TokenInputPayload, TokenPayload } from '@repo/constants/token';
+import {
+  tokenPayloadSchema,
+  type AuthenticatedUser,
+  type TokenInputPayload,
+  type TokenPayload,
+} from '@repo/schemas/auth';
 
 import type { ApiEnv } from '#config/api-env.schema.js';
 
@@ -11,6 +16,8 @@ export interface GeneratedTokenPair {
   readonly refreshToken: string;
 }
 
+type TokenType = 'ACCESS' | 'REFRESH';
+
 @Injectable()
 export class TokenService {
   constructor(
@@ -18,45 +25,33 @@ export class TokenService {
     private readonly configService: ConfigService<ApiEnv, true>,
   ) {}
 
-  async generateTokenPair(payload: TokenInputPayload): Promise<GeneratedTokenPair> {
+  async generateTokenPair(user: AuthenticatedUser): Promise<GeneratedTokenPair> {
+    const payload = {
+      sub: user.id,
+      loginId: user.loginId,
+      role: user.role,
+    } satisfies TokenInputPayload;
+
     const [accessToken, refreshToken] = await Promise.all([
-      this.signAccessToken(payload),
-      this.signRefreshToken(payload),
+      this.signToken(payload, 'ACCESS'),
+      this.signToken(payload, 'REFRESH'),
     ]);
 
     return { accessToken, refreshToken };
   }
 
-  private async signAccessToken(payload: TokenInputPayload): Promise<string> {
+  private async signToken(payload: TokenInputPayload, type: TokenType): Promise<string> {
+    const secretKey = `JWT_${type}_SECRET` as const;
+    const expirationKey = `JWT_${type}_EXPIRATION` as const;
+
     return await this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow('JWT_ACCESS_SECRET', { infer: true }),
-      expiresIn: this.configService.getOrThrow('JWT_ACCESS_EXPIRATION', { infer: true }),
-      algorithm: 'HS256',
+      secret: this.configService.getOrThrow(secretKey, { infer: true }),
+      expiresIn: this.configService.getOrThrow(expirationKey, { infer: true }),
     });
-  }
-
-  private async signRefreshToken(payload: TokenInputPayload): Promise<string> {
-    return await this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET', { infer: true }),
-      expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRATION', { infer: true }),
-      algorithm: 'HS256',
-    });
-  }
-
-  async verifyAccessToken(token: string): Promise<TokenPayload> {
-    const payload = await this.jwtService
-      .verifyAsync<TokenPayload>(token, {
-        secret: this.configService.getOrThrow('JWT_ACCESS_SECRET', { infer: true }),
-      })
-      .catch((_error: unknown) => {
-        throw new UnauthorizedException('유효하지 않거나 만료된 Access Token입니다.');
-      });
-
-    return payload;
   }
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {
-    const payload = await this.jwtService
+    const decoded = await this.jwtService
       .verifyAsync<TokenPayload>(token, {
         secret: this.configService.getOrThrow('JWT_REFRESH_SECRET', { infer: true }),
       })
@@ -64,6 +59,14 @@ export class TokenService {
         throw new UnauthorizedException('유효하지 않거나 만료된 Refresh Token입니다.');
       });
 
-    return payload;
+    const result = tokenPayloadSchema.safeParse(decoded);
+
+    if (!result.success) {
+      throw new UnauthorizedException(
+        '지원하지 않는 스키마이거나 규격이 유효하지 않은 Refresh Token입니다.',
+      );
+    }
+
+    return result.data;
   }
 }
