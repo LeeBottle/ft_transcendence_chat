@@ -21,6 +21,10 @@
     "./chat": {
       "types": "./src/chat/index.ts",
       "default": "./dist/chat/index.js"
+    },
+    "./calendar-task": {
+      "types": "./src/calendar/calendar-task.schema.ts",
+      "default": "./dist/calendar/calendar-task.schema.js"
     }
   },
   "files": [

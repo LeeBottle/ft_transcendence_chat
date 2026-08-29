@@ -14,6 +14,7 @@ import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 @Entity({ name: 'calendar_tasks' })
 @Check('chk_calendar_tasks_due_after_started', '`due_at` >= `started_at`')
+@Index('idx_calendar_tasks_user_deleted_started_due', ['userId', 'deletedAt', 'startedAt', 'dueAt'])
 export class CalendarTaskEntity extends SoftDeleteAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
