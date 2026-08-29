@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
+import { RolesGuard } from './common/guards/role.guard.js';
 import { ZodValidationPipe } from './common/pipes/zod-validation.pipe.js';
 import { parseApiEnv } from './config/api-env.schema.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -25,7 +26,10 @@ import { UserModule } from './modules/user/user.module.js';
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
+
+    /* 전역 가드 순서 변경 금지 */
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}
