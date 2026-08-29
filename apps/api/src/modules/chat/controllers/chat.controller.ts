@@ -11,13 +11,14 @@ import {
   Patch,
   Post,
   Query,
-  Req,
-  UnauthorizedException,
 } from '@nestjs/common';
 
-import type { Request } from 'express';
-
-import type { AuthenticatedUser } from '@repo/schemas/auth';
+import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
+import { ChatGateway } from '#modules/chat/gateways/chat.gateway.js';
+import type { AiTaskExtractionResult } from '#modules/chat/services/chat-ai.service.js';
+import { ChatCacheBatchService } from '#modules/chat/services/chat-cache-batch.service.js';
+import { ChatMessageService } from '#modules/chat/services/chat-message.service.js';
+import { ChatService } from '#modules/chat/services/chat.service.js';
 
 import {
   ChatMessageResponseDto,
@@ -27,23 +28,7 @@ import {
   GetMessagesQueryDto,
   InviteMemberRequestDto,
   SendMessageRequestDto,
-} from '#modules/chat/controllers/chat.dto.js';
-import { ChatGateway } from '#modules/chat/gateways/chat.gateway.js';
-import type { AiTaskExtractionResult } from '#modules/chat/services/chat-ai.service.js';
-import { ChatCacheBatchService } from '#modules/chat/services/chat-cache-batch.service.js';
-import { ChatMessageService } from '#modules/chat/services/chat-message.service.js';
-import { ChatService } from '#modules/chat/services/chat.service.js';
-
-// 전역 JwtAuthGuard 가 토큰 검증 후 req.user = { id, loginId, role } 를 채워준다.
-function extractUserId(req: Request): string {
-  const user = (req as Request & { user?: AuthenticatedUser }).user;
-
-  if (typeof user?.id === 'string' && user.id.length > 0) {
-    return user.id;
-  }
-
-  throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
-}
+} from './chat.dto.js';
 
 @Controller('chat/rooms')
 export class ChatController {
@@ -56,11 +41,9 @@ export class ChatController {
 
   @Post()
   async createRoom(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Body() dto: CreateChatRoomRequestDto,
   ): Promise<ChatRoomResponseDto> {
-    const userId = extractUserId(req);
-
     const newRoom = await this.chatService.createRoom(userId, dto);
 
     this.chatGateway.server.emit('room_created', newRoom);
@@ -74,30 +57,24 @@ export class ChatController {
   }
 
   @Get()
-  async getMyRooms(@Req() req: Request): Promise<ChatRoomResponseDto[]> {
-    const userId = extractUserId(req);
-
+  async getMyRooms(@CurrentUserId() userId: string): Promise<ChatRoomResponseDto[]> {
     return await this.chatService.getRoomsForUser(userId);
   }
 
   @Get(':roomId')
   async getRoomDetail(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
   ): Promise<ChatRoomResponseDto> {
-    const userId = extractUserId(req);
-
     return await this.chatService.getRoomDetail(roomId, userId);
   }
 
   @Post(':roomId/members')
   async inviteMember(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Body() dto: InviteMemberRequestDto,
   ): Promise<ChatRoomMemberResponseDto> {
-    const userId = extractUserId(req);
-
     const member = await this.chatService.inviteMember(roomId, userId, dto);
 
     this.chatGateway.server.emit('room_updated', {
@@ -111,12 +88,10 @@ export class ChatController {
 
   @Delete(':roomId/members/:targetUserId')
   async removeMember(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Param('targetUserId') targetUserId: string,
   ): Promise<{ message: string }> {
-    const userId = extractUserId(req);
-
     const result = await this.chatService.removeMember(roomId, userId, targetUserId);
 
     this.chatGateway.server.emit('room_updated', {
@@ -136,22 +111,18 @@ export class ChatController {
 
   @Get(':roomId/bans')
   async getBannedMembers(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
   ): Promise<Array<{ userId: string; loginId: string; name: string; bannedAt: string }>> {
-    const userId = extractUserId(req);
-
     return await this.chatService.getBannedMembers(roomId, userId);
   }
 
   @Post(':roomId/bans/:targetUserId')
   async banMember(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Param('targetUserId') targetUserId: string,
   ): Promise<{ message: string; targetUserId: string }> {
-    const userId = extractUserId(req);
-
     const result = await this.chatService.banMember(roomId, userId, targetUserId);
 
     this.chatGateway.server.emit('room_updated', {
@@ -171,12 +142,10 @@ export class ChatController {
 
   @Delete(':roomId/bans/:targetUserId')
   async unbanMember(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Param('targetUserId') targetUserId: string,
   ): Promise<{ message: string; targetUserId: string }> {
-    const userId = extractUserId(req);
-
     const result = await this.chatService.unbanMember(roomId, userId, targetUserId);
 
     this.chatGateway.server.emit('room_updated', {
@@ -199,12 +168,10 @@ export class ChatController {
 
   @Patch(':roomId/password')
   async updateRoomPassword(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Body() dto: { password?: string | null },
   ): Promise<{ success: boolean; hasPassword: boolean; message: string }> {
-    const userId = extractUserId(req);
-
     const result = await this.chatService.updateRoomPassword(roomId, userId, dto.password);
 
     this.chatGateway.server.emit('room_updated', {
@@ -218,12 +185,10 @@ export class ChatController {
 
   @Patch(':roomId/topic')
   async updateTopic(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Body() dto: { topic: string },
   ): Promise<{ message: string; topic: string }> {
-    const userId = extractUserId(req);
-
     const result = await this.chatService.updateTopic(roomId, userId, dto.topic);
 
     this.chatGateway.server.emit('room_updated', {
@@ -237,13 +202,11 @@ export class ChatController {
 
   @Patch(':roomId/members/:targetUserId/role')
   async updateMemberRole(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Param('targetUserId') targetUserId: string,
     @Body() dto: { role: 'FOUNDER' | 'OPERATOR' | 'USER' },
   ): Promise<ChatRoomMemberResponseDto> {
-    const userId = extractUserId(req);
-
     let result: ChatRoomMemberResponseDto;
 
     try {
@@ -282,11 +245,9 @@ export class ChatController {
 
   @Delete(':roomId')
   async closeRoom(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
   ): Promise<{ message: string }> {
-    const userId = extractUserId(req);
-
     const result = await this.chatService.closeRoom(roomId, userId);
 
     const timestamp = new Date().toISOString();
@@ -313,24 +274,20 @@ export class ChatController {
 
   @Get(':roomId/messages')
   async getMessages(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Query() query: GetMessagesQueryDto,
   ): Promise<ChatMessageResponseDto[]> {
-    const userId = extractUserId(req);
-
     return await this.chatMessageService.getMessages(roomId, userId, query);
   }
 
   @Post(':roomId/messages')
   @HttpCode(200)
   async sendMessage(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
     @Body() dto: SendMessageRequestDto,
   ): Promise<ChatMessageResponseDto> {
-    const userId = extractUserId(req);
-
     let saved: ChatMessageResponseDto;
 
     try {
@@ -364,11 +321,9 @@ export class ChatController {
   @Post(':roomId/end-session')
   @HttpCode(200)
   async endSession(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
   ): Promise<{ message: string; flushedCount: number; aiResult: AiTaskExtractionResult }> {
-    const userId = extractUserId(req);
-
     const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
 
     let messages: ChatMessageResponseDto[] = [];
