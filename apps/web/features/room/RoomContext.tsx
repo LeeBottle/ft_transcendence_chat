@@ -26,7 +26,7 @@ import type { Room } from './types';
 interface RoomContextValue {
   rooms: Room[];
   activeRoomId: string | null;
-  setActiveRoomId: (id: string) => void;
+  setActiveRoomId: (id: string | null) => void;
   /** 방 생성/삭제/변경 후 서버 기준으로 목록을 다시 불러온다. */
   refreshRooms: () => Promise<void>;
 }

@@ -10,6 +10,7 @@ interface ChatHeaderProps {
   onToggleTaskPanel: () => void;
   meetingEnded: boolean;
   onEndMeeting: () => void;
+  onOpenManage: () => void;
 }
 
 function ChatHeader({
@@ -21,6 +22,7 @@ function ChatHeader({
   onToggleTaskPanel,
   meetingEnded,
   onEndMeeting,
+  onOpenManage,
 }: ChatHeaderProps) {
   return (
     <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-gray-100 px-4.5">
@@ -58,6 +60,13 @@ function ChatHeader({
           } `}
         >
           ■ {meetingEnded ? '종료됨' : '회의 종료'}
+        </button>
+        <button
+          onClick={onOpenManage}
+          aria-label="방 관리"
+          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50"
+        >
+          ⋯
         </button>
       </div>
     </div>

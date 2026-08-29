@@ -37,6 +37,9 @@ export function toRoom(res: ChatRoomResponse): Room {
       name: m.name ?? m.loginId ?? '알 수 없음',
       role: m.role,
     })),
+    topic: res.topic,
+    hasPassword: res.hasPassword,
+    creatorUserId: res.creatorUserId,
   };
 }
 
@@ -91,11 +94,117 @@ export async function createRoom(title: string): Promise<Room> {
 
 /** 채팅방 나가기 (본인 탈퇴). 백엔드가 status 를 LEFT 로 바꾸고 room_updated 를 브로드캐스트한다. */
 export async function leaveRoom(roomId: string, myUserId: string): Promise<void> {
-  const res = await apiFetch(`/api/chat/rooms/${roomId}/members/${myUserId}`, {
-    method: 'DELETE',
-  });
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/members/${myUserId}`,
+    { method: 'DELETE' },
+    '채팅방을 나가지 못했어요',
+  );
+}
+
+/** 방장 전용: 방 삭제(closeRoom). room_deleted / room_updated 브로드캐스트됨. */
+export async function deleteRoom(roomId: string): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}`,
+    { method: 'DELETE' },
+    '채팅방을 삭제하지 못했어요',
+  );
+}
+
+/** 방장/운영자: 주제 변경 */
+export async function updateRoomTopic(roomId: string, topic: string): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/topic`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic }),
+    },
+    '주제를 변경하지 못했어요',
+  );
+}
+
+/** 방장: 비밀번호 설정(문자열) / 해제(null → 공개방) */
+export async function updateRoomPassword(roomId: string, password: string | null): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/password`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    },
+    '비밀번호를 변경하지 못했어요',
+  );
+}
+
+/** 방장/운영자: 멤버 강퇴 (status KICKED) */
+export async function kickMember(roomId: string, targetUserId: string): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/members/${targetUserId}`,
+    { method: 'DELETE' },
+    '강퇴하지 못했어요',
+  );
+}
+
+/** 방장/운영자: 멤버 차단(Ban) */
+export async function banMember(roomId: string, targetUserId: string): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/bans/${targetUserId}`,
+    { method: 'POST' },
+    '차단하지 못했어요',
+  );
+}
+
+/** 방장/운영자: 차단 해제 */
+export async function unbanMember(roomId: string, targetUserId: string): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/bans/${targetUserId}`,
+    { method: 'DELETE' },
+    '차단을 해제하지 못했어요',
+  );
+}
+
+/** 방장: 멤버 권한 변경 */
+export async function updateMemberRole(
+  roomId: string,
+  targetUserId: string,
+  role: 'FOUNDER' | 'OPERATOR' | 'USER',
+): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/members/${targetUserId}/role`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    },
+    '권한을 변경하지 못했어요',
+  );
+}
+
+export interface BannedMember {
+  userId: string;
+  loginId: string;
+  name: string;
+  bannedAt: string;
+}
+
+/** 방장/운영자: 차단 목록 조회 */
+export async function fetchBans(roomId: string): Promise<BannedMember[]> {
+  const res = await apiFetch(`/api/chat/rooms/${roomId}/bans`);
 
   if (!res.ok) {
-    throw new Error(await readErrorMessage(res, `채팅방을 나가지 못했어요 (${res.status})`));
+    throw new Error(await readErrorMessage(res, `차단 목록을 불러오지 못했어요 (${res.status})`));
+  }
+
+  const data = (await res.json().catch(() => [])) as unknown;
+
+  return Array.isArray(data) ? (data as BannedMember[]) : [];
+}
+
+// 응답 본문을 쓰지 않는 방 관리 액션 공통 처리
+async function sendRoomAction(path: string, init: RequestInit, fallback: string): Promise<void> {
+  const res = await apiFetch(path, init);
+
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, `${fallback} (${res.status})`));
   }
 }

@@ -18,6 +18,7 @@ import {
 } from '@/features/chat/messages';
 import { getChatSocket } from '@/features/chat/socket';
 import type { Task } from '@/features/chat/types';
+import RoomManageModal from '@/features/room/components/RoomManageModal';
 import { useRoomContext } from '@/features/room/RoomContext';
 
 import type { ChatMessageResponse } from '@repo/schemas/chat';
@@ -26,8 +27,10 @@ type HistoryStatus = 'idle' | 'loading' | 'error';
 
 export default function ChatPage() {
   const { userId } = useAuth();
-  const { rooms, activeRoomId } = useRoomContext();
+  const { rooms, activeRoomId, setActiveRoomId, refreshRooms } = useRoomContext();
   const activeRoom = rooms.find((room) => room.id === activeRoomId);
+
+  const [manageOpen, setManageOpen] = useState(false);
 
   const [raw, setRaw] = useState<ChatMessageResponse[]>([]);
   const [historyStatus, setHistoryStatus] = useState<HistoryStatus>('idle');
@@ -167,13 +170,16 @@ export default function ChatPage() {
 
   const canSync = tasks.some((task) => task.isAi && task.checked === true);
 
-  // 헤더 부제목: 나를 뺀 멤버 이름들 · 전체 인원수 (예: "김지수, 박민준 · 3명")
+  // 헤더 부제목: 주제가 있으면 주제, 없으면 "나 뺀 멤버 이름 · 전체 인원수"
   const members = activeRoom?.members ?? [];
   const otherNames = members.filter((m) => m.userId !== userId).map((m) => m.name);
   const memberSubtitle =
     members.length === 0
       ? ''
       : `${otherNames.length > 0 ? otherNames.join(', ') : '나만 있는 방'} · ${members.length}명`;
+  const topic = activeRoom?.topic;
+  const headerSubtitle =
+    topic !== null && topic !== undefined && topic !== '' ? topic : memberSubtitle;
 
   if (!activeRoom) {
     return (
@@ -226,7 +232,7 @@ export default function ChatPage() {
           avatarLabel={activeRoom.avatarLabel}
           avatarColorClass="bg-indigo-100 text-indigo-600"
           roomName={activeRoom.name}
-          subtitle={memberSubtitle}
+          subtitle={headerSubtitle}
           taskPanelOpen={taskPanelOpen}
           onToggleTaskPanel={() => {
             setTaskPanelOpen((prev) => !prev);
@@ -234,6 +240,9 @@ export default function ChatPage() {
           meetingEnded={meetingEnded}
           onEndMeeting={() => {
             setMeetingEnded(true);
+          }}
+          onOpenManage={() => {
+            setManageOpen(true);
           }}
         />
 
@@ -269,6 +278,21 @@ export default function ChatPage() {
           // Phase 1-I: 백엔드 AI 스텁
         }}
       />
+
+      {manageOpen && (
+        <RoomManageModal
+          room={activeRoom}
+          myUserId={userId}
+          onClose={() => {
+            setManageOpen(false);
+          }}
+          onChanged={refreshRooms}
+          onLeftRoom={() => {
+            setManageOpen(false);
+            setActiveRoomId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
