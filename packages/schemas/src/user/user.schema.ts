@@ -22,11 +22,13 @@ export const updateProfileRequestSchema = z.object({
   name: createNameSchema(USER_REQUEST_VALIDATION_OPTIONS.name),
   email: createEmailSchema(USER_REQUEST_VALIDATION_OPTIONS.email).optional(),
 });
+export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
 
 export const updateProfileResponseSchema = z.object({
   name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
   email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
 });
+export type UpdateProfileResponse = z.infer<typeof updateProfileResponseSchema>;
 
 /* 요청 & 응답 공용 */
 
