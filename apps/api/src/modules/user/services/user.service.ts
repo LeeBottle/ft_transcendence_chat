@@ -10,18 +10,15 @@ import type { Repository } from 'typeorm';
 
 import { UserStatus } from '@repo/constants/user';
 
-import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
-// import { buildUserEntitySelectMap } from '#common/utils/typeorm.util.js';
-
-import { UserEntity } from '#modules/user/entities/user.entity.js';
-
 import type {
   AddFriendRequest,
   FriendItemResponse,
   PublicUserProfileResponse,
   SelfUserProfileResponse,
   UpdateUserProfileRequest,
-} from '../controllers/user.dto.js';
+} from '#modules/user/controllers/user.dto.js';
+import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
+import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 interface AssertUniquenessParams {
   readonly loginId: string;
@@ -71,6 +68,7 @@ export class UserService {
   async create(params: CreateUserParams): Promise<UserEntity> {
     const { loginId, passwordHash, name, email } = params;
     const user = this.userRepository.create({ loginId, passwordHash, name, email });
+
     return await this.userRepository.save(user);
   }
 
@@ -86,20 +84,14 @@ export class UserService {
     return await this.userRepository.findOne({ where: { loginId }, withDeleted: true });
   }
 
-  // async findByLoginIdAndSelect(loginId: string, select?: (keyof UserEntity)[]): Promise<UserEntity | null> {
-  //   return await this.userRepository.findOne({
-  //     where: { loginId },
-  //     select: buildUserEntitySelectMap<UserEntity>(select),
-  //   });
-  // }
-
   // 보안 매퍼 적용
   // 신규 추가 / 프로필 조회, 수정, 친구 관리 로직
 
   // 타인 프로필 조회 (민감 정보 제외)
   async getPublicProfile(userId: string): Promise<PublicUserProfileResponse> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
+
+    if (user === null) {
       throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
     }
 
@@ -115,7 +107,8 @@ export class UserService {
   // 본인 프로필 조회
   async getSelfProfile(userId: string): Promise<SelfUserProfileResponse> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
+
+    if (user === null) {
       throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
     }
 
@@ -128,12 +121,17 @@ export class UserService {
     dto: UpdateUserProfileRequest,
   ): Promise<SelfUserProfileResponse> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
+
+    if (user === null) {
       throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
     }
 
-    if (dto.name !== undefined) user.name = dto.name;
-    if (dto.profileImagePath !== undefined) user.profileImagePath = dto.profileImagePath;
+    if (dto.name !== undefined) {
+      user.name = dto.name;
+    }
+    if (dto.profileImagePath !== undefined) {
+      user.profileImagePath = dto.profileImagePath;
+    }
 
     const updatedUser = await this.userRepository.save(user);
 
@@ -170,14 +168,16 @@ export class UserService {
     }
 
     const targetUser = await this.userRepository.findOne({ where: { id: dto.friendUserId } });
-    if (!targetUser) {
+
+    if (targetUser === null) {
       throw new NotFoundException('추가하려는 사용자가 존재하지 않습니다.');
     }
 
     const existing = await this.friendRepository.findOne({
       where: { userId, friendUserId: dto.friendUserId },
     });
-    if (existing) {
+
+    if (existing !== null) {
       throw new ConflictException('이미 친구로 등록된 사용자입니다.');
     }
 

@@ -81,7 +81,9 @@ function TaskItem({ task, onToggleChecked, onToggleDone, onDateChange }: TaskIte
       <div className="flex items-center justify-end gap-1.5 px-2.5 pb-2">
         <span className="text-[11px] text-gray-500">완료</span>
         <button
-          onClick={() => onToggleDone(id)}
+          onClick={() => {
+            onToggleDone(id);
+          }}
           className={`flex h-4.5 w-4.5 cursor-pointer items-center justify-center rounded border text-[10px] text-white ${done ? 'border-purple-500 bg-purple-500' : 'border-gray-300'} `}
         >
           {done ? '✓' : ''}

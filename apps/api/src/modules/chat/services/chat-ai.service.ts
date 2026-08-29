@@ -19,7 +19,7 @@ export class ChatAiService {
     messages: ChatMessageResponseDto[],
   ): Promise<AiTaskExtractionResult> {
     const conversationText = messages
-      .map((m) => `[${m.senderName ?? m.senderUserId}]: ${m.content ?? ''}`)
+      .map((m) => `[${m.senderName ?? m.senderUserId}]: ${m.content}`)
       .join('\n');
 
     this.logger.log(

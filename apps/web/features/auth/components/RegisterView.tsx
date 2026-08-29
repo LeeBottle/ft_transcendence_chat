@@ -51,9 +51,11 @@ export default function RegisterView() {
 
   // zod 이슈를 필드별 첫 메시지로 정리
   const zodError: Partial<Record<string, string>> = {};
+
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const key = issue.path[0];
+
       if (typeof key === 'string' && zodError[key] === undefined) {
         zodError[key] = issue.message;
       }
@@ -88,11 +90,14 @@ export default function RegisterView() {
 
       if (response.ok) {
         const data = (await response.json()) as RegisterSuccess;
+
         setDone(data);
+
         return;
       }
 
       const body = (await response.json().catch(() => ({}))) as RegisterErrorBody;
+
       if (body.errors && body.errors.length > 0) {
         setFieldErrors(body.errors);
       }

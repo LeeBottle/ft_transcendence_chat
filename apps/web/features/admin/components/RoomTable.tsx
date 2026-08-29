@@ -24,6 +24,7 @@ function RoomTable({ rooms, onSaveRoom, onDeleteRoom }: RoomTableProps) {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
+
     return rooms.filter((r) => !q || (r.name + r.id).toString().toLowerCase().includes(q));
   }, [rooms, search]);
 
@@ -36,7 +37,9 @@ function RoomTable({ rooms, onSaveRoom, onDeleteRoom }: RoomTableProps) {
 
       <input
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+        }}
         placeholder="채팅방 이름, ID 검색…"
         className="h-9 w-60 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
       />
@@ -68,13 +71,17 @@ function RoomTable({ rooms, onSaveRoom, onDeleteRoom }: RoomTableProps) {
                 <td className="px-5 py-3 text-xs text-gray-500">{room.createdAt}</td>
                 <td className="px-5 py-3 text-center whitespace-nowrap">
                   <button
-                    onClick={() => setEditTarget(room)}
+                    onClick={() => {
+                      setEditTarget(room);
+                    }}
                     className="h-7 cursor-pointer rounded-md bg-purple-100 px-2.5 text-xs text-purple-600"
                   >
                     수정
                   </button>
                   <button
-                    onClick={() => setDeleteTarget(room)}
+                    onClick={() => {
+                      setDeleteTarget(room);
+                    }}
                     className="ml-1 h-7 cursor-pointer rounded-md bg-red-100 px-2.5 text-xs text-red-600"
                   >
                     삭제
@@ -97,10 +104,14 @@ function RoomTable({ rooms, onSaveRoom, onDeleteRoom }: RoomTableProps) {
         confirmLabel="삭제"
         danger
         onConfirm={() => {
-          if (deleteTarget) onDeleteRoom(deleteTarget.id);
+          if (deleteTarget) {
+            onDeleteRoom(deleteTarget.id);
+          }
           setDeleteTarget(null);
         }}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          setDeleteTarget(null);
+        }}
       />
 
       <RoomModal
@@ -116,10 +127,14 @@ function RoomTable({ rooms, onSaveRoom, onDeleteRoom }: RoomTableProps) {
             : undefined
         }
         onSubmit={(values) => {
-          if (editTarget) onSaveRoom(editTarget.id, { name: values.name, owner: values.owner });
+          if (editTarget) {
+            onSaveRoom(editTarget.id, { name: values.name, owner: values.owner });
+          }
           setEditTarget(null);
         }}
-        onCancel={() => setEditTarget(null)}
+        onCancel={() => {
+          setEditTarget(null);
+        }}
       />
     </div>
   );

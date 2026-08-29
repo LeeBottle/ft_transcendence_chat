@@ -50,7 +50,7 @@ interface ReadMessagePayload {
 }
 
 function getSocketUserId(client: AuthenticatedSocket): string {
-  const socketData = client.data as { user?: WsUser };
+  const socketData = client.data;
 
   if (typeof socketData.user?.id === 'string' && socketData.user.id.length > 0) {
     return socketData.user.id;
@@ -104,11 +104,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() payload?: JoinRoomPayload,
   ): Promise<void> {
-    if (payload === undefined || payload.roomId === undefined || payload.roomId === null) {
+    if (payload === undefined) {
       throw new WsException('유효하지 않은 요청 데이터입니다.');
     }
 
-    const roomId = String(payload.roomId);
+    const roomId = payload.roomId;
     const userId = getSocketUserId(client);
 
     try {
@@ -119,7 +119,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       try {
         await this.redisService.sadd(`chat:room:${roomId}:users`, userId);
       } catch (redisError) {
-        this.logger.warn(`Redis sadd 처리 실패 (소켓 방 입장은 정상 유지): ${redisError}`);
+        const err = redisError instanceof Error ? redisError.message : String(redisError);
+
+        this.logger.warn(`Redis sadd 처리 실패 (소켓 방 입장은 정상 유지): ${err}`);
       }
 
       this.logger.log(`유저 ${userId} 방 입장 완료: ${roomId}`);
@@ -131,8 +133,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     } catch (error) {
       this.logger.error(`handleJoinRoom 에러 (roomId: ${roomId})`, error);
+
       const errorMessage =
         error instanceof Error ? error.message : '채팅방 입장 처리에 실패했습니다.';
+
       throw new WsException(errorMessage);
     }
   }
@@ -170,12 +174,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() payload?: SendMessagePayload,
   ): Promise<void> {
-    if (payload === undefined || payload.roomId === undefined || payload.roomId === null) {
+    if (payload === undefined) {
       throw new WsException('유효하지 않은 요청 데이터입니다.');
     }
 
     const userId = getSocketUserId(client);
-    const roomId = String(payload.roomId);
+    const roomId = payload.roomId;
 
     try {
       const validated = validateWsPayload(sendMessageRequestSchema, payload);
@@ -200,8 +204,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           sentAt: savedMessage.sentAt,
         });
       } catch (cacheError) {
+        const err = cacheError instanceof Error ? cacheError.message : String(cacheError);
+
         this.logger.warn(
-          `Redis 캐시 저장은 실패하였으나 소켓 메시지 브로드캐스트는 계속 진행합니다: ${cacheError}`,
+          `Redis 캐시 저장은 실패하였으나 소켓 메시지 브로드캐스트는 계속 진행합니다: ${err}`,
         );
       }
 
@@ -219,6 +225,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const message = error instanceof Error ? error.message : '메시지 전송 처리에 실패했습니다.';
+
       throw new WsException(message);
     }
   }

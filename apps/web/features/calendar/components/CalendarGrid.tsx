@@ -37,12 +37,20 @@ function getTaskBars(
       const isRealEnd = t.end === dateStr;
 
       let roundedClass: string;
-      if (isRealStart && isRealEnd) roundedClass = 'rounded-lg ml-1 mr-1';
-      else if (isRealStart) roundedClass = 'rounded-l-lg ml-1';
-      else if (isRealEnd) roundedClass = 'rounded-r-lg mr-1';
-      else if (isFirstOfRow) roundedClass = 'rounded-l-lg ml-1';
-      else if (isLastOfRow) roundedClass = 'rounded-r-lg mr-1';
-      else roundedClass = '';
+
+      if (isRealStart && isRealEnd) {
+        roundedClass = 'rounded-lg ml-1 mr-1';
+      } else if (isRealStart) {
+        roundedClass = 'rounded-l-lg ml-1';
+      } else if (isRealEnd) {
+        roundedClass = 'rounded-r-lg mr-1';
+      } else if (isFirstOfRow) {
+        roundedClass = 'rounded-l-lg ml-1';
+      } else if (isLastOfRow) {
+        roundedClass = 'rounded-r-lg mr-1';
+      } else {
+        roundedClass = '';
+      }
 
       return { task: t, isRealStart, roundedClass, showLabel: isRealStart || isFirstOfRow };
     });
@@ -71,13 +79,17 @@ function CalendarGrid({
       <div className="mb-3.5 flex items-center gap-2">
         <span className="flex-1 text-lg font-semibold text-gray-900">{monthLabel}</span>
         <button
-          onClick={() => onChangeMonth(-1)}
+          onClick={() => {
+            onChangeMonth(-1);
+          }}
           className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50"
         >
           ‹
         </button>
         <button
-          onClick={() => onChangeMonth(1)}
+          onClick={() => {
+            onChangeMonth(1);
+          }}
           className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50"
         >
           ›
@@ -95,13 +107,14 @@ function CalendarGrid({
         ))}
 
         {cells.map((day, idx) => {
-          if (day === null)
+          if (day === null) {
             return (
               <div
                 key={`empty-${idx}`}
                 className="border border-gray-100 bg-white"
               />
             );
+          }
 
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const dayOfWeek = (firstDayOfWeek + day - 1) % 7;
@@ -114,7 +127,9 @@ function CalendarGrid({
           return (
             <div
               key={day}
-              onClick={() => onSelectDay(day)}
+              onClick={() => {
+                onSelectDay(day);
+              }}
               className={`min-h-20 cursor-pointer border border-gray-100 bg-white py-1 hover:bg-gray-50 ${isSelected ? 'bg-purple-50' : ''} `}
             >
               <div

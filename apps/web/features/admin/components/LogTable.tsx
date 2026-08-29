@@ -18,11 +18,13 @@ function LogTable({ logs, rooms }: LogTableProps) {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
+
     return logs.filter((log) => {
       const searchMatch =
         !q || (log.chat_room_id.toString() + log.content).toLowerCase().includes(q);
       const roomMatch = !roomId || log.chat_room_id.toString() === roomId;
       const dateMatch = !date || log.created_at.startsWith(date);
+
       return searchMatch && roomMatch && dateMatch;
     });
   }, [logs, search, roomId, date]);
@@ -37,13 +39,17 @@ function LogTable({ logs, rooms }: LogTableProps) {
       <div className="flex items-center gap-2">
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
           placeholder="채팅방 ID, 내용 검색…"
           className="h-9 w-60 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
         />
         <select
           value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
+          onChange={(e) => {
+            setRoomId(e.target.value);
+          }}
           className="h-9 w-44 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
         >
           <option value="">전체 채팅방</option>
@@ -59,7 +65,9 @@ function LogTable({ logs, rooms }: LogTableProps) {
         <input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={(e) => {
+            setDate(e.target.value);
+          }}
           className="h-9 w-40 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
         />
       </div>

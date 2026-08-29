@@ -34,6 +34,7 @@ export default function LoginView() {
 
       if (!check.success) {
         setErrorMessage(check.error.issues[0]?.message ?? '입력값을 확인해 주세요.');
+
         return;
       }
 
@@ -76,7 +77,9 @@ export default function LoginView() {
               autoComplete="username"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e) => {
+                setUserId(e.target.value);
+              }}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -93,7 +96,9 @@ export default function LoginView() {
               autoComplete="current-password"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               value={userPassword}
-              onChange={(e) => setUserPassword(e.target.value)}
+              onChange={(e) => {
+                setUserPassword(e.target.value);
+              }}
             />
           </div>
           {errorMessage !== null && <p className="text-xs text-red-500">{errorMessage}</p>}

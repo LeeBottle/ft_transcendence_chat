@@ -48,6 +48,7 @@ export default function PasswordFields({
           const active = password.length > 0;
           const pass = active && rule.pass(password, loginId);
           const fail = active && !rule.pass(password, loginId);
+
           return (
             <div
               key={rule.id}

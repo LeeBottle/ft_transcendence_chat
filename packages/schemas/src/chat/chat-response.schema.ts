@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { ChatRoomMemberRole, ChatRoomMemberStatus } from '@repo/constants/chat-room-member';
+
+import { ChatRoomMemberStatus } from '@repo/constants/chat-room-member';
 import { ChatRoomMessageType } from '@repo/constants/chat-room-message';
 
 export const chatRoomMemberResponseSchema = z.object({
@@ -8,7 +9,11 @@ export const chatRoomMemberResponseSchema = z.object({
   loginId: z.string().optional(),
   name: z.string().optional(),
   role: z.enum(['FOUNDER', 'OPERATOR', 'USER', 'OWNER', 'MANAGER', 'MEMBER', 'HOST']),
-  status: z.enum([ChatRoomMemberStatus.ACTIVE, ChatRoomMemberStatus.LEFT, ChatRoomMemberStatus.KICKED]),
+  status: z.enum([
+    ChatRoomMemberStatus.ACTIVE,
+    ChatRoomMemberStatus.LEFT,
+    ChatRoomMemberStatus.KICKED,
+  ]),
   joinedAt: z.string(),
 });
 

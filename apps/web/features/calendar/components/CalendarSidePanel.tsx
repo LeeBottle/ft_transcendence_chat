@@ -45,7 +45,9 @@ function CalendarSidePanel({
         ) : (
           <button
             key={task.id}
-            onClick={() => onStartEdit(task.id)}
+            onClick={() => {
+              onStartEdit(task.id);
+            }}
             className="cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-gray-50 text-left hover:border-gray-300"
           >
             <div className="flex items-center gap-2 border-b border-gray-200 px-2.5 py-2">
@@ -102,7 +104,9 @@ function CalendarEditForm({ task, onCancel, onSave, onDelete }: CalendarEditForm
         <label className="text-[11px] text-gray-500">제목</label>
         <input
           value={draft.title}
-          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+          onChange={(e) => {
+            setDraft({ ...draft, title: e.target.value });
+          }}
           className="h-7.5 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-purple-400"
         />
       </div>
@@ -113,7 +117,9 @@ function CalendarEditForm({ task, onCancel, onSave, onDelete }: CalendarEditForm
           <input
             type="date"
             value={draft.start}
-            onChange={(e) => setDraft({ ...draft, start: e.target.value })}
+            onChange={(e) => {
+              setDraft({ ...draft, start: e.target.value });
+            }}
             className="h-7.5 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-purple-400"
           />
         </div>
@@ -122,7 +128,9 @@ function CalendarEditForm({ task, onCancel, onSave, onDelete }: CalendarEditForm
           <input
             type="date"
             value={draft.end}
-            onChange={(e) => setDraft({ ...draft, end: e.target.value })}
+            onChange={(e) => {
+              setDraft({ ...draft, end: e.target.value });
+            }}
             className="h-7.5 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-purple-400"
           />
         </div>
@@ -132,20 +140,26 @@ function CalendarEditForm({ task, onCancel, onSave, onDelete }: CalendarEditForm
         <label className="text-[11px] text-gray-500">채팅방</label>
         <input
           value={draft.room}
-          onChange={(e) => setDraft({ ...draft, room: e.target.value })}
+          onChange={(e) => {
+            setDraft({ ...draft, room: e.target.value });
+          }}
           className="h-7.5 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none focus:border-purple-400"
         />
       </div>
 
       <div className="mt-0.5 flex gap-1.5">
         <button
-          onClick={() => onSave(draft)}
+          onClick={() => {
+            onSave(draft);
+          }}
           className="h-7 cursor-pointer rounded-md bg-purple-500 px-2.5 text-xs text-white hover:bg-purple-600"
         >
           저장
         </button>
         <button
-          onClick={() => onDelete(task.id)}
+          onClick={() => {
+            onDelete(task.id);
+          }}
           className="h-7 cursor-pointer rounded-md border border-red-200 bg-red-50 px-2.5 text-xs text-red-600"
         >
           삭제
