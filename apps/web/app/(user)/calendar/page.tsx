@@ -1,52 +1,77 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  createTask,
+  deleteTask,
+  fetchTasks,
+  setTaskCompletion,
+  updateTask,
+} from '@/features/calendar/calendarApi';
 import CalendarGrid from '@/features/calendar/components/CalendarGrid';
 import CalendarSidePanel from '@/features/calendar/components/CalendarSidePanel';
-import CalendarTaskCreateModal from '@/features/calendar/components/CalendarTaskCreateModal';
+import CalendarTaskCreateModal, {
+  type NewCalendarTaskInput,
+} from '@/features/calendar/components/CalendarTaskCreateModal';
 import type { CalendarTask } from '@/features/calendar/types';
 
-const INITIAL_TASKS: CalendarTask[] = [
-  {
-    id: 'ct1',
-    title: '스프린트 리뷰 슬라이드',
-    start: '2025-06-16',
-    end: '2025-06-16',
-    room: '디자인 팀',
-    color: '#6C63FF',
-  },
-  {
-    id: 'ct2',
-    title: '피그마 최종본 공유',
-    start: '2025-06-15',
-    end: '2025-06-16',
-    room: '디자인 팀',
-    color: '#0F6E56',
-  },
-  {
-    id: 'ct3',
-    title: 'API 문서 업데이트',
-    start: '2025-06-17',
-    end: '2025-06-19',
-    room: '개발팀',
-    color: '#BA7517',
-  },
-];
+type LoadStatus = 'loading' | 'idle' | 'error';
 
 function toDateString(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+// 그 달의 앞뒤 여백까지 포함한 조회 범위 (그리드가 6주치를 그리므로)
+function monthQueryRange(year: number, month: number): { from: string; to: string } {
+  const from = new Date(year, month, 1);
+
+  from.setDate(from.getDate() - 7);
+
+  const to = new Date(year, month + 1, 0);
+
+  to.setDate(to.getDate() + 7);
+
+  return {
+    from: toDateString(from.getFullYear(), from.getMonth(), from.getDate()),
+    to: toDateString(to.getFullYear(), to.getMonth(), to.getDate()),
+  };
+}
+
 export default function CalendarPage() {
-  const [year, setYear] = useState(2025);
-  const [month, setMonth] = useState(5); // 0-indexed, 5 = 6월
-  const [selectedDay, setSelectedDay] = useState(16);
-  const [tasks, setTasks] = useState<CalendarTask[]>(INITIAL_TASKS);
+  const today = useMemo(() => new Date(), []);
+
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+  const [selectedDay, setSelectedDay] = useState(today.getDate());
+  const [tasks, setTasks] = useState<CalendarTask[]>([]);
+  const [status, setStatus] = useState<LoadStatus>('loading');
+  const [actionError, setActionError] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const selectedDate = toDateString(year, month, selectedDay);
+
+  const load = useCallback(async (y: number, m: number) => {
+    setStatus('loading');
+
+    try {
+      const { from, to } = monthQueryRange(y, m);
+
+      setTasks(await fetchTasks({ from, to }));
+      setStatus('idle');
+    } catch (error) {
+      console.error(error);
+      setStatus('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    void load(year, month);
+  }, [year, month, load]);
+
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+
   const tasksOnSelectedDay = useMemo(
     () => tasks.filter((task) => task.start <= selectedDate && task.end >= selectedDate),
     [tasks, selectedDate],
@@ -57,35 +82,91 @@ export default function CalendarPage() {
 
     setYear(next.getFullYear());
     setMonth(next.getMonth());
-  }
-
-  // TODO(API): 저장 시 백엔드에 PATCH/POST 요청 필요 - 지금은 로컬 상태만 갱신하는 뼈대
-  function handleSaveTask(updated: CalendarTask) {
-    // SUCCESS: 목록에서 해당 id를 교체
-    setTasks((prev) => prev.map((task) => (task.id === updated.id ? updated : task)));
     setEditingTaskId(null);
-    // FAIL: 실패 시 setTasks를 롤백하고 에러 토스트를 띄워야 함 (백엔드 연동 시 추가)
   }
 
-  // TODO(API): 삭제 시 백엔드에 DELETE 요청 필요 - 지금은 로컬 상태만 갱신하는 뼈대
-  function handleDeleteTask(id: string) {
-    // SUCCESS: 목록에서 제거
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-    setEditingTaskId(null);
-    // FAIL: 실패 시 목록을 그대로 유지하고 에러 토스트를 띄워야 함 (백엔드 연동 시 추가)
+  function upsertTask(updated: CalendarTask) {
+    setTasks((prev) => {
+      const exists = prev.some((task) => task.id === updated.id);
+
+      return exists
+        ? prev.map((task) => (task.id === updated.id ? updated : task))
+        : [...prev, updated];
+    });
   }
 
-  // TODO(API): 생성 시 백엔드에 POST 요청 필요 - 지금은 로컬 상태만 갱신하는 뼈대
-  function handleCreateTask(input: Omit<CalendarTask, 'id' | 'room'>) {
-    // SUCCESS: 목록에 추가 (개인 생성 태스크는 room을 '개인생성'으로 고정)
-    setTasks((prev) => [...prev, { ...input, id: crypto.randomUUID(), room: '개인생성' }]);
+  async function handleCreateTask(input: NewCalendarTaskInput): Promise<void> {
+    const created = await createTask(input);
+
+    upsertTask(created);
     setCreateModalOpen(false);
-    // FAIL: 생성 실패 시 모달을 닫지 않고 에러 메시지를 보여줘야 함 (백엔드 연동 시 추가)
+    setActionError(null);
+  }
+
+  async function handleSaveTask(draft: CalendarTask) {
+    const original = tasks.find((task) => task.id === draft.id);
+    const patch: { title?: string; start?: string; end?: string } = {};
+
+    if (draft.title.trim() !== original?.title) {
+      patch.title = draft.title.trim();
+    }
+    if (draft.start !== original?.start) {
+      patch.start = draft.start;
+    }
+    if (draft.end !== original?.end) {
+      patch.end = draft.end;
+    }
+
+    setActionError(null);
+
+    try {
+      if (Object.keys(patch).length > 0) {
+        upsertTask(await updateTask(draft.id, patch));
+      }
+
+      setEditingTaskId(null);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '태스크를 수정하지 못했어요.');
+    }
+  }
+
+  async function handleDeleteTask(id: string) {
+    setActionError(null);
+
+    try {
+      await deleteTask(id);
+      setTasks((prev) => prev.filter((task) => task.id !== id));
+      setEditingTaskId(null);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '태스크를 삭제하지 못했어요.');
+    }
+  }
+
+  async function handleToggleComplete(id: string, completed: boolean) {
+    setActionError(null);
+
+    try {
+      upsertTask(await setTaskCompletion(id, completed));
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '완료 상태를 바꾸지 못했어요.');
+    }
   }
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-12 shrink-0 items-center justify-end border-b border-gray-100 px-4">
+      <div className="flex h-12 shrink-0 items-center justify-end gap-3 border-b border-gray-100 px-4">
+        {status === 'loading' && <span className="text-xs text-gray-400">불러오는 중…</span>}
+        {status === 'error' && (
+          <button
+            onClick={() => {
+              void load(year, month);
+            }}
+            className="text-xs text-red-500 underline"
+          >
+            불러오기 실패 · 다시 시도
+          </button>
+        )}
+        {actionError !== null && <span className="text-xs text-red-500">{actionError}</span>}
         <button
           onClick={() => {
             setCreateModalOpen(true);
@@ -103,7 +184,7 @@ export default function CalendarPage() {
           monthLabel={`${year}년 ${month + 1}월`}
           tasks={tasks}
           selectedDay={selectedDay}
-          todayDay={16}
+          todayDay={isCurrentMonth ? today.getDate() : undefined}
           onSelectDay={setSelectedDay}
           onChangeMonth={handleChangeMonth}
         />
@@ -117,6 +198,7 @@ export default function CalendarPage() {
           }}
           onSave={handleSaveTask}
           onDelete={handleDeleteTask}
+          onToggleComplete={handleToggleComplete}
         />
       </div>
 

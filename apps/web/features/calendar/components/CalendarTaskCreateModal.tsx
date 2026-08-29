@@ -5,13 +5,19 @@
 // "생성된 채팅방"은 항상 "개인생성"으로 고정 - 채팅방에서 추출된 태스크와 구분하기 위함.
 import { useEffect, useState, type FormEvent } from 'react';
 
-import type { CalendarTask } from '../types';
+export interface NewCalendarTaskInput {
+  title: string;
+  start: string;
+  end: string;
+  color: string;
+}
 
 interface CalendarTaskCreateModalProps {
   open: boolean;
   defaultDate: string;
   onCancel: () => void;
-  onSubmit: (task: Omit<CalendarTask, 'id' | 'room'>) => void;
+  /** 성공 시 resolve(모달 닫힘), 실패 시 서버 메시지로 throw */
+  onSubmit: (task: NewCalendarTaskInput) => void | Promise<void>;
 }
 
 const PRESET_COLORS = ['#6C63FF', '#0F6E56', '#BA7517', '#D92D20', '#2563EB'];
@@ -27,6 +33,8 @@ function CalendarTaskCreateModal({
   const [start, setStart] = useState(defaultDate);
   const [end, setEnd] = useState(defaultDate);
   const [color, setColor] = useState(DEFAULT_COLOR);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -34,6 +42,8 @@ function CalendarTaskCreateModal({
       setStart(defaultDate);
       setEnd(defaultDate);
       setColor(DEFAULT_COLOR);
+      setError(null);
+      setSubmitting(false);
     }
   }, [open, defaultDate]);
 
@@ -41,18 +51,38 @@ function CalendarTaskCreateModal({
     return null;
   }
 
-  function handleSubmit(e: FormEvent): void {
+  async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
+
     if (title.trim() === '') {
+      setError('태스크 이름을 입력해 주세요.');
+
       return;
     }
-    onSubmit({ title: title.trim(), start, end, color });
+
+    if (end < start) {
+      setError('마감일은 시작일보다 빠를 수 없어요.');
+
+      return;
+    }
+
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      await onSubmit({ title: title.trim(), start, end, color });
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '태스크를 만들지 못했어요.');
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
         className="w-[420px] overflow-hidden rounded-2xl border border-gray-200 bg-white"
       >
         <div className="flex h-[50px] items-center border-b border-gray-100 px-5">
@@ -157,6 +187,10 @@ function CalendarTaskCreateModal({
               className="h-9 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-400"
             />
           </div>
+
+          {error !== null && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-gray-100 px-5 py-3">
@@ -169,9 +203,10 @@ function CalendarTaskCreateModal({
           </button>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-lg bg-purple-500 px-4 text-sm text-white transition-colors hover:bg-purple-600"
+            disabled={submitting || title.trim() === ''}
+            className="h-9 cursor-pointer rounded-lg bg-purple-500 px-4 text-sm text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            생성
+            {submitting ? '만드는 중…' : '생성'}
           </button>
         </div>
       </form>
