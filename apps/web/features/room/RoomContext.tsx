@@ -11,16 +11,16 @@ import {
   type ReactNode,
 } from 'react';
 
-import { apiFetch, refreshAccessToken } from '@/features/auth/apiClient';
+import { refreshAccessToken } from '@/features/auth/apiClient';
 import { useAuth } from '@/features/auth/AuthContext';
 import {
   connectChatSocket,
   disconnectChatSocket,
+  getChatSocket,
   reconnectChatSocket,
 } from '@/features/chat/socket';
 
-import { chatRoomResponseSchema, type ChatRoomResponse } from '@repo/schemas/chat';
-
+import { fetchRooms } from './roomApi';
 import type { Room } from './types';
 
 interface RoomContextValue {
@@ -32,48 +32,6 @@ interface RoomContextValue {
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null);
-
-const AVATAR_COLORS: ReadonlyArray<Room['avatarColor']> = ['indigo', 'teal', 'orange', 'pink'];
-
-// 서버는 방 색을 주지 않으므로, 방 id 로부터 항상 같은 색을 뽑아 쓴다.
-function pickAvatarColor(id: string): Room['avatarColor'] {
-  let hash = 0;
-
-  for (let i = 0; i < id.length; i += 1) {
-    hash = (hash * 31 + id.charCodeAt(i)) | 0;
-  }
-
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] ?? 'indigo';
-}
-
-// 백엔드 ChatRoomResponse → 화면용 Room
-function toRoom(res: ChatRoomResponse): Room {
-  const name = res.title.trim() === '' ? '이름 없는 방' : res.title;
-
-  return {
-    id: res.id,
-    name,
-    avatarLabel: name.slice(0, 2),
-    avatarColor: pickAvatarColor(res.id),
-    unreadCount: res.unreadCount,
-  };
-}
-
-async function fetchRooms(): Promise<Room[]> {
-  const res = await apiFetch('/api/chat/rooms');
-
-  if (!res.ok) {
-    throw new Error(`채팅방 목록을 불러오지 못했어요 (${res.status})`);
-  }
-
-  const parsed = chatRoomResponseSchema.array().safeParse(await res.json());
-
-  if (!parsed.success) {
-    throw new Error('채팅방 목록 응답 형식이 예상과 달라요.');
-  }
-
-  return parsed.data.map(toRoom);
-}
 
 // WsException 메시지가 토큰/인증 관련인지 (→ 재발급 후 재연결 대상)
 function isAuthError(payload: unknown): boolean {
@@ -99,6 +57,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
   roomsRef.current = rooms;
 
+  // 현재 소켓 연결에서 이미 join_room 을 보낸 방 id (중복 join 방지)
+  const joinedRoomsRef = useRef<Set<string>>(new Set());
+
   const refreshRooms = useCallback(async () => {
     try {
       setRooms(await fetchRooms());
@@ -114,11 +75,16 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
 
     const run = { active: true };
+    const joined = joinedRoomsRef.current;
     const socket = connectChatSocket(getAccessToken);
 
+    // 새 연결이 되면 방 소속이 초기화되므로, join 기록을 비우고 전부 다시 join
     const joinAllRooms = () => {
+      joined.clear();
+
       for (const room of roomsRef.current) {
         socket.emit('join_room', { roomId: room.id });
+        joined.add(room.id);
       }
     };
 
@@ -155,10 +121,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         }
 
         setRooms(next);
-
-        for (const room of next) {
-          socket.emit('join_room', { roomId: room.id });
-        }
       } catch (error) {
         if (run.active) {
           console.error(error);
@@ -168,6 +130,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
     return () => {
       run.active = false;
+      joined.clear();
       socket.off('connect', joinAllRooms);
       socket.off('room_created', reloadRooms);
       socket.off('room_updated', reloadRooms);
@@ -176,10 +139,31 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     };
   }, [status, getAccessToken, refreshRooms]);
 
+  // 방 목록이 바뀌면(최초 로드·새 방 생성·초대 등) 아직 join 안 한 방을 join
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      return;
+    }
+
+    const socket = getChatSocket();
+
+    if (socket === null) {
+      return;
+    }
+
+    for (const room of rooms) {
+      if (!joinedRoomsRef.current.has(room.id)) {
+        socket.emit('join_room', { roomId: room.id });
+        joinedRoomsRef.current.add(room.id);
+      }
+    }
+  }, [rooms, status]);
+
   // 로그아웃(미인증 전환) 시 소켓 완전 종료 + 상태 초기화
   useEffect(() => {
     if (status === 'unauthenticated') {
       disconnectChatSocket();
+      joinedRoomsRef.current.clear();
       setRooms([]);
       setActiveRoomId(null);
     }

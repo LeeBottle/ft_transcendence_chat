@@ -6,21 +6,29 @@ import { useState, type FormEvent } from 'react';
 
 interface CreateRoomFormProps {
   onCancel: () => void;
-  onSubmit: (input: { name: string; memberIds: string[] }) => void;
+  onSubmit: (input: { name: string; memberIds: string[] }) => Promise<void>;
 }
 
 function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
   const [name, setName] = useState('');
   const [inviteInput, setInviteInput] = useState('');
   const [memberIds, setMemberIds] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function addMember(): void {
     const id = inviteInput.trim();
-    if (!id) return;
-    if (memberIds.includes(id)) {
-      setInviteInput('');
+
+    if (id === '') {
       return;
     }
+
+    if (memberIds.includes(id)) {
+      setInviteInput('');
+
+      return;
+    }
+
     setMemberIds([...memberIds, id]);
     setInviteInput('');
   }
@@ -29,15 +37,35 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
     setMemberIds(memberIds.filter((m) => m !== id));
   }
 
-  function handleSubmit(e: FormEvent): void {
+  async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
-    onSubmit({ name, memberIds });
+
+    const trimmed = name.trim();
+
+    if (trimmed === '') {
+      setError('채팅방 이름을 입력해 주세요.');
+
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await onSubmit({ name: trimmed, memberIds });
+      // 성공 시 상위에서 페이지 이동 → submitting 해제 불필요
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '채팅방을 만들지 못했어요.');
+      setSubmitting(false);
+    }
   }
 
   return (
     <main className="flex h-screen items-center justify-center bg-gray-50">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
         className="w-[440px] overflow-hidden rounded-2xl border border-gray-200 bg-white"
       >
         <div className="flex h-[50px] items-center border-b border-gray-100 px-5">
@@ -63,7 +91,10 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
             <input
               id="room-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
+              maxLength={100}
               placeholder="예: 디자인 팀, 3분기 프로젝트…"
               className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
             />
@@ -76,11 +107,17 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
             >
               팀원 초대
             </label>
+            <p className="text-[11px] text-amber-600">
+              ⚠️ 유저 검색 API가 아직 없어, 지금은 여기서 추가해도 방 생성 시 초대되지 않아요. (방을
+              만든 뒤 초대 예정)
+            </p>
             <div className="flex gap-1.5">
               <input
                 id="invite-id"
                 value={inviteInput}
-                onChange={(e) => setInviteInput(e.target.value)}
+                onChange={(e) => {
+                  setInviteInput(e.target.value);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -112,7 +149,9 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
                     <span>{id}</span>
                     <button
                       type="button"
-                      onClick={() => removeMember(id)}
+                      onClick={() => {
+                        removeMember(id);
+                      }}
                       aria-label={`${id} 제거`}
                       className="flex h-4 w-4 cursor-pointer items-center justify-center text-gray-400 hover:text-gray-600"
                     >
@@ -123,6 +162,10 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
               </div>
             )}
           </div>
+
+          {error !== null && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-gray-100 px-5 py-3">
@@ -135,9 +178,10 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
           </button>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-lg bg-purple-500 px-4 text-sm text-white transition-colors hover:bg-purple-600"
+            disabled={submitting || name.trim() === ''}
+            className="h-9 cursor-pointer rounded-lg bg-purple-500 px-4 text-sm text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            완료
+            {submitting ? '만드는 중…' : '완료'}
           </button>
         </div>
       </form>
