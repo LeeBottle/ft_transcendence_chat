@@ -56,7 +56,9 @@ export class TokenService {
         secret: this.configService.getOrThrow('JWT_REFRESH_SECRET', { infer: true }),
       })
       .catch((_error: unknown) => {
-        throw new UnauthorizedException('유효하지 않거나 만료된 Refresh Token입니다.');
+        throw new UnauthorizedException(
+          '유효하지 않거나 만료된 Refresh Token입니다. 다시 로그인해 주세요.',
+        );
       });
 
     const result = tokenPayloadSchema.safeParse(decoded);

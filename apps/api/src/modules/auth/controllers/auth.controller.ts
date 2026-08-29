@@ -13,10 +13,13 @@ import type { CookieOptions, Response } from 'express';
 
 import { ClientIp, UserAgent } from '#common/decorators/client-info.decorator.js';
 import { Cookies } from '#common/decorators/cookies.decorator.js';
+import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
 import { Public } from '#common/decorators/public.decorator.js';
 import { parseDurationToMs } from '#common/utils/duration.util.js';
 import type { ApiEnv } from '#config/api-env.schema.js';
 import {
+  ChangePasswordRequestDto,
+  ChangePasswordResponseDto,
   LoginUserRequestDto,
   LoginUserResponseDto,
   RefreshTokenResponseDto,
@@ -25,7 +28,6 @@ import {
 } from '#modules/auth/controllers/auth.dto.js';
 import { AuthService } from '#modules/auth/services/auth.service.js';
 
-@Public()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -34,11 +36,18 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Public()
   async register(@Body() dto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
-    return await this.authService.register(dto);
+    return await this.authService.register({
+      loginId: dto.loginId,
+      password: dto.password,
+      name: dto.name,
+      email: dto.email,
+    });
   }
 
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: LoginUserRequestDto,
@@ -58,7 +67,9 @@ export class AuthController {
     return { accessToken: tokens.accessToken, user };
   }
 
+  // 현재 기기(세션)만 로그아웃 처리
   @Post('logout')
+  @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
     @Cookies('refreshToken') refreshToken: string | null,
@@ -72,7 +83,32 @@ export class AuthController {
     this.clearRefreshTokenCookie(res);
   }
 
+  // 비밀번호 변경 후, 새로운 토큰 발급
+  // 나머지 기기(세션)들은 로그아웃 처리
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @CurrentUserId() userId: string,
+    @Body() dto: ChangePasswordRequestDto,
+    @ClientIp() ipAddress: string,
+    @UserAgent() userAgent: string | null,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ChangePasswordResponseDto> {
+    const tokens = await this.authService.changePassword({
+      userId,
+      ipAddress,
+      userAgent,
+      currentPassword: dto.currentPassword,
+      newPassword: dto.newPassword,
+    });
+
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+
+    return { accessToken: tokens.accessToken };
+  }
+
   @Post('refresh')
+  @Public()
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Cookies('refreshToken') refreshToken: string | null,

@@ -90,6 +90,13 @@ export class UserService {
     return await this.userRepository.findOne({ where: { loginId }, withDeleted: true });
   }
 
+  async findAuthCredentialsById(id: string): Promise<UserEntity | null> {
+    return await this.userRepository.findOne({
+      select: { id: true, loginId: true, role: true, passwordHash: true, status: true },
+      where: { id },
+    });
+  }
+
   // 보안 매퍼 적용
   // 신규 추가 / 프로필 조회, 수정, 친구 관리 로직
 
@@ -229,5 +236,13 @@ export class UserService {
         isOnline: false,
       },
     }));
+  }
+
+  async updatePasswordHash(id: string, newPasswordHash: string): Promise<void> {
+    const result = await this.userRepository.update({ id }, { passwordHash: newPasswordHash });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
   }
 }

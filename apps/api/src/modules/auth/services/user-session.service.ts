@@ -40,6 +40,10 @@ export class UserSessionService {
     await this.userSessionRepository.delete({ refreshTokenHash });
   }
 
+  async deleteByUserId(userId: string): Promise<void> {
+    await this.userSessionRepository.delete({ userId });
+  }
+
   async rotateSession(params: RotateUserSessionParams): Promise<void> {
     const { userSessionId, newRefreshTokenHash, ipAddress, userAgent, expiresAt } = params;
 

@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { UserRole, UserStatus } from '@repo/constants/user';
@@ -30,8 +35,8 @@ interface LoginUserParams {
 }
 
 interface LoginUserResult {
-  tokens: GeneratedTokenPair;
-  user: {
+  readonly tokens: GeneratedTokenPair;
+  readonly user: {
     loginId: string;
     name: string;
     email: string;
@@ -40,6 +45,14 @@ interface LoginUserResult {
     status: UserStatus;
     profileImagePath: string | null;
   };
+}
+
+interface ChangePasswordParams {
+  readonly userId: string;
+  readonly ipAddress: string;
+  readonly userAgent: string | null;
+  readonly currentPassword: string;
+  readonly newPassword: string;
 }
 
 interface ReissueTokenPairParams {
@@ -182,6 +195,50 @@ export class AuthService {
     await this.userSessionService.deleteByRefreshTokenHash(refreshTokenHash);
   }
 
+  async changePassword(params: ChangePasswordParams): Promise<GeneratedTokenPair> {
+    const { userId, ipAddress, userAgent, currentPassword, newPassword } = params;
+
+    const user = await this.userService.findAuthCredentialsById(userId);
+
+    if (user?.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('계정이 비활성화되었거나 존재하지 않습니다.');
+    }
+
+    const isPasswordValid = await this.passwordService.verify(currentPassword, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('현재 비밀번호가 일치하지 않습니다.');
+    }
+
+    const newPasswordHash = await this.passwordService.hash(newPassword);
+
+    await this.userService.updatePasswordHash(user.id, newPasswordHash);
+
+    await this.userSessionService.deleteByUserId(user.id); // 해당 유저의 전체 세션 삭제(모든 기기)
+
+    const newTokens = await this.tokenService.generateTokenPair({
+      id: user.id,
+      loginId: user.loginId,
+      role: user.role,
+    });
+
+    const refreshTokenExpiration = parseDurationToMs(
+      this.configService.getOrThrow('JWT_REFRESH_EXPIRATION', { infer: true }),
+    );
+    const refreshTokenExpiresAt = new Date(Date.now() + refreshTokenExpiration);
+    const refreshTokenHash = hashSha256(newTokens.refreshToken);
+
+    await this.userSessionService.create({
+      userId: user.id,
+      refreshTokenHash,
+      ipAddress,
+      userAgent,
+      expiresAt: refreshTokenExpiresAt,
+    });
+
+    return newTokens;
+  }
+
   async reissueTokenPair(params: ReissueTokenPairParams): Promise<GeneratedTokenPair> {
     const { refreshToken, ipAddress, userAgent } = params;
 
@@ -219,11 +276,11 @@ export class AuthService {
       this.configService.getOrThrow('JWT_REFRESH_EXPIRATION', { infer: true }),
     );
     const newExpiresAt = new Date(Date.now() + refreshTokenExpiration);
-    const newTokenHash = hashSha256(newTokens.refreshToken);
+    const newRefreshTokenHash = hashSha256(newTokens.refreshToken);
 
     await this.userSessionService.rotateSession({
       userSessionId: userSession.id,
-      newRefreshTokenHash: newTokenHash,
+      newRefreshTokenHash,
       ipAddress,
       userAgent,
       expiresAt: newExpiresAt,

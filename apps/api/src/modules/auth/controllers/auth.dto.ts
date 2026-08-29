@@ -1,6 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 
 import {
+  changePasswordRequestSchema,
+  changePasswordResponseSchema,
   loginUserRequestSchema,
   loginUserResponseSchema,
   refreshTokenResponseSchema,
@@ -13,3 +15,5 @@ export class LoginUserResponseDto extends createZodDto(loginUserResponseSchema) 
 export class RegisterUserRequestDto extends createZodDto(registerUserRequestSchema) {}
 export class RegisterUserResponseDto extends createZodDto(registerUserResponseSchema) {}
 export class RefreshTokenResponseDto extends createZodDto(refreshTokenResponseSchema) {}
+export class ChangePasswordRequestDto extends createZodDto(changePasswordRequestSchema) {}
+export class ChangePasswordResponseDto extends createZodDto(changePasswordResponseSchema) {}
