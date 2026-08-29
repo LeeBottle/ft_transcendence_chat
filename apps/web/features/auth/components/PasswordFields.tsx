@@ -7,8 +7,9 @@ import { useState } from 'react';
 import {
   getPwErrors,
   getPwStrength,
+  getStrengthMeta,
   PW_RULES,
-  STRENGTH_META,
+  pwRuleColorClass,
 } from '@/features/auth/passwordPolicy';
 
 interface PasswordFieldsProps {
@@ -35,7 +36,7 @@ export default function PasswordFields({
 
   const pwErrors = password ? getPwErrors(password, loginId) : [];
   const pwStrength = password ? getPwStrength(password) : 0;
-  const strengthMeta = STRENGTH_META[pwStrength] ?? STRENGTH_META[0]!;
+  const strengthMeta = getStrengthMeta(pwStrength);
   const pwMatch = passwordConfirm.length > 0 ? password === passwordConfirm : null;
 
   return (
@@ -52,7 +53,7 @@ export default function PasswordFields({
           return (
             <div
               key={rule.id}
-              className={`flex items-center gap-1 text-[11px] ${pass ? 'text-green-600' : fail ? 'text-red-500' : 'text-gray-400'}`}
+              className={`flex items-center gap-1 text-[11px] ${pwRuleColorClass(pass, fail)}`}
             >
               <span>{pass ? '●' : '○'}</span>
               {rule.label}

@@ -11,7 +11,11 @@ interface TaskItemProps {
 }
 
 function TaskItem({ task, onToggleChecked, onToggleDone, onDateChange }: TaskItemProps) {
-  const { id, name, start, end, done, isAi, checked, existing } = task;
+  const { id, name, start, end, done, isAi, checked = false, existing = false } = task;
+
+  // 캘린더 미연동 태스크인데 날짜가 비어 있으면 "필수" 표시
+  const startMissing = !existing && (start === null || start === '');
+  const endMissing = !existing && (end === null || end === '');
 
   return (
     <div className="relative mb-1.5 overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -49,7 +53,7 @@ function TaskItem({ task, onToggleChecked, onToggleDone, onDateChange }: TaskIte
         <div className="flex flex-col gap-0.5">
           <label className="flex items-center gap-1 text-[10px] font-medium text-gray-400 uppercase">
             시작일
-            {!start && !existing && (
+            {startMissing && (
               <span className="rounded bg-red-50 px-1 text-[9px] text-red-600">필수</span>
             )}
           </label>
@@ -58,13 +62,13 @@ function TaskItem({ task, onToggleChecked, onToggleDone, onDateChange }: TaskIte
             value={start ?? ''}
             disabled={existing}
             onChange={(e) => onDateChange?.(id, 'start', e.target.value)}
-            className={`h-7 w-full rounded-md border px-1.5 text-[11px] outline-none ${existing ? 'bg-gray-50 text-gray-400' : 'bg-white'} ${!start && !existing ? 'border-red-300 bg-red-50' : 'border-gray-300'} `}
+            className={`h-7 w-full rounded-md border px-1.5 text-[11px] outline-none ${existing ? 'bg-gray-50 text-gray-400' : 'bg-white'} ${startMissing ? 'border-red-300 bg-red-50' : 'border-gray-300'} `}
           />
         </div>
         <div className="flex flex-col gap-0.5">
           <label className="flex items-center gap-1 text-[10px] font-medium text-gray-400 uppercase">
             마감일
-            {!end && !existing && (
+            {endMissing && (
               <span className="rounded bg-red-50 px-1 text-[9px] text-red-600">필수</span>
             )}
           </label>
@@ -73,7 +77,7 @@ function TaskItem({ task, onToggleChecked, onToggleDone, onDateChange }: TaskIte
             value={end ?? ''}
             disabled={existing}
             onChange={(e) => onDateChange?.(id, 'end', e.target.value)}
-            className={`h-7 w-full rounded-md border px-1.5 text-[11px] outline-none ${existing ? 'bg-gray-50 text-gray-400' : 'bg-white'} ${!end && !existing ? 'border-red-300 bg-red-50' : 'border-gray-300'} `}
+            className={`h-7 w-full rounded-md border px-1.5 text-[11px] outline-none ${existing ? 'bg-gray-50 text-gray-400' : 'bg-white'} ${endMissing ? 'border-red-300 bg-red-50' : 'border-gray-300'} `}
           />
         </div>
       </div>

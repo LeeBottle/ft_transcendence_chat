@@ -25,7 +25,7 @@ function RoomTable({ rooms, onSaveRoom, onDeleteRoom }: RoomTableProps) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
 
-    return rooms.filter((r) => !q || (r.name + r.id).toString().toLowerCase().includes(q));
+    return rooms.filter((r) => !q || `${r.name}${r.id}`.toLowerCase().includes(q));
   }, [rooms, search]);
 
   return (
