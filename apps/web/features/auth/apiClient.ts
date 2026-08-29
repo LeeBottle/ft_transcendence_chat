@@ -2,12 +2,11 @@
 //
 // - 요청에 Authorization: Bearer <accessToken> 자동 첨부
 // - /api/auth/* 가 아닌 요청이 401 을 받으면 → /api/auth/refresh 1회 → 원 요청 1회 재시도
+// - 재시도도 401 이면 세션 종료 처리 (onAuthLost)
 //
-// ⚠️ 백엔드 라우트 보호 가드가 아직 없어서 지금은 보호 API 가 401 을 안 뱉음
-//    → 이 파일의 401 분기는 "작성만 해둔" 상태. 가드가 들어오면 자동으로 동작 시작.
+// 백엔드 전역 JwtAuthGuard 적용됨 (9c4df33) → 보호 API 가 실제로 401 을 뱉으므로 이 로직이 동작한다.
 //
-// accessToken 과 refresh 함수는 React(AuthProvider) 안에 있으므로,
-// 모듈 스코프 홀더를 AuthProvider 가 채워준다.
+// accessToken 과 콜백은 React(AuthProvider) 안에 있으므로 모듈 스코프 홀더를 AuthProvider 가 채워준다.
 
 import { refreshRequest } from '@/features/auth/authApi';
 
@@ -36,17 +35,26 @@ function withAuthHeader(init: RequestInit | undefined, token: string | null): Re
   return { ...init, headers, credentials: 'include' };
 }
 
+// 동시에 여러 요청이 401 을 받아도 refresh 는 한 번만 (refresh token rotation 경쟁 방지).
+let inFlightRefresh: Promise<string | null> | null = null;
+
+async function refreshOnce(): Promise<string | null> {
+  inFlightRefresh ??= refreshRequest().finally(() => {
+    inFlightRefresh = null;
+  });
+  return await inFlightRefresh;
+}
+
 export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const isAuthRoute = path.startsWith('/api/auth/');
 
-  let response = await fetch(path, withAuthHeader(init, bridge.getAccessToken()));
+  const response = await fetch(path, withAuthHeader(init, bridge.getAccessToken()));
 
   if (response.status !== 401 || isAuthRoute) {
     return response;
   }
 
-  // 401 → refresh 시도
-  const newToken = await refreshRequest();
+  const newToken = await refreshOnce();
 
   if (newToken === null) {
     bridge.onAuthLost();
@@ -54,6 +62,11 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
   }
 
   bridge.setAccessToken(newToken);
-  response = await fetch(path, withAuthHeader(init, newToken));
-  return response;
+  const retried = await fetch(path, withAuthHeader(init, newToken));
+
+  if (retried.status === 401) {
+    bridge.onAuthLost();
+  }
+
+  return retried;
 }
