@@ -16,13 +16,23 @@ const NAV_ITEMS: SidebarItem[] = [
   { id: 'friends', label: '친구' },
 ];
 
+// pathname 이 /chat/<id> 형태면 그 <id> 를 뽑는다 (/chat, /chat/create 는 제외).
+function roomIdFromPath(pathname: string): string | undefined {
+  const match = /^\/chat\/([^/]+)$/.exec(pathname);
+  const id = match?.[1];
+
+  return id === undefined || id === 'create' ? undefined : id;
+}
+
 function RoomSection() {
   const router = useRouter();
-  const { rooms, activeRoomId, setActiveRoomId } = useRoomContext();
+  const pathname = usePathname();
+  const { rooms } = useRoomContext();
+
+  const activeRoomId = roomIdFromPath(pathname);
 
   function handleSelectRoom(id: string) {
-    setActiveRoomId(id);
-    router.push('/chat');
+    router.push(`/chat/${id}`);
   }
 
   return (
@@ -33,7 +43,7 @@ function RoomSection() {
       {rooms.length > 0 && (
         <RoomList
           rooms={rooms}
-          activeRoomId={activeRoomId ?? undefined}
+          activeRoomId={activeRoomId}
           onSelectRoom={handleSelectRoom}
         />
       )}

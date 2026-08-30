@@ -25,8 +25,8 @@ import type { Room } from './types';
 
 interface RoomContextValue {
   rooms: Room[];
-  activeRoomId: string | null;
-  setActiveRoomId: (id: string | null) => void;
+  /** 최초 방 목록 로드가 끝났는지 (false 면 아직 불러오는 중) */
+  roomsLoaded: boolean;
   /** 방 생성/삭제/변경 후 서버 기준으로 목록을 다시 불러온다. */
   refreshRooms: () => Promise<void>;
 }
@@ -44,13 +44,13 @@ function isAuthError(payload: unknown): boolean {
   return typeof message === 'string' && (message.includes('토큰') || message.includes('인증'));
 }
 
-// (user) 레이아웃 아래 모든 페이지가 같은 채팅방 목록/선택 상태를 공유하기 위한 컨텍스트.
-// 사이드바(레이아웃)에서 방을 고르면 /chat 페이지가 그 상태를 그대로 읽어서 보여준다.
+// (user) 레이아웃 아래 모든 페이지가 같은 채팅방 목록을 공유하기 위한 컨텍스트.
+// 어떤 방을 보고 있는지는 URL(/chat/[roomId])이 정한다 — 컨텍스트는 목록만 관리.
 export function RoomProvider({ children }: { children: ReactNode }) {
   const { status, getAccessToken } = useAuth();
 
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [roomsLoaded, setRoomsLoaded] = useState(false);
 
   // 소켓 이벤트 핸들러에서 최신 방 목록을 읽기 위한 ref (재구독 없이)
   const roomsRef = useRef<Room[]>([]);
@@ -65,6 +65,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setRooms(await fetchRooms());
     } catch (error) {
       console.error(error);
+    } finally {
+      setRoomsLoaded(true);
     }
   }, []);
 
@@ -125,6 +127,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         if (run.active) {
           console.error(error);
         }
+      } finally {
+        if (run.active) {
+          setRoomsLoaded(true);
+        }
       }
     })();
 
@@ -165,13 +171,13 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       disconnectChatSocket();
       joinedRoomsRef.current.clear();
       setRooms([]);
-      setActiveRoomId(null);
+      setRoomsLoaded(false);
     }
   }, [status]);
 
   const value = useMemo<RoomContextValue>(
-    () => ({ rooms, activeRoomId, setActiveRoomId, refreshRooms }),
-    [rooms, activeRoomId, refreshRooms],
+    () => ({ rooms, roomsLoaded, refreshRooms }),
+    [rooms, roomsLoaded, refreshRooms],
   );
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
