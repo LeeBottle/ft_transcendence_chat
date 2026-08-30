@@ -1,8 +1,11 @@
 'use client';
 
 // CreateRoomForm.tsx
-// 새 채팅방 만들기 (.create-view) — 이름 입력 + 팀원 초대 chip 목록
+// 새 채팅방 만들기 (.create-view) — 이름 입력 + 유저 검색으로 팀원 초대
 import { useState, type FormEvent } from 'react';
+
+import UserSearchInput from '@/features/room/components/UserSearchInput';
+import type { UserSearchResult } from '@/features/room/roomApi';
 
 interface CreateRoomFormProps {
   onCancel: () => void;
@@ -11,30 +14,16 @@ interface CreateRoomFormProps {
 
 function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
   const [name, setName] = useState('');
-  const [inviteInput, setInviteInput] = useState('');
-  const [memberIds, setMemberIds] = useState<string[]>([]);
+  const [members, setMembers] = useState<UserSearchResult[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function addMember(): void {
-    const id = inviteInput.trim();
-
-    if (id === '') {
-      return;
-    }
-
-    if (memberIds.includes(id)) {
-      setInviteInput('');
-
-      return;
-    }
-
-    setMemberIds([...memberIds, id]);
-    setInviteInput('');
+  function addMember(user: UserSearchResult): void {
+    setMembers((prev) => (prev.some((m) => m.id === user.id) ? prev : [...prev, user]));
   }
 
   function removeMember(id: string): void {
-    setMemberIds(memberIds.filter((m) => m !== id));
+    setMembers((prev) => prev.filter((m) => m.id !== id));
   }
 
   async function handleSubmit(e: FormEvent): Promise<void> {
@@ -52,7 +41,7 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
     setError(null);
 
     try {
-      await onSubmit({ name: trimmed, memberIds });
+      await onSubmit({ name: trimmed, memberIds: members.map((m) => m.id) });
       // 성공 시 상위에서 페이지 이동 → submitting 해제 불필요
     } catch (error_) {
       setError(error_ instanceof Error ? error_.message : '채팅방을 만들지 못했어요.');
@@ -101,58 +90,29 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="invite-id"
-              className="text-xs font-medium text-gray-500"
-            >
-              팀원 초대
-            </label>
-            <p className="text-[11px] text-amber-600">
-              ⚠️ 유저 검색 API가 아직 없어, 지금은 여기서 추가해도 방 생성 시 초대되지 않아요. (방을
-              만든 뒤 초대 예정)
-            </p>
-            <div className="flex gap-1.5">
-              <input
-                id="invite-id"
-                value={inviteInput}
-                onChange={(e) => {
-                  setInviteInput(e.target.value);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addMember();
-                  }
-                }}
-                placeholder="아이디 입력"
-                className="h-9 flex-1 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
-              />
-              <button
-                type="button"
-                onClick={addMember}
-                className="h-9 cursor-pointer rounded-lg bg-purple-500 px-4 text-sm whitespace-nowrap text-white transition-colors hover:bg-purple-600"
-              >
-                추가
-              </button>
-            </div>
+            <span className="text-xs font-medium text-gray-500">팀원 초대 (선택)</span>
+            <UserSearchInput
+              onPick={addMember}
+              excludeIds={members.map((m) => m.id)}
+            />
 
-            {memberIds.length > 0 && (
+            {members.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1.5">
-                {memberIds.map((id) => (
+                {members.map((m) => (
                   <div
-                    key={id}
+                    key={m.id}
                     className="flex h-7 items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 pr-1.5 pl-2.5 text-xs text-gray-700"
                   >
                     <span className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-100 text-[9px] font-semibold text-purple-600">
-                      {id.charAt(0).toUpperCase()}
+                      {m.name.slice(0, 1)}
                     </span>
-                    <span>{id}</span>
+                    <span>{m.name}</span>
                     <button
                       type="button"
                       onClick={() => {
-                        removeMember(id);
+                        removeMember(m.id);
                       }}
-                      aria-label={`${id} 제거`}
+                      aria-label={`${m.name} 제거`}
                       className="flex h-4 w-4 cursor-pointer items-center justify-center text-gray-400 hover:text-gray-600"
                     >
                       ✕

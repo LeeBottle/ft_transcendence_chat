@@ -9,6 +9,7 @@ import {
   createProfileImagePathSchema,
   idSchema,
   roleSchema,
+  searchUsersQuerySchema,
   statusSchema,
   updateProfileRequestSchema,
   updateProfileResponseSchema,
@@ -18,6 +19,10 @@ import {
 
 export class UpdateProfileRequestDto extends createZodDto(updateProfileRequestSchema) {}
 export class UpdateProfileResponseDto extends createZodDto(updateProfileResponseSchema) {}
+
+// 유저 검색 쿼리
+
+export class SearchUsersQueryDto extends createZodDto(searchUsersQuerySchema) {}
 
 // 타인 공개용 프로필 (민감 정보 제외)
 
@@ -30,6 +35,9 @@ export const publicUserProfileResponseSchema = z.object({
 });
 export type PublicUserProfileResponse = z.infer<typeof publicUserProfileResponseSchema>;
 export class PublicUserProfileResponseDto extends createZodDto(publicUserProfileResponseSchema) {}
+
+export const searchUsersResponseSchema = z.array(publicUserProfileResponseSchema);
+export class SearchUsersResponseDto extends createZodDto(searchUsersResponseSchema) {}
 
 // 본인 조회용 프로필
 

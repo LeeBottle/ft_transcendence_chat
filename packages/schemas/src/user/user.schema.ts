@@ -57,3 +57,11 @@ export const idSchema = z.string().regex(USER_CONFIGS.id.constraints.fullRegex);
 export const emailVerifiedAtSchema = z.iso.datetime().nullable();
 export const roleSchema = z.enum(UserRole);
 export const statusSchema = z.enum(UserStatus);
+
+/* 유저 검색 (초대 대상 고르기) */
+
+export const searchUsersQuerySchema = z.object({
+  q: z.string().trim().min(1, '검색어를 입력해 주세요.').max(50),
+  limit: z.coerce.number().int().min(1).max(20).default(10),
+});
+export type SearchUsersQuery = z.infer<typeof searchUsersQuerySchema>;

@@ -247,7 +247,12 @@ export class ChatService {
 
       await Promise.all(
         uniqueInvitedIds.map(async (memberUserId) => {
-          const invitedUser = await this.ensureUserExists(memberUserId);
+          // 실제 존재하는 유저만 초대 (없으면 조용히 건너뜀 — ensureUserExists 는 만들어버리므로 사용 금지)
+          const invitedUser = await this.userRepository.findOne({ where: { id: memberUserId } });
+
+          if (invitedUser === null) {
+            return;
+          }
 
           const existingMember = await this.memberRepository.findOne({
             where: { chatRoomId: roomId, userId: invitedUser.id },
@@ -380,7 +385,13 @@ export class ChatService {
     const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
 
     const currentUser = await this.ensureUserExists(currentUserId);
-    const targetUser = await this.ensureUserExists(dto.userId);
+
+    // 초대 대상은 반드시 실제 존재하는 유저여야 함 (ensureUserExists 는 없으면 만들어버리므로 사용 금지)
+    const targetUser = await this.userRepository.findOne({ where: { id: dto.userId } });
+
+    if (targetUser === null) {
+      throw new NotFoundException('초대하려는 사용자를 찾을 수 없습니다.');
+    }
 
     const banned = await this.isUserBanned(roomId, targetUser.id);
 

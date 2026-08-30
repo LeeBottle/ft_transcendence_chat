@@ -68,10 +68,13 @@ export async function fetchRooms(): Promise<Room[]> {
 
 /**
  * 새 채팅방 생성. 만든 사람은 서버에서 자동으로 방장(FOUNDER) 멤버가 된다.
- * (멤버 지정 생성은 유저 검색 API 가 없어 보류 — 1-E)
+ * memberUserIds 를 주면 생성과 동시에 초대된다 (유저 검색으로 고른 실제 id).
  */
-export async function createRoom(title: string): Promise<Room> {
-  const body = createChatRoomRequestSchema.parse({ title: title.trim() });
+export async function createRoom(title: string, memberUserIds: string[] = []): Promise<Room> {
+  const body = createChatRoomRequestSchema.parse({
+    title: title.trim(),
+    ...(memberUserIds.length > 0 ? { memberUserIds } : {}),
+  });
 
   const res = await apiFetch('/api/chat/rooms', {
     method: 'POST',
@@ -133,6 +136,58 @@ export async function updateRoomPassword(roomId: string, password: string | null
       body: JSON.stringify({ password }),
     },
     '비밀번호를 변경하지 못했어요',
+  );
+}
+
+export interface UserSearchResult {
+  id: string;
+  loginId: string;
+  name: string;
+  profileImagePath: string | null;
+}
+
+/** 유저 검색 — 아이디/이름 부분 일치 (초대 대상 고르기). 본인은 서버가 제외한다. */
+export async function searchUsers(query: string): Promise<UserSearchResult[]> {
+  const q = query.trim();
+
+  if (q === '') {
+    return [];
+  }
+
+  const res = await apiFetch(`/api/users?q=${encodeURIComponent(q)}&limit=8`);
+
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, `유저 검색에 실패했어요 (${res.status})`));
+  }
+
+  const data = (await res.json().catch(() => [])) as unknown;
+
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map((raw) => {
+    const u = raw as Record<string, unknown>;
+
+    return {
+      id: String(u.id),
+      loginId: String(u.loginId),
+      name: typeof u.name === 'string' && u.name !== '' ? u.name : String(u.loginId),
+      profileImagePath: typeof u.profileImagePath === 'string' ? u.profileImagePath : null,
+    };
+  });
+}
+
+/** 방 멤버 초대 (방장/운영자, 또는 방 멤버 누구나) */
+export async function inviteMember(roomId: string, userId: string): Promise<void> {
+  await sendRoomAction(
+    `/api/chat/rooms/${roomId}/members`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    },
+    '초대하지 못했어요',
   );
 }
 

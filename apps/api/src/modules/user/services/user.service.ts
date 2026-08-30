@@ -7,9 +7,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { EntityNotFoundError, QueryFailedError, type Repository } from 'typeorm';
+import { EntityNotFoundError, Like, Not, QueryFailedError, type Repository } from 'typeorm';
 
 import { UserStatus } from '@repo/constants/user';
+import type { SearchUsersQuery } from '@repo/schemas/user';
 
 import type {
   AddFriendRequest,
@@ -101,6 +102,29 @@ export class UserService {
       select: { id: true, loginId: true, role: true, passwordHash: true, status: true },
       where: { id },
     });
+  }
+
+  // 유저 검색 — loginId / name 부분 일치 (대소문자 무시: 테이블 기본 collation), 활성 유저, 본인 제외
+  async search(meId: string, params: SearchUsersQuery): Promise<PublicUserProfileResponse[]> {
+    const pattern = `%${params.q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
+    const base = { status: UserStatus.ACTIVE, id: Not(meId) };
+
+    const users = await this.userRepository.find({
+      where: [
+        { ...base, loginId: Like(pattern) },
+        { ...base, name: Like(pattern) },
+      ],
+      take: params.limit,
+      order: { loginId: 'ASC' },
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      profileImagePath: user.profileImagePath,
+      isOnline: false,
+    }));
   }
 
   // 보안 매퍼 적용

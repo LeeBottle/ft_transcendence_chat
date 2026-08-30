@@ -5,10 +5,12 @@
 // 목업에 없는 화면이라 신규 디자인. 권한(방장/운영자/일반)에 따라 버튼을 노출한다.
 import { useEffect, useState } from 'react';
 
+import UserSearchInput from '@/features/room/components/UserSearchInput';
 import {
   banMember,
   deleteRoom,
   fetchBans,
+  inviteMember,
   kickMember,
   leaveRoom,
   unbanMember,
@@ -286,6 +288,24 @@ export default function RoomManageModal({
               </div>
             </section>
           )}
+
+          {/* 멤버 초대 — 방 멤버 누구나 */}
+          <section className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-gray-700">멤버 초대</span>
+            <UserSearchInput
+              disabled={busy !== null}
+              excludeIds={members.map((m) => m.userId)}
+              onPick={(u) => {
+                void run(
+                  `invite:${u.id}`,
+                  async () => {
+                    await inviteMember(room.id, u.id);
+                  },
+                  `${u.name} 님을 초대했어요.`,
+                );
+              }}
+            />
+          </section>
 
           {/* 멤버 목록 */}
           <section className="flex flex-col gap-1.5">
