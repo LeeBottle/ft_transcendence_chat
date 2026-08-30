@@ -72,3 +72,32 @@ export async function updateMyProfile(patch: {
     email: typeof data.email === 'string' ? data.email : (patch.email ?? ''),
   };
 }
+
+/**
+ * 비밀번호 변경. `POST /api/auth/change-password`
+ * 성공 시 세션이 로테이션되어 새 accessToken 을 돌려준다 (호출부에서 AuthContext 에 반영해야 함).
+ * 현재 비밀번호 불일치·정책 위반이면 400.
+ */
+export async function changePassword(input: {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirm: string;
+}): Promise<{ accessToken: string }> {
+  const res = await apiFetch('/api/auth/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, `비밀번호를 변경하지 못했어요 (${res.status})`));
+  }
+
+  const data = (await res.json()) as { accessToken?: unknown };
+
+  if (typeof data.accessToken !== 'string') {
+    throw new Error('비밀번호 변경 응답 형식이 예상과 달라요.');
+  }
+
+  return { accessToken: data.accessToken };
+}

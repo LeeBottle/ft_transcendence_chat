@@ -6,11 +6,16 @@ import { useRouter } from 'next/navigation';
 
 import { useAuth } from '@/features/auth/AuthContext';
 import MyPageView from '@/features/my-page/components/MyPagesView';
-import { fetchMyProfile, updateMyProfile, type MyProfile } from '@/features/my-page/profileApi';
+import {
+  changePassword,
+  fetchMyProfile,
+  updateMyProfile,
+  type MyProfile,
+} from '@/features/my-page/profileApi';
 
 export default function MyPage() {
   const router = useRouter();
-  const { user, logout, patchUser } = useAuth();
+  const { user, logout, patchUser, applyAccessToken } = useAuth();
 
   const [profile, setProfile] = useState<MyProfile | null>(null);
 
@@ -43,9 +48,9 @@ export default function MyPage() {
     });
   }
 
-  // 이름 저장 → PATCH /users/me → 로컬 프로필 + 헤더 캐시 갱신 (실패 시 throw → 폼이 에러 표시)
-  async function handleSaveInfo(data: { name: string }): Promise<void> {
-    const updated = await updateMyProfile({ name: data.name });
+  // 이름·이메일 저장 → PATCH /users/me → 로컬 프로필 + 헤더 캐시 갱신 (실패 시 throw → 폼이 에러 표시)
+  async function handleSaveInfo(data: { name: string; email: string }): Promise<void> {
+    const updated = await updateMyProfile({ name: data.name, email: data.email });
 
     setProfile((prev) =>
       prev === null ? prev : { ...prev, name: updated.name, email: updated.email },
@@ -53,9 +58,15 @@ export default function MyPage() {
     patchUser({ name: updated.name, email: updated.email });
   }
 
-  // TODO(2-D): 비밀번호 변경 API 없음 (백엔드 신규 필요)
-  function handleChangePassword(data: { currentPassword: string; newPassword: string }) {
-    console.warn('change password', data);
+  // 비밀번호 변경 → POST /auth/change-password → 로테이션된 새 토큰 적용 (실패 시 throw → 폼이 에러 표시)
+  async function handleChangePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+    newPasswordConfirm: string;
+  }): Promise<void> {
+    const { accessToken } = await changePassword(data);
+
+    applyAccessToken(accessToken);
   }
 
   // 서버 프로필이 오기 전엔 로그인 캐시로 즉시 표시, 오면 교체

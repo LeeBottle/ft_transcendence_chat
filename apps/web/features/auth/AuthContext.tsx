@@ -34,6 +34,8 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   /** 프로필 일부(이름 등)를 바꾼 뒤 헤더·캐시에 반영 */
   patchUser: (partial: Partial<AuthUser>) => void;
+  /** 세션 로테이션(비밀번호 변경 등) 후 새 access token 적용 */
+  applyAccessToken: (token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -169,9 +171,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const applyAccessToken = useCallback((token: string) => {
+    accessTokenRef.current = token;
+    setUserId(decodeTokenPayload(token)?.sub ?? null);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, userId, getAccessToken, login, logout, patchUser }),
-    [status, user, userId, getAccessToken, login, logout, patchUser],
+    () => ({ status, user, userId, getAccessToken, login, logout, patchUser, applyAccessToken }),
+    [status, user, userId, getAccessToken, login, logout, patchUser, applyAccessToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

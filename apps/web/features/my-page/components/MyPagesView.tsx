@@ -23,9 +23,14 @@ export interface MyPageViewProps {
   joinDate: string;
   imageUrl?: string | null;
   onLogout: () => void;
-  /** 이름 저장. 성공 시 resolve, 실패 시 서버 메시지로 throw */
-  onSaveInfo?: (data: { name: string }) => void | Promise<void>;
-  onChangePassword?: (data: { currentPassword: string; newPassword: string }) => void;
+  /** 이름·이메일 저장. 성공 시 resolve, 실패 시 서버 메시지로 throw */
+  onSaveInfo?: (data: { name: string; email: string }) => void | Promise<void>;
+  /** 비밀번호 변경. 성공 시 resolve, 실패 시 서버 메시지로 throw */
+  onChangePassword?: (data: {
+    currentPassword: string;
+    newPassword: string;
+    newPasswordConfirm: string;
+  }) => void | Promise<void>;
 }
 
 function MyPageView({
@@ -42,6 +47,8 @@ function MyPageView({
   // 프로필 카드에 표시되는 값(저장 버튼을 눌러야 반영됨)과, 입력 중인 값을 분리
   const [savedName, setSavedName] = useState(displayName);
   const [nameInput, setNameInput] = useState(displayName);
+  const [savedEmail, setSavedEmail] = useState(email);
+  const [emailInput, setEmailInput] = useState(email);
   const [infoError, setInfoError] = useState('');
   const [infoSaving, setInfoSaving] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
@@ -52,6 +59,9 @@ function MyPageView({
   const [confirmPw, setConfirmPw] = useState('');
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwSaved, setPwSaved] = useState(false);
 
   function handleAvatarChange(e: ChangeEvent<HTMLInputElement>): void {
     const file = e.target.files?.[0];
@@ -68,18 +78,27 @@ function MyPageView({
     reader.readAsDataURL(file);
   }
 
+  const infoDirty = nameInput.trim() !== savedName || emailInput.trim() !== savedEmail;
+
   async function handleSaveInfo(e: FormEvent): Promise<void> {
     e.preventDefault();
 
-    const trimmed = nameInput.trim();
+    const name = nameInput.trim();
+    const nextEmail = emailInput.trim();
 
-    if (trimmed === '') {
+    if (name === '') {
       setInfoError('이름을 입력해주세요');
 
       return;
     }
 
-    if (trimmed === savedName) {
+    if (nextEmail === '') {
+      setInfoError('이메일을 입력해주세요');
+
+      return;
+    }
+
+    if (!infoDirty) {
       return;
     }
 
@@ -88,8 +107,9 @@ function MyPageView({
     setInfoSaving(true);
 
     try {
-      await onSaveInfo?.({ name: trimmed });
-      setSavedName(trimmed);
+      await onSaveInfo?.({ name, email: nextEmail });
+      setSavedName(name);
+      setSavedEmail(nextEmail);
       setInfoSaved(true);
     } catch (error) {
       setInfoError(error instanceof Error ? error.message : '저장하지 못했어요');
@@ -105,15 +125,32 @@ function MyPageView({
   const canSubmitPw =
     currentPw.length > 0 && newPw.length > 0 && pwErrors.length === 0 && pwMatch === true;
 
-  function handleChangePassword(e: FormEvent): void {
+  async function handleChangePassword(e: FormEvent): Promise<void> {
     e.preventDefault();
+
     if (!canSubmitPw) {
       return;
     }
-    onChangePassword?.({ currentPassword: currentPw, newPassword: newPw });
-    setCurrentPw('');
-    setNewPw('');
-    setConfirmPw('');
+
+    setPwError('');
+    setPwSaved(false);
+    setPwSaving(true);
+
+    try {
+      await onChangePassword?.({
+        currentPassword: currentPw,
+        newPassword: newPw,
+        newPasswordConfirm: confirmPw,
+      });
+      setCurrentPw('');
+      setNewPw('');
+      setConfirmPw('');
+      setPwSaved(true);
+    } catch (error) {
+      setPwError(error instanceof Error ? error.message : '비밀번호를 변경하지 못했어요');
+    } finally {
+      setPwSaving(false);
+    }
   }
 
   return (
@@ -197,17 +234,22 @@ function MyPageView({
               <input
                 id="edit-email"
                 type="email"
-                value={email}
-                readOnly
-                className="h-9 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 outline-none"
+                value={emailInput}
+                onChange={(e) => {
+                  setEmailInput(e.target.value);
+                  setInfoSaved(false);
+                }}
+                placeholder="이메일 입력"
+                className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-purple-400"
               />
-              <p className="text-[11px] text-gray-400">이메일 변경은 아직 준비 중이에요.</p>
             </div>
             {infoError !== '' && <p className="text-xs text-red-500">{infoError}</p>}
             {infoSaved && <p className="text-xs text-green-600">✓ 저장했어요</p>}
             <button
               type="submit"
-              disabled={infoSaving || nameInput.trim() === '' || nameInput.trim() === savedName}
+              disabled={
+                infoSaving || nameInput.trim() === '' || emailInput.trim() === '' || !infoDirty
+              }
               className="flex h-9.5 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-purple-500 text-sm font-medium text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {infoSaving ? '저장 중…' : '✓ 변경 저장'}
@@ -217,7 +259,9 @@ function MyPageView({
 
         {/* 비밀번호 변경 */}
         <form
-          onSubmit={handleChangePassword}
+          onSubmit={(e) => {
+            void handleChangePassword(e);
+          }}
           className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
         >
           <div className="flex items-center gap-1.5 border-b border-gray-100 px-5 py-3.5 text-sm font-semibold text-gray-900">
@@ -360,12 +404,14 @@ function MyPageView({
               )}
             </div>
 
+            {pwError !== '' && <p className="text-xs text-red-500">{pwError}</p>}
+            {pwSaved && <p className="text-xs text-green-600">✓ 비밀번호를 변경했어요</p>}
             <button
               type="submit"
-              disabled={!canSubmitPw}
-              className={`flex h-9.5 items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors ${canSubmitPw ? 'cursor-pointer bg-purple-500 text-white hover:bg-purple-600' : 'cursor-not-allowed bg-gray-200 text-gray-400'} `}
+              disabled={!canSubmitPw || pwSaving}
+              className={`flex h-9.5 items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors ${canSubmitPw && !pwSaving ? 'cursor-pointer bg-purple-500 text-white hover:bg-purple-600' : 'cursor-not-allowed bg-gray-200 text-gray-400'} `}
             >
-              🔒 비밀번호 변경
+              {pwSaving ? '변경 중…' : '🔒 비밀번호 변경'}
             </button>
           </div>
         </form>
