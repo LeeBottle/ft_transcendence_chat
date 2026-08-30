@@ -75,24 +75,6 @@ export const loginUserRequestSchema = z
     ) {
       return;
     }
-
-    // const loginIdAllowedCharsSchema = z
-    //   .string()
-    //   .regex(/^$/, "아이디에는 영문 소문자, 숫자, 언더바('_')만 입력할 수 있어요.");
-
-    // if (!validateNestedSchema(ctx, loginIdAllowedCharsSchema, data.loginId, ['loginId'])) {
-    //   return;
-    // }
-
-    // if (
-    //   data.loginId.length < 4 ||
-    //   data.loginId.length > 20 ||
-    //   data.password.length < 8 ||
-    //   data.password.length > 100 ||
-    //   !PASSWORD_FORMAT_REGEX.test(data.password)
-    // ) {
-    //   ctx.addIssue({ code: 'custom', message: LOGIN_FAIL_MESSAGE });
-    // }
   });
 export type LoginUserRequest = z.infer<typeof loginUserRequestSchema>;
 
@@ -109,6 +91,33 @@ export const loginUserResponseSchema = z.object({
   }),
 });
 export type LoginUserResponse = z.infer<typeof loginUserResponseSchema>;
+
+export const changePasswordRequestSchema = z
+  .object({
+    currentPassword: createPasswordSchema(),
+    newPassword: createPasswordSchema(),
+    newPasswordConfirm: createPasswordConfirmSchema(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.currentPassword === data.newPassword) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '새 비밀번호는 이전과 달라야 합니다.',
+        path: ['newPassword'],
+      });
+    }
+    if (data.newPassword !== data.newPasswordConfirm) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.',
+        path: ['newPasswordConfirm'],
+      });
+    }
+  });
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+
+export const changePasswordResponseSchema = z.object({ accessToken: z.string().min(1) });
+export type ChangePasswordResponse = z.infer<typeof changePasswordResponseSchema>;
 
 /* 요청 전용 */
 
@@ -130,9 +139,12 @@ export const refreshTokenResponseSchema = z.object({ accessToken: z.string().min
 /* JWT 토큰 페이로드 스키마 */
 
 export const tokenPayloadSchema = z.object({
-  sub: z.string().regex(/^\d+$/), // id
+  sub: z.string().regex(/^\d+$/), // userId (PK) --> 추후 UUID로 변경 필요
+  // sid: z.string().regex(/^\d+$/), // userSessionId (PK) --> 추후 UUID로 변경 필요 (다중 기기 로그인시 필요)
+
   loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId), // loginId
   role: roleSchema, // role
+
   iat: z.number(), // 발급 시각 (Unix Timestamp, 초)
   exp: z.number(), // 만료 시각 (Unix Timestamp, 초)
 });

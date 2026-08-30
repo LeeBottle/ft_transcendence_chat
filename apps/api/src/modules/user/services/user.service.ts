@@ -1,12 +1,13 @@
 import {
   ConflictException,
   ForbiddenException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import type { Repository } from 'typeorm';
+import { EntityNotFoundError, QueryFailedError, type Repository } from 'typeorm';
 
 import { UserStatus } from '@repo/constants/user';
 
@@ -15,7 +16,8 @@ import type {
   FriendItemResponse,
   PublicUserProfileResponse,
   SelfUserProfileResponse,
-  UpdateUserProfileRequest,
+  UpdateProfileRequestDto,
+  UpdateProfileResponseDto,
 } from '#modules/user/controllers/user.dto.js';
 import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
 import { UserEntity } from '#modules/user/entities/user.entity.js';
@@ -30,6 +32,10 @@ interface CreateUserParams {
   readonly passwordHash: string;
   readonly name: string;
   readonly email: string;
+}
+
+interface MySqlDriverError {
+  code?: string;
 }
 
 @Injectable()
@@ -73,15 +79,22 @@ export class UserService {
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    return await this.userRepository.findOne({ where: { id } });
+    return await this.userRepository.findOneBy({ id });
   }
 
   async findByLoginId(loginId: string): Promise<UserEntity | null> {
-    return await this.userRepository.findOne({ where: { loginId } });
+    return await this.userRepository.findOneBy({ loginId });
   }
 
   async findByLoginIdWithDeleted(loginId: string): Promise<UserEntity | null> {
     return await this.userRepository.findOne({ where: { loginId }, withDeleted: true });
+  }
+
+  async findAuthCredentialsById(id: string): Promise<UserEntity | null> {
+    return await this.userRepository.findOne({
+      select: { id: true, loginId: true, role: true, passwordHash: true, status: true },
+      where: { id },
+    });
   }
 
   // 보안 매퍼 적용
@@ -115,27 +128,43 @@ export class UserService {
     return this.toSelfProfileResponse(user);
   }
 
-  // 본인 프로필 수정
-  async updateProfile(
-    userId: string,
-    dto: UpdateUserProfileRequest,
-  ): Promise<SelfUserProfileResponse> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  // 프로필 수정
+  async updateProfile(id: string, dto: UpdateProfileRequestDto): Promise<UpdateProfileResponseDto> {
+    try {
+      const result = await this.userRepository.update({ id }, dto);
 
-    if (user === null) {
-      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+      // 유저가 액세스 토큰 발급 직후 탈퇴처리된 경우 대비
+      if (result.affected === 0) {
+        throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+      }
+
+      const updatedUser = await this.userRepository.findOneOrFail({
+        select: { name: true, email: true },
+        where: { id },
+      });
+
+      return { name: updatedUser.name, email: updatedUser.email };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // MySQL Unique 제약조건 위반
+      if (error instanceof QueryFailedError) {
+        const driverError = error.driverError as MySqlDriverError;
+
+        if (driverError.code === 'ER_DUP_ENTRY') {
+          throw new ConflictException('이미 사용 중인 이메일입니다.');
+        }
+      }
+
+      // 검색 실패
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+      }
+
+      throw error;
     }
-
-    if (dto.name !== undefined) {
-      user.name = dto.name;
-    }
-    if (dto.profileImagePath !== undefined) {
-      user.profileImagePath = dto.profileImagePath;
-    }
-
-    const updatedUser = await this.userRepository.save(user);
-
-    return this.toSelfProfileResponse(updatedUser);
   }
 
   // 본인 프로필 응답 매퍼 (활성 상태 가드 포함)
@@ -207,5 +236,13 @@ export class UserService {
         isOnline: false,
       },
     }));
+  }
+
+  async updatePasswordHash(id: string, newPasswordHash: string): Promise<void> {
+    const result = await this.userRepository.update({ id }, { passwordHash: newPasswordHash });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
   }
 }

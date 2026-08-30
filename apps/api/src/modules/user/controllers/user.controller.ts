@@ -1,16 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 
-import type { Request } from 'express';
-
+import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
 import { UserService } from '#modules/user/services/user.service.js';
 
 import {
@@ -18,45 +8,41 @@ import {
   GetFriendsResponseDto,
   PublicUserProfileResponseDto,
   SelfUserProfileResponseDto,
-  UpdateUserProfileRequestDto,
+  UpdateProfileRequestDto,
+  UpdateProfileResponseDto,
 } from './user.dto.js';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // 본인 프로필 조회
+  // 프로필 조회
   @Get('me')
-  async getSelfProfile(@Req() req: Request): Promise<SelfUserProfileResponseDto> {
-    const userId = this.extractUserId(req);
-
+  async getSelfProfile(@CurrentUserId() userId: string): Promise<SelfUserProfileResponseDto> {
     return await this.userService.getSelfProfile(userId);
   }
 
-  // 본인 프로필 수정 (PATCH /users/me)
+  // 프로필 수정
   @Patch('me')
   async updateProfile(
-    @Req() req: Request,
-    @Body() body: UpdateUserProfileRequestDto,
-  ): Promise<SelfUserProfileResponseDto> {
-    const userId = this.extractUserId(req);
-
-    return await this.userService.updateProfile(userId, body);
+    @CurrentUserId() id: string,
+    @Body() dto: UpdateProfileRequestDto,
+  ): Promise<UpdateProfileResponseDto> {
+    return await this.userService.updateProfile(id, dto);
   }
 
-  // 친구 목록 조회 (GET /users/me/friends)
+  // 친구 목록 조회
   @Get('me/friends')
-  async getFriends(@Req() req: Request): Promise<GetFriendsResponseDto> {
-    const userId = this.extractUserId(req);
-
+  async getFriends(@CurrentUserId() userId: string): Promise<GetFriendsResponseDto> {
     return await this.userService.getFriends(userId);
   }
 
-  // 친구 추가 (POST /users/me/friends)
+  // 친구 추가
   @Post('me/friends')
-  async addFriend(@Req() req: Request, @Body() body: AddFriendRequestDto): Promise<{ id: string }> {
-    const userId = this.extractUserId(req);
-
+  async addFriend(
+    @CurrentUserId() userId: string,
+    @Body() body: AddFriendRequestDto,
+  ): Promise<{ id: string }> {
     return await this.userService.addFriend(userId, body);
   }
 
@@ -64,16 +50,5 @@ export class UserController {
   @Get(':id')
   async getPublicProfile(@Param('id') id: string): Promise<PublicUserProfileResponseDto> {
     return await this.userService.getPublicProfile(id);
-  }
-
-  // 전역 JwtAuthGuard 가 검증 후 req.user = { id, loginId, role } 를 채워준다.
-  private extractUserId(req: Request): string {
-    const user = (req as unknown as { user?: { id?: string } }).user;
-
-    if (typeof user?.id !== 'string' || user.id.length === 0) {
-      throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
-    }
-
-    return user.id;
   }
 }
