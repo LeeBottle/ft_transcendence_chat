@@ -77,6 +77,11 @@ export default function CalendarPage() {
     [tasks, selectedDate],
   );
 
+  function handleCreateOnDay(day: number) {
+    setSelectedDay(day);
+    setCreateModalOpen(true);
+  }
+
   function handleChangeMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
 
@@ -186,6 +191,7 @@ export default function CalendarPage() {
           selectedDay={selectedDay}
           todayDay={isCurrentMonth ? today.getDate() : undefined}
           onSelectDay={setSelectedDay}
+          onCreateOnDay={handleCreateOnDay}
           onChangeMonth={handleChangeMonth}
         />
         <CalendarSidePanel

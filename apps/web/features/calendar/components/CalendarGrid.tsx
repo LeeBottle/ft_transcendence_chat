@@ -12,6 +12,8 @@ interface CalendarGridProps {
   selectedDay?: number;
   todayDay?: number;
   onSelectDay: (day: number) => void;
+  /** 날짜 칸의 빈 영역(태스크 띠가 아닌 곳)을 클릭했을 때 — 그 날짜로 태스크 생성 팝업 */
+  onCreateOnDay: (day: number) => void;
   onChangeMonth: (delta: number) => void;
 }
 
@@ -64,6 +66,7 @@ function CalendarGrid({
   selectedDay,
   todayDay,
   onSelectDay,
+  onCreateOnDay,
   onChangeMonth,
 }: CalendarGridProps) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -129,6 +132,7 @@ function CalendarGrid({
               key={day}
               onClick={() => {
                 onSelectDay(day);
+                onCreateOnDay(day);
               }}
               className={`min-h-20 cursor-pointer border border-gray-100 bg-white py-1 hover:bg-gray-50 ${isSelected ? 'bg-purple-50' : ''} `}
             >
