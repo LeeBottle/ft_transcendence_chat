@@ -13,7 +13,6 @@ import { RoomProvider, useRoomContext } from '@/features/room/RoomContext';
 const NAV_ITEMS: SidebarItem[] = [
   { id: 'calendar', label: '캘린더' },
   { id: 'my-page', label: '마이페이지' },
-  { id: 'chat', label: '채팅' },
   { id: 'friends', label: '친구' },
 ];
 
