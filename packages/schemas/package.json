@@ -14,13 +14,13 @@
       "types": "./src/auth/auth.schema.ts",
       "default": "./dist/auth/auth.schema.js"
     },
-    "./user": {
-      "types": "./src/user/user.schema.ts",
-      "default": "./dist/user/user.schema.js"
-    },
     "./chat": {
       "types": "./src/chat/index.ts",
       "default": "./dist/chat/index.js"
+    },
+    "./user": {
+      "types": "./src/user/user.schema.ts",
+      "default": "./dist/user/user.schema.js"
     }
   },
   "files": [

@@ -57,3 +57,20 @@ export const idSchema = z.string().regex(USER_CONFIGS.id.constraints.fullRegex);
 export const emailVerifiedAtSchema = z.iso.datetime().nullable();
 export const roleSchema = z.enum(UserRole);
 export const statusSchema = z.enum(UserStatus);
+
+export const profileResponseSchema = z.object({
+  id: idSchema,
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+  role: roleSchema,
+  status: statusSchema,
+  profileImagePath: createProfileImagePathSchema(),
+  isOnline: z.boolean(),
+});
+export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+
+export const getMyFriendsResponseSchema = z.object({
+  friends: z.array(profileResponseSchema),
+});
+export type GetMyFriendsResponse = z.infer<typeof getMyFriendsResponseSchema>;

@@ -132,6 +132,21 @@ function createPasswordConfirmSchema(): z.ZodType<string> {
   );
 }
 
+export const getUserPresencesRequestSchema = z.object({
+  userIds: z.array(z.string().min(1)).min(1, '최소 1명 이상의 사용자 ID가 필요합니다.'),
+});
+export type GetUserPresencesRequest = z.infer<typeof getUserPresencesRequestSchema>;
+
+export const getUserPresencesResponseSchema = z.object({
+  userPresences: z.array(
+    z.object({
+      userId: z.string().min(1),
+      isOnline: z.boolean(),
+    }),
+  ),
+});
+export type GetUserPresencesResponse = z.infer<typeof getUserPresencesResponseSchema>;
+
 /* 응답 전용 */
 
 export const refreshTokenResponseSchema = z.object({ accessToken: z.string().min(1) });
