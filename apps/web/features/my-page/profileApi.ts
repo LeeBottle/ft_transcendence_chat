@@ -46,11 +46,15 @@ export async function fetchMyProfile(): Promise<MyProfile> {
   return normalizeProfile((await res.json()) as Partial<MyProfile>);
 }
 
-/** 프로필 부분 수정. 현재 백엔드가 받는 필드: name / profileImagePath (email 은 미지원 — 2-C) */
+/**
+ * 회원 정보 수정. `PATCH /api/users/me` — 백엔드가 `name`(필수), `email`(선택)을 받고
+ * `{ name, email }` 만 돌려준다. (전체 프로필이 아님)
+ * 이메일 중복이면 409.
+ */
 export async function updateMyProfile(patch: {
-  name?: string;
-  profileImagePath?: string | null;
-}): Promise<MyProfile> {
+  name: string;
+  email?: string;
+}): Promise<{ name: string; email: string }> {
   const res = await apiFetch('/api/users/me', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -61,5 +65,10 @@ export async function updateMyProfile(patch: {
     throw new Error(await readErrorMessage(res, `프로필을 저장하지 못했어요 (${res.status})`));
   }
 
-  return normalizeProfile((await res.json()) as Partial<MyProfile>);
+  const data = (await res.json()) as { name?: unknown; email?: unknown };
+
+  return {
+    name: typeof data.name === 'string' ? data.name : patch.name,
+    email: typeof data.email === 'string' ? data.email : (patch.email ?? ''),
+  };
 }

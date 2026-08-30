@@ -47,8 +47,10 @@ export default function MyPage() {
   async function handleSaveInfo(data: { name: string }): Promise<void> {
     const updated = await updateMyProfile({ name: data.name });
 
-    setProfile(updated);
-    patchUser({ name: updated.name });
+    setProfile((prev) =>
+      prev === null ? prev : { ...prev, name: updated.name, email: updated.email },
+    );
+    patchUser({ name: updated.name, email: updated.email });
   }
 
   // TODO(2-D): 비밀번호 변경 API 없음 (백엔드 신규 필요)
