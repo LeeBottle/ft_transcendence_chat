@@ -1,8 +1,57 @@
 @import "tailwindcss";
 
+/* =========================================================================
+   디자인 토큰 (색상 · 글자 크기 "이름표")
+   Tailwind v4 @theme → bg-primary / text-h1 같은 유틸리티가 자동 생성됨.
+   기존 bg-purple-500 등 기본 팔레트도 그대로 동작하므로 점진적으로 옮기면 됨.
+   ========================================================================= */
+@theme {
+  /* --- 브랜드 / 액션 --- */
+  --color-primary: #a855f7; /* 보라 (주요 버튼, 활성 상태) */
+  --color-primary-hover: #9333ea; /* 위에 마우스 올렸을 때 */
+  --color-primary-soft: #f3e8ff; /* 아주 연한 배경 (선택된 항목 등) */
+  --color-primary-ring: #c084fc; /* 포커스 테두리 */
+
+  /* --- 상태색 --- */
+  --color-danger: #ef4444; /* 빨강 (삭제, 위험) */
+  --color-danger-hover: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #22c55e; /* 초록 (완료, 온라인) */
+  --color-success-hover: #16a34a;
+  --color-success-soft: #f0fdf4;
+  --color-warning: #f59e0b; /* 주황 (주의) */
+  --color-warning-soft: #fffbeb;
+  --color-info: #3b82f6; /* 파랑 (안내) */
+  --color-info-soft: #eff6ff;
+
+  /* --- 표면 / 테두리 / 글자 --- */
+  --color-surface: #ffffff; /* 카드·모달 배경 */
+  --color-surface-muted: #f9fafb; /* 살짝 가라앉은 배경 (입력칸, 헤더) */
+  --color-border: #e5e7eb; /* 기본 테두리 */
+  --color-border-strong: #d1d5db; /* 진한 테두리 (입력칸) */
+  --color-text: #171717; /* 본문 */
+  --color-text-muted: #6b7280; /* 보조 텍스트 */
+  --color-text-subtle: #9ca3af; /* 더 흐린 텍스트 (플레이스홀더) */
+
+  /* --- 글자 크기 스케일 (크기 / 줄간격) --- */
+  --text-h1: 1.5rem;
+  --text-h1--line-height: 2rem;
+  --text-h2: 1.25rem;
+  --text-h2--line-height: 1.75rem;
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.5rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+
+  /* --- 모서리 둥글기 --- */
+  --radius-card: 0.75rem; /* rounded-card = 12px */
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--color-surface);
+  --foreground: var(--color-text);
 }
 
 html,
