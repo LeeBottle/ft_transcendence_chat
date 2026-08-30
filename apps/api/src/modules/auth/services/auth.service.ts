@@ -6,12 +6,17 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { In, MoreThan } from 'typeorm';
+
 import { UserRole, UserStatus } from '@repo/constants/user';
 import { UserLoginHistoryFailureReason } from '@repo/constants/user-login-history';
 
 import { parseDurationToMs } from '#common/utils/duration.util.js';
 import type { ApiEnv } from '#config/api-env.schema.js';
-import type { RegisterUserResponseDto } from '#modules/auth/controllers/auth.dto.js';
+import type {
+  GetUserPresencesResponseDto,
+  RegisterUserResponseDto,
+} from '#modules/auth/controllers/auth.dto.js';
 import { UserService } from '#modules/user/services/user.service.js';
 
 import { hashSha256 } from './common/crypto.util.js';

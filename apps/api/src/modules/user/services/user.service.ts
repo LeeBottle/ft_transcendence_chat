@@ -1,22 +1,15 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  HttpException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { EntityNotFoundError, Like, Not, QueryFailedError, type Repository } from 'typeorm';
 
 import { UserStatus } from '@repo/constants/user';
-import type { SearchUsersQuery } from '@repo/schemas/user';
+import type { SearchUsersQuery, UserSearchItemResponse } from '@repo/schemas/user';
 
+import { UserSessionService } from '#modules/auth/services/user-session.service.js';
 import type {
-  AddFriendRequest,
-  FriendItemResponse,
-  PublicUserProfileResponse,
-  SelfUserProfileResponse,
+  GetMyFriendsResponseDto,
+  ProfileResponseDto,
   UpdateProfileRequestDto,
   UpdateProfileResponseDto,
 } from '#modules/user/controllers/user.dto.js';
@@ -46,6 +39,7 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserFriendEntity)
     private readonly friendRepository: Repository<UserFriendEntity>,
+    private readonly userSessionService: UserSessionService,
   ) {}
 
   async assertUniqueness(params: AssertUniquenessParams): Promise<void> {
@@ -105,7 +99,7 @@ export class UserService {
   }
 
   // 유저 검색 — loginId / name 부분 일치 (대소문자 무시: 테이블 기본 collation), 활성 유저, 본인 제외
-  async search(meId: string, params: SearchUsersQuery): Promise<PublicUserProfileResponse[]> {
+  async search(meId: string, params: SearchUsersQuery): Promise<UserSearchItemResponse[]> {
     const pattern = `%${params.q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
     const base = { status: UserStatus.ACTIVE, id: Not(meId) };
 
@@ -123,39 +117,28 @@ export class UserService {
       loginId: user.loginId,
       name: user.name,
       profileImagePath: user.profileImagePath,
-      isOnline: false,
     }));
   }
 
-  // 보안 매퍼 적용
-  // 신규 추가 / 프로필 조회, 수정, 친구 관리 로직
-
-  // 타인 프로필 조회 (민감 정보 제외)
-  async getPublicProfile(userId: string): Promise<PublicUserProfileResponse> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-
-    if (user === null) {
-      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
-    }
-
-    return {
-      id: user.id,
-      loginId: user.loginId,
-      name: user.name,
-      profileImagePath: user.profileImagePath,
-      isOnline: false,
-    };
-  }
-
-  // 본인 프로필 조회
-  async getSelfProfile(userId: string): Promise<SelfUserProfileResponse> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  async profile(id: string): Promise<ProfileResponseDto> {
+    const user = await this.userRepository.findOneBy({ id });
 
     if (user === null) {
       throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
     }
 
-    return this.toSelfProfileResponse(user);
+    const userPresences = await this.userSessionService.getUserPresences([id]);
+
+    return {
+      id: user.id,
+      loginId: user.loginId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImagePath: user.profileImagePath,
+      isOnline: userPresences.userPresences[0]?.isOnline ?? false,
+    };
   }
 
   // 프로필 수정
@@ -197,75 +180,74 @@ export class UserService {
     }
   }
 
-  // 본인 프로필 응답 매퍼 (활성 상태 가드 포함)
-  private toSelfProfileResponse(user: UserEntity): SelfUserProfileResponse {
-    if (user.status === UserStatus.WITHDRAWN) {
-      throw new ForbiddenException('탈퇴 처리된 계정입니다.');
-    }
-    if (user.status === UserStatus.SUSPENDED) {
-      throw new ForbiddenException(
-        '이용이 정지된 계정입니다. 자세한 사항은 고객센터로 문의해 주세요.',
-      );
-    }
-
-    return {
-      id: user.id,
-      loginId: user.loginId,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      profileImagePath: user.profileImagePath,
-      isOnline: true,
-    };
-  }
-
-  // 친구 추가 요청
-  async addFriend(userId: string, dto: AddFriendRequest): Promise<{ id: string }> {
-    if (userId === dto.friendUserId) {
+  async addFriend(userId: string, friendUserId: string): Promise<void> {
+    if (userId === friendUserId) {
       throw new ConflictException('자기 자신을 친구로 추가할 수 없습니다.');
     }
 
-    const targetUser = await this.userRepository.findOne({ where: { id: dto.friendUserId } });
+    const friend = await this.userRepository.findOneBy({ id: friendUserId });
 
-    if (targetUser === null) {
+    if (friend === null) {
       throw new NotFoundException('추가하려는 사용자가 존재하지 않습니다.');
     }
 
-    const existing = await this.friendRepository.findOne({
-      where: { userId, friendUserId: dto.friendUserId },
-    });
+    const existing = await this.friendRepository.findOneBy({ userId, friendUserId });
 
     if (existing !== null) {
       throw new ConflictException('이미 친구로 등록된 사용자입니다.');
     }
 
-    const friendship = this.friendRepository.create({
-      userId,
-      friendUserId: dto.friendUserId,
-    });
-    const saved = await this.friendRepository.save(friendship);
-
-    return { id: saved.id };
+    await this.friendRepository.save(this.friendRepository.create({ userId, friendUserId }));
   }
 
-  // 친구 목록 조회
-  async getFriends(userId: string): Promise<FriendItemResponse[]> {
+  async deleteFriend(userId: string, friendUserId: string): Promise<void> {
+    const result = await this.friendRepository.delete({ userId, friendUserId });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('친구를 찾을 수 없습니다.');
+    }
+  }
+
+  async getFriends(userId: string): Promise<GetMyFriendsResponseDto> {
     const friendships = await this.friendRepository.find({
       where: { userId },
       relations: { friendUser: true },
     });
 
-    return friendships.map((f) => ({
-      id: f.id,
-      friendUser: {
-        id: f.friendUser?.id ?? f.friendUserId,
-        loginId: f.friendUser?.loginId ?? '',
-        name: f.friendUser?.name ?? '',
-        profileImagePath: f.friendUser?.profileImagePath ?? null,
-        isOnline: false,
-      },
-    }));
+    if (friendships.length === 0) {
+      return { friends: [] };
+    }
+
+    // 1. N+1 방지를 위해 모든 친구의 userId를 수집하여 1회의 Batch 쿼리로 온라인 상태 조회
+    const friendUserIds = friendships.map((f) => f.friendUserId);
+    const { userPresences } = await this.userSessionService.getUserPresences(friendUserIds);
+
+    // 2. O(1) 조회를 위한 Presence Map 생성
+    const presenceMap = new Map<string, boolean>(userPresences.map((p) => [p.userId, p.isOnline]));
+
+    const friends: ProfileResponseDto[] = [];
+
+    for (const friendship of friendships) {
+      const friend = friendship.friendUser;
+
+      // undefined 가드: 아래 라인부터 friend는 확실한 UserEntity로 자동 Narrowing 됨
+      if (friend === undefined) {
+        continue;
+      }
+
+      friends.push({
+        id: friend.id,
+        loginId: friend.loginId,
+        name: friend.name,
+        email: friend.email,
+        role: friend.role,
+        status: friend.status,
+        profileImagePath: friend.profileImagePath,
+        isOnline: presenceMap.get(friend.id) ?? false,
+      });
+    }
+
+    return { friends };
   }
 
   async updatePasswordHash(id: string, newPasswordHash: string): Promise<void> {

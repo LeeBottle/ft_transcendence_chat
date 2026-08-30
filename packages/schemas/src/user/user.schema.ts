@@ -58,10 +58,38 @@ export const emailVerifiedAtSchema = z.iso.datetime().nullable();
 export const roleSchema = z.enum(UserRole);
 export const statusSchema = z.enum(UserStatus);
 
-/* 유저 검색 (초대 대상 고르기) */
+export const profileResponseSchema = z.object({
+  id: idSchema,
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+  role: roleSchema,
+  status: statusSchema,
+  profileImagePath: createProfileImagePathSchema(),
+  isOnline: z.boolean(),
+});
+export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+
+export const getMyFriendsResponseSchema = z.object({
+  friends: z.array(profileResponseSchema),
+});
+export type GetMyFriendsResponse = z.infer<typeof getMyFriendsResponseSchema>;
+
+/* 유저 검색 (초대 대상 고르기) — 민감 정보 없이 최소 필드만 */
 
 export const searchUsersQuerySchema = z.object({
   q: z.string().trim().min(1, '검색어를 입력해 주세요.').max(50),
   limit: z.coerce.number().int().min(1).max(20).default(10),
 });
 export type SearchUsersQuery = z.infer<typeof searchUsersQuerySchema>;
+
+export const userSearchItemResponseSchema = z.object({
+  id: idSchema,
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+  profileImagePath: createProfileImagePathSchema(),
+});
+export type UserSearchItemResponse = z.infer<typeof userSearchItemResponseSchema>;
+
+export const searchUsersResponseSchema = z.array(userSearchItemResponseSchema);
+export type SearchUsersResponse = z.infer<typeof searchUsersResponseSchema>;

@@ -1,76 +1,17 @@
 import { createZodDto } from 'nestjs-zod';
 
-import { z } from 'zod';
-
 import {
-  createEmailSchema,
-  createLoginIdSchema,
-  createNameSchema,
-  createProfileImagePathSchema,
-  idSchema,
-  roleSchema,
+  getMyFriendsResponseSchema,
+  profileResponseSchema,
   searchUsersQuerySchema,
-  statusSchema,
   updateProfileRequestSchema,
   updateProfileResponseSchema,
-  USER_REQUEST_VALIDATION_OPTIONS,
-  USER_RESPONSE_VALIDATION_OPTIONS,
 } from '@repo/schemas/user';
 
 export class UpdateProfileRequestDto extends createZodDto(updateProfileRequestSchema) {}
 export class UpdateProfileResponseDto extends createZodDto(updateProfileResponseSchema) {}
+export class ProfileResponseDto extends createZodDto(profileResponseSchema) {}
+export class GetMyFriendsResponseDto extends createZodDto(getMyFriendsResponseSchema) {}
 
-// 유저 검색 쿼리
-
+// 유저 검색 (초대 대상 고르기) — 쿼리만 DTO, 응답은 UserSearchItemResponse[] 타입으로 반환
 export class SearchUsersQueryDto extends createZodDto(searchUsersQuerySchema) {}
-
-// 타인 공개용 프로필 (민감 정보 제외)
-
-export const publicUserProfileResponseSchema = z.object({
-  id: idSchema,
-  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
-  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
-  profileImagePath: createProfileImagePathSchema(),
-  isOnline: z.boolean().default(false),
-});
-export type PublicUserProfileResponse = z.infer<typeof publicUserProfileResponseSchema>;
-export class PublicUserProfileResponseDto extends createZodDto(publicUserProfileResponseSchema) {}
-
-export const searchUsersResponseSchema = z.array(publicUserProfileResponseSchema);
-export class SearchUsersResponseDto extends createZodDto(searchUsersResponseSchema) {}
-
-// 본인 조회용 프로필
-
-export const selfUserProfileResponseSchema = z.object({
-  id: idSchema,
-  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
-  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
-  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
-  role: roleSchema,
-  status: statusSchema,
-  profileImagePath: createProfileImagePathSchema(),
-  isOnline: z.boolean().default(true),
-});
-export type SelfUserProfileResponse = z.infer<typeof selfUserProfileResponseSchema>;
-export class SelfUserProfileResponseDto extends createZodDto(selfUserProfileResponseSchema) {}
-
-// 친구 추가 (idSchema를 사용)
-
-export const addFriendRequestSchema = z.object({
-  friendUserId: idSchema,
-});
-export type AddFriendRequest = z.infer<typeof addFriendRequestSchema>;
-export class AddFriendRequestDto extends createZodDto(addFriendRequestSchema) {}
-
-// 친구 프로필 확인
-
-export const friendItemResponseSchema = z.object({
-  id: idSchema,
-  friendUser: publicUserProfileResponseSchema,
-});
-export type FriendItemResponse = z.infer<typeof friendItemResponseSchema>;
-export class FriendItemResponseDto extends createZodDto(friendItemResponseSchema) {}
-
-export const getFriendsResponseSchema = z.array(friendItemResponseSchema);
-export type GetFriendsResponse = z.infer<typeof getFriendsResponseSchema>;
-export class GetFriendsResponseDto extends createZodDto(getFriendsResponseSchema) {}

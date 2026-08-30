@@ -1,14 +1,25 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+
+import type { UserSearchItemResponse } from '@repo/schemas/user';
 
 import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
 import { UserService } from '#modules/user/services/user.service.js';
 
 import {
-  AddFriendRequestDto,
-  GetFriendsResponseDto,
-  PublicUserProfileResponseDto,
+  GetMyFriendsResponseDto,
+  ProfileResponseDto,
   SearchUsersQueryDto,
-  SelfUserProfileResponseDto,
   UpdateProfileRequestDto,
   UpdateProfileResponseDto,
 } from './user.dto.js';
@@ -22,14 +33,14 @@ export class UserController {
   async search(
     @CurrentUserId() meId: string,
     @Query() query: SearchUsersQueryDto,
-  ): Promise<PublicUserProfileResponseDto[]> {
+  ): Promise<UserSearchItemResponse[]> {
     return await this.userService.search(meId, query);
   }
 
   // 프로필 조회
   @Get('me')
-  async getSelfProfile(@CurrentUserId() userId: string): Promise<SelfUserProfileResponseDto> {
-    return await this.userService.getSelfProfile(userId);
+  async myProfile(@CurrentUserId() id: string): Promise<ProfileResponseDto> {
+    return await this.userService.profile(id);
   }
 
   // 프로필 수정
@@ -41,24 +52,33 @@ export class UserController {
     return await this.userService.updateProfile(id, dto);
   }
 
-  // 친구 목록 조회
-  @Get('me/friends')
-  async getFriends(@CurrentUserId() userId: string): Promise<GetFriendsResponseDto> {
-    return await this.userService.getFriends(userId);
-  }
-
-  // 친구 추가
-  @Post('me/friends')
+  @Post('me/friends/:friendId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async addFriend(
     @CurrentUserId() userId: string,
-    @Body() body: AddFriendRequestDto,
-  ): Promise<{ id: string }> {
-    return await this.userService.addFriend(userId, body);
+    @Param('friendId') friendUserId: string,
+  ): Promise<void> {
+    await this.userService.addFriend(userId, friendUserId);
+  }
+
+  @Delete('me/friends/:friendId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteFriend(
+    @CurrentUserId() userId: string,
+    @Param('friendId') friendUserId: string,
+  ): Promise<void> {
+    await this.userService.deleteFriend(userId, friendUserId);
+  }
+
+  // 친구 목록 조회
+  @Get('me/friends')
+  async getMyFriends(@CurrentUserId() userId: string): Promise<GetMyFriendsResponseDto> {
+    return await this.userService.getFriends(userId);
   }
 
   // 타인 프로필 조회 — 반드시 'me' 라우트들보다 아래에 둘 것 (':id' 가 'me' 를 가로채므로)
   @Get(':id')
-  async getPublicProfile(@Param('id') id: string): Promise<PublicUserProfileResponseDto> {
-    return await this.userService.getPublicProfile(id);
+  async getPublicProfile(@Param('id') id: string): Promise<ProfileResponseDto> {
+    return await this.userService.profile(id);
   }
 }
