@@ -138,6 +138,7 @@ export class UserService {
       status: user.status,
       profileImagePath: user.profileImagePath,
       isOnline: userPresences.userPresences[0]?.isOnline ?? false,
+      createdAt: user.createdAt.toISOString(),
     };
   }
 
@@ -244,6 +245,7 @@ export class UserService {
         status: friend.status,
         profileImagePath: friend.profileImagePath,
         isOnline: presenceMap.get(friend.id) ?? false,
+        createdAt: friend.createdAt.toISOString(),
       });
     }
 

@@ -67,6 +67,7 @@ export const profileResponseSchema = z.object({
   status: statusSchema,
   profileImagePath: createProfileImagePathSchema(),
   isOnline: z.boolean(),
+  createdAt: z.iso.datetime(), // 가입일
 });
 export type ProfileResponse = z.infer<typeof profileResponseSchema>;
 

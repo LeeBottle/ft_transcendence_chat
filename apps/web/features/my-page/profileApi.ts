@@ -11,7 +11,7 @@ export interface MyProfile {
   role: 'USER' | 'ADMIN';
   status: string;
   profileImagePath: string | null;
-  // ⚠️ createdAt(가입일)은 백엔드 응답에 없음 — 스키마 추가 필요 (todos 2-A)
+  createdAt: string; // 가입일 (ISO8601)
 }
 
 function normalizeProfile(data: Partial<MyProfile>): MyProfile {
@@ -27,6 +27,7 @@ function normalizeProfile(data: Partial<MyProfile>): MyProfile {
     role: data.role === 'ADMIN' ? 'ADMIN' : 'USER',
     status: typeof data.status === 'string' ? data.status : 'ACTIVE',
     profileImagePath: typeof data.profileImagePath === 'string' ? data.profileImagePath : null,
+    createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
   };
 }
 

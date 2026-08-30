@@ -13,6 +13,21 @@ import {
   type MyProfile,
 } from '@/features/my-page/profileApi';
 
+// ISO8601 → "2026. 8. 31." (값이 없으면 "-")
+function formatJoinDate(iso: string): string {
+  if (iso === '') {
+    return '-';
+  }
+
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 export default function MyPage() {
   const router = useRouter();
   const { user, logout, patchUser, applyAccessToken } = useAuth();
@@ -85,7 +100,7 @@ export default function MyPage() {
       displayName={shown.name}
       email={shown.email}
       role={shown.role === 'ADMIN' ? 'admin' : 'user'}
-      joinDate="-" // ⚠️ 가입일: GET /users/me 응답에 createdAt 없음 (백엔드 스키마 추가 필요)
+      joinDate={profile === null ? '-' : formatJoinDate(profile.createdAt)}
       imageUrl={shown.profileImagePath}
       onLogout={handleLogout}
       onSaveInfo={handleSaveInfo}
