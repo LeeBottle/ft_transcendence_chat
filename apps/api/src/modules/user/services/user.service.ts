@@ -87,7 +87,13 @@ export class UserService {
   }
 
   async findByLoginIdWithDeleted(loginId: string): Promise<UserEntity | null> {
-    return await this.userRepository.findOne({ where: { loginId }, withDeleted: true });
+    // passwordHash 는 엔티티에서 select:false → 로그인 검증용으로 명시적으로 포함
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.loginId = :loginId', { loginId })
+      .withDeleted()
+      .getOne();
   }
 
   async findAuthCredentialsById(id: string): Promise<UserEntity | null> {
