@@ -41,7 +41,7 @@ export class AdminController {
     return await this.adminService.findAllUsers(query);
   }
 
-  @Patch(':userId/status')
+  @Patch('users/:userId/status')
   async updateUserStatus(
     @Param() param: AdminUserIdParamDto,
     @Body() body: AdminUpdateUserStatusRequestDto,
@@ -49,13 +49,13 @@ export class AdminController {
     return await this.adminService.updateUserStatus(param.userId, body.status);
   }
 
-  @Delete(':userId')
+  @Delete('users/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param() param: AdminUserIdParamDto): Promise<void> {
     await this.adminService.deleteUser(param.userId);
   }
 
-  @Post()
+  @Post('users')
   async createUser(@Body() body: AdminCreateUserRequestDto): Promise<AdminCreateUserResponseDto> {
     return await this.adminService.createUser(body);
   }
