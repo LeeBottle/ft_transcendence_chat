@@ -9,6 +9,6 @@ import { CalendarService } from './services/calendar.service.js';
   imports: [TypeOrmModule.forFeature([CalendarTaskEntity])],
   controllers: [CalendarController],
   providers: [CalendarService],
-  exports: [],
+  exports: [CalendarService],
 })
 export class CalendarModule {}

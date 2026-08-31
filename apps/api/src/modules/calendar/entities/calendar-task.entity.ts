@@ -13,7 +13,7 @@ import { SoftDeleteAuditBase } from '#database/entities/audit-base.entity.js';
 import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 @Entity({ name: 'calendar_tasks' })
-@Check('chk_calendar_tasks_due_after_started', '`due_at` >= `started_at`')
+@Check('chk_calendar_tasks_due_after_start', '`due_at` >= `start_at`')
 export class CalendarTaskEntity extends SoftDeleteAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
@@ -25,8 +25,8 @@ export class CalendarTaskEntity extends SoftDeleteAuditBase {
   @Column({ name: 'title', type: 'varchar', length: 255 })
   title!: string;
 
-  @Column({ name: 'started_at', type: 'datetime', precision: 3 })
-  startedAt!: Date;
+  @Column({ name: 'start_at', type: 'datetime', precision: 3 })
+  startAt!: Date;
 
   @Column({ name: 'due_at', type: 'datetime', precision: 3 })
   dueAt!: Date;

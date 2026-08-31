@@ -1,7 +1,7 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialSchema1787551378141 implements MigrationInterface {
-  name = 'InitialSchema1787551378141';
+export class InitialSchema1788161244158 implements MigrationInterface {
+  name = 'InitialSchema1788161244158';
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
@@ -50,7 +50,7 @@ export class InitialSchema1787551378141 implements MigrationInterface {
         \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         \`user_id\` BIGINT UNSIGNED NOT NULL,
         \`title\` VARCHAR(255) NOT NULL,
-        \`started_at\` DATETIME(3) NOT NULL,
+        \`start_at\` DATETIME(3) NOT NULL,
         \`due_at\` DATETIME(3) NOT NULL,
         \`completed_at\` DATETIME(3) NULL,
         INDEX \`idx_calendar_tasks_user_id\` (\`user_id\`),
@@ -77,7 +77,7 @@ export class InitialSchema1787551378141 implements MigrationInterface {
         \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         \`chat_room_id\` BIGINT UNSIGNED NOT NULL,
         \`user_id\` BIGINT UNSIGNED NOT NULL,
-        \`role\` ENUM('MEMBER', 'MANAGER', 'OWNER') NOT NULL DEFAULT 'MEMBER',
+        \`role\` ENUM('OWNER', 'MANAGER', 'MEMBER') NOT NULL DEFAULT 'MEMBER',
         \`is_owner\` TINYINT AS (IF(\`role\` = 'OWNER', 1, NULL)) VIRTUAL NULL COMMENT '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)',
         \`status\` ENUM('ACTIVE', 'LEFT', 'KICKED') NOT NULL DEFAULT 'ACTIVE',
         \`joined_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -92,7 +92,7 @@ export class InitialSchema1787551378141 implements MigrationInterface {
     await queryRunner.query(
       /* sql */ `
         INSERT INTO
-          \`typeorm_metadata\` (
+          \`app_production\`.\`typeorm_metadata\` (
             \`database\`,
             \`schema\`,
             \`table\`,
@@ -101,9 +101,15 @@ export class InitialSchema1787551378141 implements MigrationInterface {
             \`value\`
           )
         VALUES
-          (DEFAULT, DATABASE(), ?, ?, ?, ?)
+          (DEFAULT, ?, ?, ?, ?, ?)
       `,
-      ['chat_room_members', 'GENERATED_COLUMN', 'is_owner', "IF(`role` = 'OWNER', 1, NULL)"],
+      [
+        'app_production',
+        'chat_room_members',
+        'GENERATED_COLUMN',
+        'is_owner',
+        "IF(`role` = 'OWNER', 1, NULL)",
+      ],
     );
     await queryRunner.query(/* sql */ `
       CREATE TABLE \`chat_room_messages\` (
@@ -125,13 +131,28 @@ export class InitialSchema1787551378141 implements MigrationInterface {
         \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         \`chat_room_member_id\` BIGINT UNSIGNED NOT NULL,
         \`title\` VARCHAR(255) NOT NULL,
-        \`started_at\` DATETIME(3) NOT NULL,
+        \`start_at\` DATETIME(3) NOT NULL,
         \`due_at\` DATETIME(3) NOT NULL,
         \`completed_at\` DATETIME(3) NULL,
         \`calendar_task_id\` BIGINT UNSIGNED NULL,
         \`calendar_sync_status\` ENUM('NOT_REQUESTED', 'SUCCESS', 'FAILURE') NOT NULL DEFAULT 'NOT_REQUESTED',
         INDEX \`idx_chat_room_tasks_calendar_task_id\` (\`calendar_task_id\`),
         UNIQUE INDEX \`uq_chat_room_tasks_chat_room_member_id_calendar_task_id\` (\`chat_room_member_id\`, \`calendar_task_id\`),
+        PRIMARY KEY (\`id\`)
+      ) ENGINE = InnoDB
+    `);
+    await queryRunner.query(/* sql */ `
+      CREATE TABLE \`user_sessions\` (
+        \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        \`updated_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+        \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        \`user_id\` BIGINT UNSIGNED NOT NULL,
+        \`refresh_token_hash\` CHAR(64) COLLATE "utf8mb4_bin" NOT NULL COMMENT 'SHA-256 해시값 (64자 고정)',
+        \`ip_address\` VARCHAR(45) NOT NULL,
+        \`user_agent\` TEXT NULL,
+        \`expires_at\` DATETIME(3) NOT NULL,
+        INDEX \`idx_user_sessions_user_id\` (\`user_id\`),
+        UNIQUE INDEX \`uq_user_sessions_refresh_token_hash\` (\`refresh_token_hash\`),
         PRIMARY KEY (\`id\`)
       ) ENGINE = InnoDB
     `);
@@ -183,6 +204,10 @@ export class InitialSchema1787551378141 implements MigrationInterface {
       ADD CONSTRAINT \`fk_chat_room_tasks_calendar_tasks_calendar_task_id\` FOREIGN KEY (\`calendar_task_id\`) REFERENCES \`calendar_tasks\` (\`id\`) ON DELETE RESTRICT ON UPDATE RESTRICT
     `);
     await queryRunner.query(/* sql */ `
+      ALTER TABLE \`user_sessions\`
+      ADD CONSTRAINT \`fk_user_sessions_users_user_id\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE RESTRICT ON UPDATE RESTRICT
+    `);
+    await queryRunner.query(/* sql */ `
       ALTER TABLE \`user_friends\`
       ADD CONSTRAINT \`fk_user_friends_users_user_id\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE RESTRICT ON UPDATE RESTRICT
     `);
@@ -200,6 +225,10 @@ export class InitialSchema1787551378141 implements MigrationInterface {
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`user_friends\`
       DROP FOREIGN KEY \`fk_user_friends_users_user_id\`
+    `);
+    await queryRunner.query(/* sql */ `
+      ALTER TABLE \`user_sessions\`
+      DROP FOREIGN KEY \`fk_user_sessions_users_user_id\`
     `);
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`chat_room_tasks\`
@@ -245,6 +274,13 @@ export class InitialSchema1787551378141 implements MigrationInterface {
     `);
     await queryRunner.query(/* sql */ `DROP TABLE \`user_friends\``);
     await queryRunner.query(/* sql */ `
+      DROP INDEX \`uq_user_sessions_refresh_token_hash\` ON \`user_sessions\`
+    `);
+    await queryRunner.query(/* sql */ `
+      DROP INDEX \`idx_user_sessions_user_id\` ON \`user_sessions\`
+    `);
+    await queryRunner.query(/* sql */ `DROP TABLE \`user_sessions\``);
+    await queryRunner.query(/* sql */ `
       DROP INDEX \`uq_chat_room_tasks_chat_room_member_id_calendar_task_id\` ON \`chat_room_tasks\`
     `);
     await queryRunner.query(/* sql */ `
@@ -260,14 +296,14 @@ export class InitialSchema1787551378141 implements MigrationInterface {
     await queryRunner.query(/* sql */ `DROP TABLE \`chat_room_messages\``);
     await queryRunner.query(
       /* sql */ `
-        DELETE FROM \`typeorm_metadata\`
+        DELETE FROM \`app_production\`.\`typeorm_metadata\`
         WHERE
           \`type\` = ?
           AND \`name\` = ?
-          AND \`schema\` = DATABASE()
+          AND \`schema\` = ?
           AND \`table\` = ?
       `,
-      ['GENERATED_COLUMN', 'is_owner', 'chat_room_members'],
+      ['GENERATED_COLUMN', 'is_owner', 'app_production', 'chat_room_members'],
     );
     await queryRunner.query(/* sql */ `
       DROP INDEX \`uq_chat_room_members_chat_room_id_user_id\` ON \`chat_room_members\`

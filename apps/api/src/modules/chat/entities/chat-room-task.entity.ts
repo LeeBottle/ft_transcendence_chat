@@ -22,7 +22,7 @@ import { ChatRoomMemberEntity } from './chat-room-member.entity.js';
   'chatRoomMemberId',
   'calendarTaskId',
 ])
-@Check('chk_chat_room_tasks_due_after_started', '`due_at` >= `started_at`')
+@Check('chk_chat_room_tasks_due_after_start', '`due_at` >= `start_at`')
 export class ChatRoomTaskEntity extends CreateAuditBase {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint', unsigned: true })
   id!: string;
@@ -33,8 +33,8 @@ export class ChatRoomTaskEntity extends CreateAuditBase {
   @Column({ name: 'title', type: 'varchar', length: 255 })
   title!: string;
 
-  @Column({ name: 'started_at', type: 'datetime', precision: 3 })
-  startedAt!: Date;
+  @Column({ name: 'start_at', type: 'datetime', precision: 3 })
+  startAt!: Date;
 
   @Column({ name: 'due_at', type: 'datetime', precision: 3 })
   dueAt!: Date;
