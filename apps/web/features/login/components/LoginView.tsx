@@ -11,18 +11,18 @@ import { loginUserRequestSchema } from '@repo/schemas/auth';
 
 export default function LoginView() {
   const router = useRouter();
-  const { login, status } = useAuth();
+  const { login, status, user } = useAuth();
   const [userId, setUserId] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 이미 로그인된 상태면 로그인 화면을 보여줄 이유가 없음
+  // 이미 로그인된 상태면 로그인 화면을 보여줄 이유가 없음 (역할별 홈으로)
   useEffect(() => {
     if (status === 'authenticated') {
-      router.replace('/calendar');
+      router.replace(user?.role === 'ADMIN' ? '/admin/users' : '/calendar');
     }
-  }, [status, router]);
+  }, [status, user, router]);
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,10 +38,10 @@ export default function LoginView() {
         return;
       }
 
-      const user = await login(userId, userPassword);
+      const loggedIn = await login(userId, userPassword);
 
       // role 별 이동 (관리자 → 관리자 화면, 일반 유저 → 캘린더)
-      router.push(user.role === 'ADMIN' ? '/admin/users' : '/calendar');
+      router.push(loggedIn.role === 'ADMIN' ? '/admin/users' : '/calendar');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '로그인에 실패했어요.');
     } finally {
