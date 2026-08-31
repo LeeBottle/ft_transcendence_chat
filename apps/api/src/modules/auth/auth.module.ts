@@ -35,6 +35,6 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy.js';
     JwtAccessStrategy,
     { provide: PasswordService, useClass: BcryptPasswordService },
   ],
-  exports: [],
+  exports: [PasswordService],
 })
 export class AuthModule {}

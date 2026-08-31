@@ -115,11 +115,11 @@ export class ChatService {
     if (uniqueTargetLoginIds.length > 0) {
       const existingUsers = await this.userRepository.find({
         select: { id: true, loginId: true },
-        where: { loginId: In(uniqueTargetLoginIds) },
+        where: { loginId: In(uniqueTargetLoginIds), status: UserStatus.ACTIVE },
       });
 
       if (existingUsers.length !== uniqueTargetLoginIds.length) {
-        throw new NotFoundException('존재하지 않는 사용자가 포함되어 있습니다.');
+        throw new NotFoundException('존재하지 않거나 활성 상태가 아닌 사용자가 포함되어 있습니다.');
       }
 
       // 방장 본인이 초대 목록에 포함되어 있다면 일반 멤버 등록 대상에서 제외
@@ -131,6 +131,7 @@ export class ChatService {
       this.roomRepository.create({
         creatorUserId,
         title: dto.title,
+        memberCount: targetMemberUsers.length + 1, // 방장 포함
       }),
     );
 

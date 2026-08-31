@@ -1,7 +1,7 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialSchema1788161244158 implements MigrationInterface {
-  name = 'InitialSchema1788161244158';
+export class InitialSchema1788187582229 implements MigrationInterface {
+  name = 'InitialSchema1788187582229';
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
@@ -53,6 +53,8 @@ export class InitialSchema1788161244158 implements MigrationInterface {
         \`start_at\` DATETIME(3) NOT NULL,
         \`due_at\` DATETIME(3) NOT NULL,
         \`completed_at\` DATETIME(3) NULL,
+        \`color\` CHAR(7) NOT NULL DEFAULT '#6C63FF',
+        \`memo\` VARCHAR(255) NOT NULL DEFAULT '',
         INDEX \`idx_calendar_tasks_user_id\` (\`user_id\`),
         PRIMARY KEY (\`id\`)
       ) ENGINE = InnoDB
@@ -65,6 +67,7 @@ export class InitialSchema1788161244158 implements MigrationInterface {
         \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         \`creator_user_id\` BIGINT UNSIGNED NOT NULL,
         \`title\` VARCHAR(255) NOT NULL,
+        \`member_count\` BIGINT UNSIGNED NOT NULL,
         \`closed_at\` DATETIME(3) NULL,
         INDEX \`idx_chat_rooms_creator_user_id\` (\`creator_user_id\`),
         PRIMARY KEY (\`id\`)

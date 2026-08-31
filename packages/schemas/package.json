@@ -10,6 +10,10 @@
     }
   },
   "exports": {
+    "./admin": {
+      "types": "./src/admin/admin.schema.ts",
+      "default": "./dist/admin/admin.schema.js"
+    },
     "./auth": {
       "types": "./src/auth/auth.schema.ts",
       "default": "./dist/auth/auth.schema.js"

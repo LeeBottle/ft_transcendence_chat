@@ -23,6 +23,9 @@ export class ChatRoomEntity extends SoftDeleteAuditBase {
   @Column({ name: 'title', type: 'varchar', length: 255 })
   title!: string;
 
+  @Column({ name: 'member_count', type: 'bigint', unsigned: true })
+  memberCount!: number;
+
   @Column({ name: 'closed_at', type: 'datetime', precision: 3, nullable: true })
   closedAt!: Date | null;
 
