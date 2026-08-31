@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { EntityNotFoundError, QueryFailedError, type Repository } from 'typeorm';
 
-import { UserSessionService } from '#modules/auth/services/user-session.service.js';
+import { UserSessionService } from '#modules/session/services/session.service.js';
 import type {
   GetMyFriendsResponseDto,
   ProfileResponseDto,
@@ -36,7 +36,7 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserFriendEntity)
     private readonly friendRepository: Repository<UserFriendEntity>,
-    private readonly userSessionService: UserSessionService,
+    private readonly sessionService: UserSessionService,
   ) {}
 
   async assertUniqueness(params: AssertUniquenessParams): Promise<void> {
@@ -79,7 +79,21 @@ export class UserService {
   }
 
   async findByLoginIdWithDeleted(loginId: string): Promise<UserEntity | null> {
-    return await this.userRepository.findOne({ where: { loginId }, withDeleted: true });
+    return await this.userRepository.findOne({
+      select: {
+        id: true,
+        loginId: true,
+        passwordHash: true,
+        name: true,
+        email: true,
+        emailVerifiedAt: true,
+        role: true,
+        status: true,
+        profileImagePath: true,
+      },
+      where: { loginId },
+      withDeleted: true,
+    });
   }
 
   async findAuthCredentialsById(id: string): Promise<UserEntity | null> {
@@ -96,7 +110,7 @@ export class UserService {
       throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
     }
 
-    const userPresences = await this.userSessionService.getUserPresences([id]);
+    const userPresences = await this.sessionService.getUserPresences([id]);
 
     return {
       id: user.id,
@@ -189,7 +203,7 @@ export class UserService {
 
     // 1. N+1 방지를 위해 모든 친구의 userId를 수집하여 1회의 Batch 쿼리로 온라인 상태 조회
     const friendUserIds = friendships.map((f) => f.friendUserId);
-    const { userPresences } = await this.userSessionService.getUserPresences(friendUserIds);
+    const { userPresences } = await this.sessionService.getUserPresences(friendUserIds);
 
     // 2. O(1) 조회를 위한 Presence Map 생성
     const presenceMap = new Map<string, boolean>(userPresences.map((p) => [p.userId, p.isOnline]));

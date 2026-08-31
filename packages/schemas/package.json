@@ -15,8 +15,8 @@
       "default": "./dist/auth/auth.schema.js"
     },
     "./chat": {
-      "types": "./src/chat/index.ts",
-      "default": "./dist/chat/index.js"
+      "types": "./src/chat/chat.schema.ts",
+      "default": "./dist/chat/chat.schema.js"
     },
     "./user": {
       "types": "./src/user/user.schema.ts",

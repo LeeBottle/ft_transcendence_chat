@@ -27,16 +27,16 @@ export function toRoom(res: ChatRoomResponse): Room {
   const name = res.title.trim() === '' ? '이름 없는 방' : res.title;
 
   return {
-    id: res.id,
+    id: res.roomId,
     name,
     avatarLabel: name.slice(0, 2),
-    avatarColor: pickAvatarColor(res.id),
-    unreadCount: res.unreadCount,
-    members: res.members?.map((m) => ({
-      userId: m.userId,
-      name: m.name ?? m.loginId ?? '알 수 없음',
-      role: m.role,
-    })),
+    avatarColor: pickAvatarColor(res.roomId),
+    // unreadCount: res.unreadCount,
+    // members: res.members?.map((m) => ({
+    //   userId: m.userId,
+    //   name: m.name ?? m.loginId ?? '알 수 없음',
+    //   role: m.role,
+    // })),
   };
 }
 

@@ -22,6 +22,8 @@ uploads/*
 
 *.tsbuildinfo
 
+tsup.config.bundled_*.mjs
+
 *.pem
 
 .husky/_/

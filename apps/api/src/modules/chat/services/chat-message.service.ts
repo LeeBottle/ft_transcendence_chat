@@ -4,10 +4,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ChatRoomMemberStatus } from '@repo/constants/chat-room-member';
+import { ChatRoomMessageType } from '@repo/constants/chat-room-message';
 
 import type {
   ChatMessageResponseDto,
   GetMessagesQueryDto,
+  GetMessagesResponseDto,
 } from '#modules/chat/controllers/chat.dto.js';
 import { ChatRoomMemberEntity } from '#modules/chat/entities/chat-room-member.entity.js';
 import { ChatRoomMessageEntity } from '#modules/chat/entities/chat-room-message.entity.js';
@@ -36,14 +38,12 @@ export class ChatMessageService {
     roomId: string,
     userId: string,
     query: GetMessagesQueryDto,
-  ): Promise<ChatMessageResponseDto[]> {
+  ): Promise<GetMessagesResponseDto> {
     const member = await this.memberRepository.findOne({
       where: { chatRoomId: roomId, userId, status: ChatRoomMemberStatus.ACTIVE },
     });
 
-    const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
-
-    if (member === null && !isTempRoom) {
+    if (member === null) {
       throw new ForbiddenException('채팅방 멤버만 메시지를 조회할 수 있습니다.');
     }
 
@@ -62,7 +62,7 @@ export class ChatMessageService {
           id?: string;
           roomId: string;
           senderUserId: string;
-          type: ChatRoomMessageEntity['type'];
+          type: ChatRoomMessageType;
           content: string | null;
           sentAt: string;
         };
@@ -135,16 +135,16 @@ export class ChatMessageService {
 
     merged.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
 
-    return merged.slice(0, limit);
+    return { messages: merged.slice(0, limit) };
   }
 
   async saveMessage(
     roomId: string,
     senderUserId: string,
     content: string,
-    type: ChatRoomMessageEntity['type'],
+    type: ChatRoomMessageType,
   ): Promise<ChatMessageResponseDto> {
-    const room = await this.roomRepository.findOne({ where: { id: roomId } });
+    const room = await this.roomRepository.findOneBy({ id: roomId });
 
     if (room !== null && room.closedAt !== null) {
       throw new ForbiddenException(
@@ -152,22 +152,10 @@ export class ChatMessageService {
       );
     }
 
-    const isTempRoom = roomId.startsWith('room-') || roomId.startsWith('temp-');
-
-    if (isTempRoom) {
-      return {
-        id: `temp-msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        chatRoomId: roomId,
-        senderUserId,
-        senderName: `사용자 ${senderUserId}`,
-        type,
-        content,
-        sentAt: new Date().toISOString(),
-      };
-    }
-
-    const member = await this.memberRepository.findOne({
-      where: { chatRoomId: roomId, userId: senderUserId, status: ChatRoomMemberStatus.ACTIVE },
+    const member = await this.memberRepository.findOneBy({
+      chatRoomId: roomId,
+      userId: senderUserId,
+      status: ChatRoomMemberStatus.ACTIVE,
     });
 
     if (member === null) {

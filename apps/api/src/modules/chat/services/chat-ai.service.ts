@@ -1,14 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import type { ChatMessageResponseDto } from '#modules/chat/controllers/chat.dto.js';
+import type { AiTaskExtractionResult } from '@repo/schemas/chat';
 
-export interface AiTaskExtractionResult {
-  summary: string;
-  actionItems: Array<{
-    title: string;
-    assigneeUserId?: string;
-  }>;
-}
+import type { ChatMessageResponseDto } from '#modules/chat/controllers/chat.dto.js';
 
 @Injectable()
 export class ChatAiService {
@@ -27,14 +21,14 @@ export class ChatAiService {
     );
 
     // AI 모듈 연동 인터페이스 (추후 외부 AI API 또는 LLM 모듈 연동 지점)
-    const result: AiTaskExtractionResult = {
+    const result = {
       summary: `채팅방 ${roomId} 회의 요약: 총 ${messages.length}건의 대화가 진행되었습니다.`,
       actionItems: [
         {
           title: '회의 결과 검토 및 다음 액션 플랜 수립',
         },
       ],
-    };
+    } satisfies AiTaskExtractionResult;
 
     this.logger.log(`AI 모듈 분석 결과 생성 완료: ${result.summary}`);
 

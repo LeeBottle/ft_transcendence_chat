@@ -2,40 +2,22 @@ import { createZodDto } from 'nestjs-zod';
 
 import {
   chatMessageResponseSchema,
-  chatRoomMemberResponseSchema,
+  chatRoomListResponseSchema,
   chatRoomResponseSchema,
   createChatRoomRequestSchema,
+  createChatRoomResponseSchema,
+  endSessionResponseSchema,
   getMessagesQuerySchema,
-  inviteMemberRequestSchema,
+  getMessagesResponseSchema,
   sendMessageRequestSchema,
 } from '@repo/schemas/chat';
 
 export class CreateChatRoomRequestDto extends createZodDto(createChatRoomRequestSchema) {}
-
-export class InviteMemberRequestDto extends createZodDto(inviteMemberRequestSchema) {}
-
-export class SendMessageRequestDto extends createZodDto(sendMessageRequestSchema) {}
-
-export class GetMessagesQueryDto extends createZodDto(getMessagesQuerySchema) {}
-
+export class CreateChatRoomResponseDto extends createZodDto(createChatRoomResponseSchema) {}
 export class ChatRoomResponseDto extends createZodDto(chatRoomResponseSchema) {}
-
-export class ChatRoomMemberResponseDto extends createZodDto(chatRoomMemberResponseSchema) {}
-
+export class ChatRoomListResponseDto extends createZodDto(chatRoomListResponseSchema) {}
+export class SendMessageRequestDto extends createZodDto(sendMessageRequestSchema) {}
+export class GetMessagesQueryDto extends createZodDto(getMessagesQuerySchema) {}
 export class ChatMessageResponseDto extends createZodDto(chatMessageResponseSchema) {}
-
-export class UpdateMemberRoleDto {
-  role!: 'FOUNDER' | 'OPERATOR' | 'USER';
-}
-
-export class UpdateTopicRequestDto {
-  topic!: string;
-}
-
-export class VerifyPasswordRequestDto {
-  password!: string;
-}
-
-export class UpdateRoomPasswordDto {
-  password?: string | null;
-}
+export class GetMessagesResponseDto extends createZodDto(getMessagesResponseSchema) {}
+export class EndSessionResponseDto extends createZodDto(endSessionResponseSchema) {}
