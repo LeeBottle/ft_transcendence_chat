@@ -10,10 +10,6 @@ import { useAuth } from '@/features/auth/AuthContext';
 import ChatHeader from '@/features/chat/components/ChatHeader';
 import InputBar from '@/features/chat/components/InputBar';
 import MessageList from '@/features/chat/components/MessageList';
-import TaskPanel, {
-  type ExtractStatus,
-  type SummarySection,
-} from '@/features/chat/components/TaskPanel';
 import {
   fetchMessages,
   HISTORY_PAGE_SIZE,
@@ -21,7 +17,6 @@ import {
   mergeMessages,
 } from '@/features/chat/messages';
 import { getChatSocket } from '@/features/chat/socket';
-import type { Task } from '@/features/chat/types';
 import { closeRoom } from '@/features/room/roomApi';
 import { useRoomContext } from '@/features/room/RoomContext';
 
@@ -44,15 +39,12 @@ export default function ChatRoomPage() {
   const [loadingOlder, setLoadingOlder] = useState(false);
 
   const [messageInput, setMessageInput] = useState('');
-  const [taskPanelOpen, setTaskPanelOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'task' | 'summary'>('task');
-  const [meetingEnded, setMeetingEnded] = useState(false);
+  const [locallyEnded, setLocallyEnded] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  // TaskPanel — 백엔드 AI 서비스가 스텁 상태. Phase 1-I 에서 실연동.
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [taskStatus] = useState<ExtractStatus>('idle');
-  const [summarySections] = useState<SummarySection[]>([]);
-  const [summaryStatus] = useState<ExtractStatus>('idle');
+  // 서버 기준으로 이미 종료된 방(closedAt) 이거나, 방금 내가 종료한 경우
+  const roomClosed = activeRoom?.closedAt !== null && activeRoom?.closedAt !== undefined;
+  const meetingEnded = roomClosed || locallyEnded;
 
   // await 이후 "아직 같은 방을 보고 있나" 확인용 (방 빠르게 전환 시 오래된 응답 무시)
   const roomIdRef = useRef(roomId);
@@ -88,12 +80,13 @@ export default function ChatRoomPage() {
   useEffect(() => {
     setRaw([]);
     setHasMoreOlder(false);
-    setMeetingEnded(false);
+    setLocallyEnded(false);
+    setSendError(null);
 
     void loadHistory(roomId);
   }, [roomId, loadHistory]);
 
-  // 실시간 new_message 구독
+  // 실시간 new_message + 전송 실패(exception) 구독
   useEffect(() => {
     const socket = getChatSocket();
 
@@ -109,10 +102,24 @@ export default function ChatRoomPage() {
       setRaw((prev) => mergeMessages(prev, [msg], 'append'));
     };
 
+    const handleException = (payload: unknown): void => {
+      const message =
+        payload !== null && typeof payload === 'object' && 'message' in payload
+          ? String(payload.message)
+          : '메시지를 보내지 못했어요.';
+
+      // 토큰/인증 오류는 RoomContext 가 처리 → 여기선 무시
+      if (!message.includes('토큰') && !message.includes('인증')) {
+        setSendError(message);
+      }
+    };
+
     socket.on('new_message', handleNewMessage);
+    socket.on('exception', handleException);
 
     return () => {
       socket.off('new_message', handleNewMessage);
+      socket.off('exception', handleException);
     };
   }, [roomId]);
 
@@ -149,31 +156,16 @@ export default function ChatRoomPage() {
       return;
     }
 
+    setSendError(null);
     // 서버가 저장 후 new_message 로 되돌려주므로 낙관적 추가는 하지 않는다.
     socket.emit('send_message', { roomId, content });
     setMessageInput('');
   }, [messageInput, roomId, meetingEnded]);
 
-  function handleToggleChecked(id: string) {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, checked: !(task.checked ?? false) } : task)),
-    );
-  }
-
-  function handleToggleDone(id: string) {
-    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
-  }
-
-  function handleDateChange(id: string, field: 'start' | 'end', value: string) {
-    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, [field]: value } : task)));
-  }
-
-  const canSync = tasks.some((task) => task.isAi && task.checked === true);
-
   // 방장만 회의(방) 종료 가능
   const iAmOwner = activeRoom?.role === 'OWNER';
 
-  const headerSubtitle = ((): string => {
+  const roleLabel = ((): string => {
     if (activeRoom?.role === 'OWNER') {
       return '방장';
     }
@@ -191,7 +183,7 @@ export default function ChatRoomPage() {
 
     try {
       await closeRoom(roomId);
-      setMeetingEnded(true);
+      setLocallyEnded(true);
       await refreshRooms();
       router.push('/chat');
     } catch (error) {
@@ -258,56 +250,42 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="flex h-full">
-      <div className="flex min-w-0 flex-1 flex-col">
-        <ChatHeader
-          avatarLabel={activeRoom.avatarLabel}
-          avatarColorClass="bg-indigo-100 text-indigo-600"
-          roomName={activeRoom.name}
-          subtitle={headerSubtitle}
-          taskPanelOpen={taskPanelOpen}
-          onToggleTaskPanel={() => {
-            setTaskPanelOpen((prev) => !prev);
-          }}
-          meetingEnded={meetingEnded}
-          canEndMeeting={iAmOwner}
-          onEndMeeting={() => {
-            void handleEndMeeting();
-          }}
-        />
-
-        {chatBody}
-
-        <InputBar
-          value={messageInput}
-          onChange={setMessageInput}
-          onSend={handleSend}
-          disabled={meetingEnded}
-        />
-      </div>
-
-      <TaskPanel
-        open={taskPanelOpen}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        taskStatus={taskStatus}
-        tasks={tasks}
-        onExtractTasks={() => {
-          // Phase 1-I: 백엔드 AI 스텁
-        }}
-        onToggleChecked={handleToggleChecked}
-        onToggleDone={handleToggleDone}
-        onDateChange={handleDateChange}
-        canSync={canSync}
-        onSync={() => {
-          // Phase 1-I / Phase 3: 캘린더 연동
-        }}
-        summaryStatus={summaryStatus}
-        summarySections={summarySections}
-        onExtractSummary={() => {
-          // Phase 1-I: 백엔드 AI 스텁
+    <div className="flex h-full min-w-0 flex-col">
+      <ChatHeader
+        avatarLabel={activeRoom.avatarLabel}
+        avatarColorClass="bg-indigo-100 text-indigo-600"
+        roomName={activeRoom.name}
+        roomId={roomId}
+        roleLabel={roleLabel}
+        memberCount={activeRoom.memberCount}
+        meetingEnded={meetingEnded}
+        canEndMeeting={iAmOwner}
+        onEndMeeting={() => {
+          void handleEndMeeting();
         }}
       />
+
+      {chatBody}
+
+      {meetingEnded ? (
+        <div className="shrink-0 border-t border-gray-100 px-4 py-3 text-center text-xs text-gray-400">
+          종료된 채팅방이에요. 대화 내용은 볼 수 있지만 새 메시지는 보낼 수 없어요.
+        </div>
+      ) : (
+        <>
+          {sendError !== null && (
+            <div className="shrink-0 bg-red-50 px-4 py-2 text-center text-xs text-red-600">
+              {sendError}
+            </div>
+          )}
+          <InputBar
+            value={messageInput}
+            onChange={setMessageInput}
+            onSend={handleSend}
+            disabled={false}
+          />
+        </>
+      )}
     </div>
   );
 }

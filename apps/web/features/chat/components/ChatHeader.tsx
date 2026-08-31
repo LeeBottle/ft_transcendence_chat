@@ -1,13 +1,16 @@
 'use client';
+
 // ChatHeader.tsx (.chat-hdr)
+import RoomMembersPopover from '@/features/room/components/RoomMembersPopover';
 
 interface ChatHeaderProps {
   avatarLabel: string;
   avatarColorClass: string;
   roomName: string;
-  subtitle: string;
-  taskPanelOpen: boolean;
-  onToggleTaskPanel: () => void;
+  roomId: string;
+  /** 내 역할 라벨 ('방장' / '운영자' / '') */
+  roleLabel: string;
+  memberCount?: number;
   meetingEnded: boolean;
   canEndMeeting: boolean;
   onEndMeeting: () => void;
@@ -17,9 +20,9 @@ function ChatHeader({
   avatarLabel,
   avatarColorClass,
   roomName,
-  subtitle,
-  taskPanelOpen,
-  onToggleTaskPanel,
+  roomId,
+  roleLabel,
+  memberCount,
   meetingEnded,
   canEndMeeting,
   onEndMeeting,
@@ -33,23 +36,16 @@ function ChatHeader({
       </span>
       <div className="min-w-0">
         <div className="truncate text-[15px] font-semibold text-gray-900">{roomName}</div>
-        <div className="truncate text-xs text-gray-400">{subtitle}</div>
+        <div className="flex items-center gap-1 text-xs text-gray-400">
+          {roleLabel !== '' && <span>{roleLabel} ·</span>}
+          <RoomMembersPopover
+            roomId={roomId}
+            memberCount={memberCount}
+          />
+        </div>
       </div>
 
       <div className="ml-auto flex items-center gap-1">
-        <button
-          aria-label="검색"
-          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50"
-        >
-          🔍
-        </button>
-        <button
-          onClick={onToggleTaskPanel}
-          aria-label="태스크 패널"
-          className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg ${taskPanelOpen ? 'bg-purple-50 text-purple-600' : 'text-gray-500 hover:bg-gray-50'} `}
-        >
-          ☑
-        </button>
         {canEndMeeting && (
           <button
             onClick={onEndMeeting}

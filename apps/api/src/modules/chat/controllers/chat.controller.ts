@@ -11,6 +11,7 @@ import { ChatService } from '#modules/chat/services/chat.service.js';
 import {
   ChatMessageResponseDto,
   ChatRoomListResponseDto,
+  ChatRoomMemberListResponseDto,
   CreateChatRoomRequestDto,
   CreateChatRoomResponseDto,
   EndSessionResponseDto,
@@ -48,6 +49,14 @@ export class ChatController {
   @Get()
   async myRooms(@CurrentUserId() userId: string): Promise<ChatRoomListResponseDto> {
     return await this.chatService.findJoinedChatRoomsByUserId(userId);
+  }
+
+  @Get(':roomId/members')
+  async roomMembers(
+    @CurrentUserId() userId: string,
+    @Param('roomId') roomId: string,
+  ): Promise<ChatRoomMemberListResponseDto> {
+    return await this.chatService.findRoomMembers(roomId, userId);
   }
 
   @Post(':roomId')

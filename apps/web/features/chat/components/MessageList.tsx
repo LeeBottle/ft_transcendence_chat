@@ -4,7 +4,6 @@
 import { useEffect, useRef } from 'react';
 
 import type { Message } from '../types';
-import AiExtractCard from './AiExtractCard';
 import MessageBubble from './MessageBubble';
 
 interface MessageListProps {
@@ -64,15 +63,9 @@ function MessageList({
       ))}
 
       {meetingEnded && (
-        <>
-          <div className="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-center text-sm font-medium text-amber-800">
-            ■ 방장이 회의를 종료했어요. AI가 태스크를 분석 중입니다…
-          </div>
-          <AiExtractCard
-            label="회의가 종료됐어요"
-            text="오른쪽 패널에서 추출 버튼을 눌러 AI 태스크·채팅 요약을 가져오세요."
-          />
-        </>
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-center text-sm font-medium text-amber-800">
+          ■ 방장이 회의를 종료했어요.
+        </div>
       )}
 
       <div ref={bottomRef} />

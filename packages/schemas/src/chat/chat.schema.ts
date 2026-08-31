@@ -19,6 +19,7 @@ export const chatRoomResponseSchema = z.object({
   roomId: z.string(),
   title: z.string(),
   role: z.enum(ChatRoomMemberRole),
+  memberCount: z.coerce.number().int().nonnegative(), // 방장 포함 인원수
   closedAt: z.iso.datetime().nullable(),
   updatedAt: z.iso.datetime(),
 });
@@ -26,6 +27,23 @@ export type ChatRoomResponse = z.infer<typeof chatRoomResponseSchema>;
 
 export const chatRoomListResponseSchema = z.object({ rooms: z.array(chatRoomResponseSchema) });
 export type ChatRoomListResponse = z.infer<typeof chatRoomListResponseSchema>;
+
+/* 채팅방 참여자 목록 (표시용) */
+export const chatRoomMemberSchema = z.object({
+  userId: z.string(),
+  loginId: z.string(),
+  name: z.string(),
+  profileImagePath: z.string().nullable(),
+  role: z.enum(ChatRoomMemberRole),
+  joinedAt: z.iso.datetime(),
+  isOnline: z.boolean(), // 지금 이 방 소켓에 접속 중인지
+});
+export type ChatRoomMember = z.infer<typeof chatRoomMemberSchema>;
+
+export const chatRoomMemberListResponseSchema = z.object({
+  members: z.array(chatRoomMemberSchema),
+});
+export type ChatRoomMemberListResponse = z.infer<typeof chatRoomMemberListResponseSchema>;
 
 export const getMessagesQuerySchema = z.object({
   cursor: z.string().optional(),

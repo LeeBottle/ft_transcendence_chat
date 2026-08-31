@@ -11,8 +11,10 @@ import { apiFetch } from '@/features/auth/apiClient';
 
 import {
   chatRoomListResponseSchema,
+  chatRoomMemberListResponseSchema,
   createChatRoomRequestSchema,
   createChatRoomResponseSchema,
+  type ChatRoomMember,
   type ChatRoomResponse,
 } from '@repo/schemas/chat';
 
@@ -40,6 +42,7 @@ export function toRoom(res: ChatRoomResponse): Room {
     avatarLabel: name.slice(0, 2),
     avatarColor: pickAvatarColor(res.roomId),
     role: res.role,
+    memberCount: res.memberCount,
     closedAt: res.closedAt,
   };
 }
@@ -97,6 +100,7 @@ export async function createRoom(title: string, memberLoginIds: string[] = []): 
     roomId: parsed.data.roomId,
     title: parsed.data.title,
     role: 'OWNER',
+    memberCount: memberLoginIds.length + 1, // 방장 포함
     closedAt: null,
     updatedAt: new Date().toISOString(),
   });
@@ -109,6 +113,25 @@ export async function closeRoom(roomId: string): Promise<void> {
   if (!res.ok) {
     throw new Error(await readErrorMessage(res, `채팅방을 종료하지 못했어요 (${res.status})`));
   }
+}
+
+export type RoomMember = ChatRoomMember;
+
+/** 채팅방 참여자 목록 (방장 → 운영자 → 일반 순, isOnline 포함) */
+export async function fetchRoomMembers(roomId: string): Promise<RoomMember[]> {
+  const res = await apiFetch(`/api/chat/rooms/${roomId}/members`);
+
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, `참여자 목록을 불러오지 못했어요 (${res.status})`));
+  }
+
+  const parsed = chatRoomMemberListResponseSchema.safeParse(await res.json());
+
+  if (!parsed.success) {
+    throw new Error('참여자 목록 응답 형식이 예상과 달라요.');
+  }
+
+  return parsed.data.members;
 }
 
 /* ── 유저 검색 (방 생성 시 멤버 고르기) — GET /api/users?q= 는 유지됨 ── */
