@@ -34,6 +34,12 @@ export class CalendarTaskEntity extends SoftDeleteAuditBase {
   @Column({ name: 'completed_at', type: 'datetime', precision: 3, nullable: true })
   completedAt!: Date | null;
 
+  @Column({ name: 'color', type: 'char', length: 7, default: '#6C63FF' })
+  color!: string;
+
+  @Column({ name: 'memo', type: 'varchar', length: 255, default: '' })
+  memo!: string;
+
   @ManyToOne(() => UserEntity, { nullable: false, onUpdate: 'RESTRICT', onDelete: 'RESTRICT' })
   @JoinColumn({
     name: 'user_id',
