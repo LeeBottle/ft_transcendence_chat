@@ -101,14 +101,14 @@ export default function RoomMembersPopover({ roomId, memberCount }: RoomMembersP
         onClick={() => {
           setOpen((prev) => !prev);
         }}
-        className="cursor-pointer rounded px-1 text-xs text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+        className="text-text-subtle hover:bg-surface-muted hover:text-text-muted cursor-pointer rounded px-1 text-xs"
       >
         {count === undefined ? '참여자' : `${count}명`} ▾
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-          <p className="px-3 py-1.5 text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
+        <div className="border-border bg-surface absolute top-full left-0 z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-lg border py-1 shadow-lg">
+          <p className="text-text-subtle px-3 py-1.5 text-[10px] font-semibold tracking-wide uppercase">
             참여자 {count ?? ''}
           </p>
 
@@ -132,7 +132,7 @@ export default function RoomMembersPopover({ roomId, memberCount }: RoomMembersP
                 size="sm"
                 status={m.isOnline ? 'online' : 'offline'}
               />
-              <span className="flex-1 truncate text-sm text-gray-800">{m.name}</span>
+              <span className="text-text flex-1 truncate text-sm">{m.name}</span>
               {ROLE_LABEL[m.role] !== undefined && ROLE_LABEL[m.role] !== '' && (
                 <Badge variant={m.role === 'OWNER' ? 'primary' : 'neutral'}>
                   {ROLE_LABEL[m.role]}
@@ -142,7 +142,7 @@ export default function RoomMembersPopover({ roomId, memberCount }: RoomMembersP
           ))}
 
           {members !== null && members.length === 0 && !loading && (
-            <p className="px-3 py-3 text-xs text-gray-400">참여자가 없어요.</p>
+            <p className="text-text-subtle px-3 py-3 text-xs">참여자가 없어요.</p>
           )}
         </div>
       )}

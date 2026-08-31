@@ -13,6 +13,7 @@ import Checkbox from '@/components/ui/Checkbox';
 import Chip from '@/components/ui/Chip';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import EmptyState from '@/components/ui/EmptyState';
+import Icon, { type IconName } from '@/components/ui/Icon';
 import IconButton from '@/components/ui/IconButton';
 import Menu, { MenuItem } from '@/components/ui/Menu';
 import Modal from '@/components/ui/Modal';
@@ -20,8 +21,40 @@ import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import StatusDot from '@/components/ui/StatusDot';
 import Tabs from '@/components/ui/Tabs';
+import { Heading, Text } from '@/components/ui/Text';
 import Textarea from '@/components/ui/Textarea';
 import TextField from '@/components/ui/TextField';
+
+const ICON_NAMES: IconName[] = [
+  'calendar',
+  'user',
+  'users',
+  'message',
+  'shield',
+  'bell',
+  'search',
+  'plus',
+  'close',
+  'check',
+  'edit',
+  'trash',
+  'refresh',
+  'logout',
+  'more',
+  'chevron-down',
+  'chevron-left',
+  'chevron-right',
+  'info',
+  'check-circle',
+  'alert-triangle',
+  'x-circle',
+  'camera',
+  'send',
+  'stop',
+  'inbox',
+  'eye',
+  'eye-off',
+];
 
 const COLOR_TOKENS = [
   'primary',
@@ -95,12 +128,40 @@ export default function StyleguidePage() {
         </div>
       </Section>
 
-      <Section title="글자 크기">
-        <p className="text-h1 text-text">text-h1 — 24px</p>
-        <p className="text-h2 text-text">text-h2 — 20px</p>
-        <p className="text-h3 text-text">text-h3 — 18px</p>
-        <p className="text-body text-text">text-body — 14px (기본)</p>
-        <p className="text-caption text-text">text-caption — 12px</p>
+      <Section title="글자 크기 / 타이포그래피">
+        <Heading level={1}>Heading level 1 — text-h1</Heading>
+        <Heading level={2}>Heading level 2 — text-h2</Heading>
+        <Heading level={3}>Heading level 3 — text-h3</Heading>
+        <Text>Text body — 기본 본문 (14px)</Text>
+        <Text
+          variant="caption"
+          tone="muted"
+        >
+          Text caption + muted — 보조 설명 (12px)
+        </Text>
+        <Text
+          variant="caption"
+          tone="subtle"
+        >
+          Text caption + subtle — 더 흐린 텍스트
+        </Text>
+      </Section>
+
+      <Section title="아이콘 (직접 만든 세트)">
+        <div className="grid grid-cols-4 gap-3 sm:grid-cols-7">
+          {ICON_NAMES.map((name) => (
+            <div
+              key={name}
+              className="border-border text-text-muted flex flex-col items-center gap-1 rounded-md border py-2"
+            >
+              <Icon
+                name={name}
+                size={20}
+              />
+              <code className="text-text-subtle text-[10px]">{name}</code>
+            </div>
+          ))}
+        </div>
       </Section>
 
       <Section title="Button">

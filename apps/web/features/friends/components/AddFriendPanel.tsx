@@ -92,8 +92,8 @@ export default function AddFriendPanel({ friendIds, onAdded }: AddFriendPanelPro
   return (
     <div className="flex flex-col gap-4 px-6 py-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-bold tracking-wide text-gray-800 uppercase">친구 추가하기</h2>
-        <p className="text-xs text-gray-400">
+        <h2 className="text-text text-sm font-bold tracking-wide uppercase">친구 추가하기</h2>
+        <p className="text-text-subtle text-xs">
           아이디나 이름으로 검색해서 친구를 추가할 수 있어요. 상대는 바로 친구 목록에 추가됩니다.
         </p>
       </div>
@@ -105,16 +105,16 @@ export default function AddFriendPanel({ friendIds, onAdded }: AddFriendPanelPro
           setQuery(e.target.value);
         }}
         placeholder="아이디 또는 이름으로 검색"
-        className="h-11 rounded-lg border border-gray-300 px-3.5 text-sm outline-none focus:border-purple-400"
+        className="border-border-strong focus:border-primary-ring h-11 rounded-lg border px-3.5 text-sm outline-none"
       />
 
-      {error !== null && <p className="text-xs text-red-500">{error}</p>}
+      {error !== null && <p className="text-danger text-xs">{error}</p>}
 
       <div className="flex flex-col gap-1">
-        {loading && <p className="px-1 py-2 text-xs text-gray-400">검색 중…</p>}
+        {loading && <p className="text-text-subtle px-1 py-2 text-xs">검색 중…</p>}
 
         {!loading && query.trim() !== '' && results.length === 0 && (
-          <p className="px-1 py-2 text-xs text-gray-400">일치하는 사용자가 없어요.</p>
+          <p className="text-text-subtle px-1 py-2 text-xs">일치하는 사용자가 없어요.</p>
         )}
 
         {results.map((user) => {
@@ -124,7 +124,7 @@ export default function AddFriendPanel({ friendIds, onAdded }: AddFriendPanelPro
           return (
             <div
               key={user.id}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-gray-50"
+              className="hover:bg-surface-muted flex items-center gap-3 rounded-lg px-2 py-2"
             >
               <Avatar
                 name={user.name}
@@ -132,8 +132,8 @@ export default function AddFriendPanel({ friendIds, onAdded }: AddFriendPanelPro
                 size="sm"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="truncate text-xs text-gray-400">{user.loginId}</p>
+                <p className="text-text truncate text-sm font-medium">{user.name}</p>
+                <p className="text-text-subtle truncate text-xs">{user.loginId}</p>
               </div>
               <button
                 type="button"
@@ -143,8 +143,8 @@ export default function AddFriendPanel({ friendIds, onAdded }: AddFriendPanelPro
                 }}
                 className={`h-8 shrink-0 rounded-lg px-3 text-xs font-medium transition-colors ${
                   alreadyFriend
-                    ? 'cursor-default bg-gray-100 text-gray-400'
-                    : 'cursor-pointer bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-60'
+                    ? 'bg-surface-muted text-text-subtle cursor-default'
+                    : 'bg-primary hover:bg-primary-hover cursor-pointer text-white disabled:opacity-60'
                 }`}
               >
                 {addButtonLabel(alreadyFriend, busy)}

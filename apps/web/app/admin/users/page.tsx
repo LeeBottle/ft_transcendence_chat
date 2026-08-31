@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
   return (
     <>
       <AdminTopbar
-        icon="👤"
+        icon="user"
         title="사용자 관리"
         trailing={`총 ${users.length}명`}
       />
@@ -122,7 +122,7 @@ export default function AdminUsersPage() {
             setSearch(e.target.value);
           }}
           placeholder="이름, 아이디 검색…"
-          className="h-9 w-60 rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm outline-none focus:border-purple-400"
+          className="border-border-strong bg-surface-muted text-body focus:border-primary-ring h-9 w-60 rounded-lg border px-3 outline-none"
         />
         <Button
           className="ml-auto"
@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
         ) : (
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="border-b-2 border-gray-200 text-left text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
+              <tr className="border-border text-text-subtle border-b-2 text-left text-[11px] font-semibold tracking-wide uppercase">
                 <th className="px-3 py-2.5">아이디</th>
                 <th className="px-3 py-2.5">이름</th>
                 <th className="px-3 py-2.5">이메일</th>
@@ -182,17 +182,17 @@ export default function AdminUsersPage() {
                 return (
                   <tr
                     key={u.id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-border hover:bg-surface-muted border-b"
                   >
-                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{u.loginId}</td>
-                    <td className="px-3 py-2.5 text-gray-900">{u.name}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{u.email}</td>
+                    <td className="text-text-muted px-3 py-2.5 font-mono text-xs">{u.loginId}</td>
+                    <td className="text-text px-3 py-2.5">{u.name}</td>
+                    <td className="text-text-muted px-3 py-2.5">{u.email}</td>
                     <td className="px-3 py-2.5">
                       <Badge variant={u.role === 'ADMIN' ? 'primary' : 'neutral'}>
                         {u.role === 'ADMIN' ? '관리자' : '일반'}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2.5 text-gray-500">{formatDate(u.createdAt)}</td>
+                    <td className="text-text-muted px-3 py-2.5">{formatDate(u.createdAt)}</td>
                     <td className="px-3 py-2.5">
                       <Badge variant={STATUS_VARIANT[u.status]}>{STATUS_LABEL[u.status]}</Badge>
                     </td>
@@ -244,7 +244,7 @@ export default function AdminUsersPage() {
         )}
 
         {!loading && visible.length === 0 && (
-          <p className="py-16 text-center text-sm text-gray-400">
+          <p className="text-text-subtle py-16 text-center text-sm">
             {users.length === 0 ? '사용자가 없어요.' : '검색 결과가 없어요.'}
           </p>
         )}

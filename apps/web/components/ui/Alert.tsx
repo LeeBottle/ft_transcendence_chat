@@ -4,6 +4,7 @@
 //   variant: info(파랑) / success(초록) / warning(주황) / danger(빨강)
 import type { ReactNode } from 'react';
 
+import Icon, { type IconName } from '@/components/ui/Icon';
 import IconButton from '@/components/ui/IconButton';
 import { cn } from '@/lib/cn';
 
@@ -23,11 +24,11 @@ const VARIANT_CLASS: Record<Variant, string> = {
   danger: 'bg-danger-soft text-danger',
 };
 
-const ICON: Record<Variant, string> = {
-  info: 'ℹ️',
-  success: '✅',
-  warning: '⚠️',
-  danger: '⛔',
+const ICON: Record<Variant, IconName> = {
+  info: 'info',
+  success: 'check-circle',
+  warning: 'alert-triangle',
+  danger: 'x-circle',
 };
 
 export default function Alert({ variant = 'info', title, children, onClose }: AlertProps) {
@@ -39,7 +40,11 @@ export default function Alert({ variant = 'info', title, children, onClose }: Al
         VARIANT_CLASS[variant],
       )}
     >
-      <span aria-hidden>{ICON[variant]}</span>
+      <Icon
+        name={ICON[variant]}
+        size={16}
+        className="mt-px"
+      />
 
       <div className="min-w-0 flex-1">
         {title !== undefined && <p className="font-semibold">{title}</p>}
@@ -54,7 +59,10 @@ export default function Alert({ variant = 'info', title, children, onClose }: Al
           size="sm"
           onClick={onClose}
         >
-          ✕
+          <Icon
+            name="close"
+            size={14}
+          />
         </IconButton>
       )}
     </div>

@@ -28,15 +28,15 @@ function ChatHeader({
   onEndMeeting,
 }: ChatHeaderProps) {
   return (
-    <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-gray-100 px-4.5">
+    <div className="border-border flex h-14 shrink-0 items-center gap-2.5 border-b px-4.5">
       <span
         className={`flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${avatarColorClass}`}
       >
         {avatarLabel}
       </span>
       <div className="min-w-0">
-        <div className="truncate text-[15px] font-semibold text-gray-900">{roomName}</div>
-        <div className="flex items-center gap-1 text-xs text-gray-400">
+        <div className="text-text truncate text-[15px] font-semibold">{roomName}</div>
+        <div className="text-text-subtle flex items-center gap-1 text-xs">
           {roleLabel !== '' && <span>{roleLabel} ·</span>}
           <RoomMembersPopover
             roomId={roomId}
@@ -52,8 +52,8 @@ function ChatHeader({
             disabled={meetingEnded}
             className={`flex h-7.5 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold whitespace-nowrap ${
               meetingEnded
-                ? 'cursor-not-allowed bg-gray-100 text-gray-400'
-                : 'cursor-pointer border border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+                ? 'bg-surface-muted text-text-subtle cursor-not-allowed'
+                : 'bg-danger-soft text-danger cursor-pointer border border-red-200 hover:bg-red-100'
             } `}
           >
             ■ {meetingEnded ? '종료됨' : '회의 종료'}

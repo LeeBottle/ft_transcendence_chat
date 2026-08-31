@@ -6,6 +6,7 @@
 //   - title / footer 는 선택. 내용은 children.
 import { useEffect, type ReactNode } from 'react';
 
+import Icon from '@/components/ui/Icon';
 import IconButton from '@/components/ui/IconButton';
 import { cn } from '@/lib/cn';
 
@@ -87,7 +88,10 @@ export default function Modal({
               size="sm"
               onClick={onClose}
             >
-              ✕
+              <Icon
+                name="close"
+                size={16}
+              />
             </IconButton>
           </div>
         )}

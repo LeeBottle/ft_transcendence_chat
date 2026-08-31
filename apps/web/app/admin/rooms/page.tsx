@@ -99,7 +99,7 @@ export default function AdminRoomsPage() {
   return (
     <>
       <AdminTopbar
-        icon="💬"
+        icon="message"
         title="채팅방 관리"
         trailing={`총 ${rooms.length}개`}
       />
@@ -112,7 +112,7 @@ export default function AdminRoomsPage() {
             setSearch(e.target.value);
           }}
           placeholder="채팅방 이름, ID 검색…"
-          className="h-9 w-60 rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm outline-none focus:border-purple-400"
+          className="border-border-strong bg-surface-muted text-body focus:border-primary-ring h-9 w-60 rounded-lg border px-3 outline-none"
         />
         <Button
           className="ml-auto"
@@ -148,7 +148,7 @@ export default function AdminRoomsPage() {
         ) : (
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="border-b-2 border-gray-200 text-left text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
+              <tr className="border-border text-text-subtle border-b-2 text-left text-[11px] font-semibold tracking-wide uppercase">
                 <th className="px-3 py-2.5">ID</th>
                 <th className="px-3 py-2.5">채팅방 이름</th>
                 <th className="px-3 py-2.5">생성자</th>
@@ -165,10 +165,10 @@ export default function AdminRoomsPage() {
                 return (
                   <tr
                     key={r.id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-border hover:bg-surface-muted border-b"
                   >
-                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{r.id}</td>
-                    <td className="px-3 py-2.5 text-gray-900">
+                    <td className="text-text-muted px-3 py-2.5 font-mono text-xs">{r.id}</td>
+                    <td className="text-text px-3 py-2.5">
                       {editing ? (
                         <input
                           autoFocus
@@ -184,17 +184,17 @@ export default function AdminRoomsPage() {
                               setEditingId(null);
                             }
                           }}
-                          className="h-8 w-full rounded border border-purple-400 bg-purple-50 px-2 text-sm outline-none"
+                          className="border-primary-ring bg-primary-soft h-8 w-full rounded border px-2 text-sm outline-none"
                         />
                       ) : (
                         r.title
                       )}
                     </td>
-                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">
+                    <td className="text-text-muted px-3 py-2.5 font-mono text-xs">
                       {r.creatorLoginId}
                     </td>
-                    <td className="px-3 py-2.5 text-gray-500">{r.memberCount}명</td>
-                    <td className="px-3 py-2.5 text-gray-500">{formatDate(r.createdAt)}</td>
+                    <td className="text-text-muted px-3 py-2.5">{r.memberCount}명</td>
+                    <td className="text-text-muted px-3 py-2.5">{formatDate(r.createdAt)}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex justify-center gap-1.5">
                         {editing ? (
@@ -253,7 +253,7 @@ export default function AdminRoomsPage() {
         )}
 
         {!loading && visible.length === 0 && (
-          <p className="py-16 text-center text-sm text-gray-400">
+          <p className="text-text-subtle py-16 text-center text-sm">
             {rooms.length === 0 ? '채팅방이 없어요.' : '검색 결과가 없어요.'}
           </p>
         )}

@@ -6,6 +6,8 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
+import Icon from '@/components/ui/Icon';
+
 interface HeaderProps {
   username: string;
   onLogout: () => void;
@@ -15,15 +17,15 @@ function Header({ username, onLogout }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="z-10 flex h-14 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-4">
+    <header className="border-border bg-surface z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">
       <Link
         href="/calendar"
         className="flex items-center gap-2"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500 text-sm text-white">
-          💬
+        <span className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg text-white">
+          <Icon name="message" />
         </span>
-        <span className="text-base font-semibold text-gray-900">TaskChat</span>
+        <span className="text-body text-text font-semibold">TaskChat</span>
       </Link>
 
       <div className="flex-1" />
@@ -33,12 +35,16 @@ function Header({ username, onLogout }: HeaderProps) {
           onClick={() => {
             setMenuOpen((prev) => !prev);
           }}
-          className="flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2.5 text-sm text-gray-700 hover:bg-gray-50"
+          className="text-body text-text-muted hover:bg-surface-muted flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2.5"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500 text-xs font-semibold text-white">
+          <span className="bg-primary text-caption flex h-7 w-7 items-center justify-center rounded-full font-semibold text-white">
             나
           </span>
           {username}
+          <Icon
+            name="chevron-down"
+            size={14}
+          />
         </button>
 
         {menuOpen && (
@@ -50,14 +56,18 @@ function Header({ username, onLogout }: HeaderProps) {
                 setMenuOpen(false);
               }}
             />
-            <div className="absolute top-11 right-0 z-20 w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+            <div className="border-border bg-surface absolute top-11 right-0 z-20 w-40 overflow-hidden rounded-lg border py-1 shadow-lg">
               <Link
                 href="/my-page"
                 onClick={() => {
                   setMenuOpen(false);
                 }}
-                className="block h-9 px-3 text-sm leading-9 text-gray-700 hover:bg-gray-50"
+                className="text-body text-text hover:bg-surface-muted flex h-9 items-center gap-2 px-3"
               >
+                <Icon
+                  name="user"
+                  size={15}
+                />
                 마이페이지
               </Link>
               <button
@@ -65,8 +75,12 @@ function Header({ username, onLogout }: HeaderProps) {
                   setMenuOpen(false);
                   onLogout();
                 }}
-                className="block h-9 w-full cursor-pointer px-3 text-left text-sm leading-9 text-red-500 hover:bg-red-50"
+                className="text-body text-danger hover:bg-danger-soft flex h-9 w-full cursor-pointer items-center gap-2 px-3 text-left"
               >
+                <Icon
+                  name="logout"
+                  size={15}
+                />
                 로그아웃
               </button>
             </div>

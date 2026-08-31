@@ -2,6 +2,7 @@
 
 // Toast — 화면 오른쪽 위에 잠깐 떴다 사라지는 알림.
 // 표시 여부/타이머는 사용하는 쪽에서 관리하고, 이 컴포넌트는 모양만 담당한다.
+import Icon from '@/components/ui/Icon';
 import IconButton from '@/components/ui/IconButton';
 import { cn } from '@/lib/cn';
 
@@ -36,7 +37,10 @@ export default function Toast({ message, type = 'info', onClose }: ToastProps) {
           className="text-white/80 hover:bg-white/10 hover:text-white"
           onClick={onClose}
         >
-          ✕
+          <Icon
+            name="close"
+            size={16}
+          />
         </IconButton>
       )}
     </div>

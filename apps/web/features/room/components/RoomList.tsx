@@ -30,20 +30,20 @@ function RoomList({ rooms, activeRoomId, onSelectRoom }: RoomListProps) {
             onClick={() => {
               onSelectRoom(room.id);
             }}
-            className={`flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-left text-sm transition-colors ${isActive ? 'bg-purple-500 text-white' : 'text-gray-600 hover:bg-gray-50'} ${closed && !isActive ? 'opacity-50' : ''} `}
+            className={`flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-left text-sm transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-muted hover:bg-surface-muted'} ${closed && !isActive ? 'opacity-50' : ''} `}
           >
             <span
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${isActive ? 'bg-white/20 text-white' : AVATAR_COLOR_CLASSES[room.avatarColor]} `}
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${isActive ? 'bg-surface/20 text-white' : AVATAR_COLOR_CLASSES[room.avatarColor]} `}
             >
               {room.avatarLabel}
             </span>
             <span className="flex-1 truncate">
               {room.name}
-              {closed && <span className="ml-1 text-[10px] text-gray-400">· 종료됨</span>}
+              {closed && <span className="text-text-subtle ml-1 text-[10px]">· 종료됨</span>}
             </span>
             {room.memberCount !== undefined && (
               <span
-                className={`shrink-0 text-[11px] ${isActive ? 'text-white/70' : 'text-gray-400'}`}
+                className={`shrink-0 text-[11px] ${isActive ? 'text-white/70' : 'text-text-subtle'}`}
               >
                 {room.memberCount}
               </span>

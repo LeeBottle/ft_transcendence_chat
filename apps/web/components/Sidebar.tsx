@@ -25,8 +25,8 @@ function Sidebar({ items, activeId, onSelect }: SidebarProps) {
           <button
             key={item.id}
             onClick={() => onSelect?.(item.id)}
-            className={`flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-left text-sm transition-colors ${
-              isActive ? 'bg-purple-500 text-white' : 'text-gray-600 hover:bg-gray-50'
+            className={`text-body flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-left transition-colors ${
+              isActive ? 'bg-primary text-white' : 'text-text-muted hover:bg-surface-muted'
             } `}
           >
             {item.icon}

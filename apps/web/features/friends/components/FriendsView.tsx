@@ -90,10 +90,10 @@ export default function FriendsView() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="bg-surface flex h-full flex-col">
       {/* 상단 바 */}
-      <div className="flex h-14 shrink-0 items-center gap-1 border-b border-gray-200 px-4">
-        <span className="mr-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+      <div className="border-border flex h-14 shrink-0 items-center gap-1 border-b px-4">
+        <span className="text-text mr-2 flex items-center gap-2 text-sm font-semibold">
           <span aria-hidden>👥</span> 친구
         </span>
         <div className="mx-1 h-5 w-px bg-gray-200" />
@@ -106,13 +106,13 @@ export default function FriendsView() {
             }}
             className={`h-8 cursor-pointer rounded-md px-3 text-sm transition-colors ${
               tab === t.id
-                ? 'bg-gray-100 font-medium text-gray-900'
-                : 'text-gray-500 hover:bg-gray-50'
+                ? 'bg-surface-muted text-text font-medium'
+                : 'text-text-muted hover:bg-surface-muted'
             }`}
           >
             {t.label}
             {t.id === 'online' && online.length > 0 && (
-              <span className="ml-1 text-xs text-gray-400">{online.length}</span>
+              <span className="text-text-subtle ml-1 text-xs">{online.length}</span>
             )}
           </button>
         ))}
@@ -149,18 +149,18 @@ export default function FriendsView() {
                 setFilter(e.target.value);
               }}
               placeholder="검색"
-              className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm outline-none focus:border-purple-400 focus:bg-white"
+              className="border-border bg-surface-muted focus:border-primary-ring focus:bg-surface h-9 w-full rounded-lg border px-3 text-sm outline-none"
             />
           </div>
 
-          {error !== null && <p className="px-6 py-2 text-xs text-red-500">{error}</p>}
+          {error !== null && <p className="text-danger px-6 py-2 text-xs">{error}</p>}
 
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
-            <p className="px-1 py-2 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+            <p className="text-text-subtle px-1 py-2 text-xs font-semibold tracking-wide uppercase">
               {tab === 'online' ? '온라인' : '전체 친구'} — {visible.length}
             </p>
 
-            {loading && <p className="px-1 py-4 text-sm text-gray-400">불러오는 중…</p>}
+            {loading && <p className="text-text-subtle px-1 py-4 text-sm">불러오는 중…</p>}
 
             {!loading && visible.length === 0 && (
               <div className="flex flex-col items-center gap-2 py-16 text-center">
@@ -170,7 +170,7 @@ export default function FriendsView() {
                 >
                   🙃
                 </span>
-                <p className="text-sm text-gray-400">{emptyText(friends.length, tab)}</p>
+                <p className="text-text-subtle text-sm">{emptyText(friends.length, tab)}</p>
               </div>
             )}
 
@@ -178,7 +178,7 @@ export default function FriendsView() {
               {visible.map((f) => (
                 <li
                   key={f.id}
-                  className="group flex items-center gap-3 border-t border-gray-100 py-2.5 first:border-t-0"
+                  className="group border-border flex items-center gap-3 border-t py-2.5 first:border-t-0"
                 >
                   <div className="relative shrink-0">
                     <Avatar
@@ -195,8 +195,8 @@ export default function FriendsView() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">{f.name}</p>
-                    <p className="truncate text-xs text-gray-400">
+                    <p className="text-text truncate text-sm font-medium">{f.name}</p>
+                    <p className="text-text-subtle truncate text-xs">
                       {f.loginId} · {f.isOnline ? '온라인' : '오프라인'}
                     </p>
                   </div>
@@ -207,7 +207,7 @@ export default function FriendsView() {
                     onClick={() => {
                       setPendingRemove(f);
                     }}
-                    className="h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs text-gray-500 opacity-0 transition-opacity group-hover:opacity-100 hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+                    className="border-border text-text-muted hover:border-danger hover:bg-danger-soft hover:text-danger h-8 shrink-0 rounded-lg border px-3 text-xs opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-60"
                   >
                     {removingId === f.id ? '삭제 중…' : '친구 삭제'}
                   </button>

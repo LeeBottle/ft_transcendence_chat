@@ -6,14 +6,15 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import Header from '@/components/Header';
 import Sidebar, { type SidebarItem } from '@/components/Sidebar';
+import Icon from '@/components/ui/Icon';
 import { useAuth } from '@/features/auth/AuthContext';
 import RoomList from '@/features/room/components/RoomList';
 import { RoomProvider, useRoomContext } from '@/features/room/RoomContext';
 
 const NAV_ITEMS: SidebarItem[] = [
-  { id: 'calendar', label: '캘린더' },
-  { id: 'my-page', label: '마이페이지' },
-  { id: 'friends', label: '친구' },
+  { id: 'calendar', label: '캘린더', icon: <Icon name="calendar" /> },
+  { id: 'my-page', label: '마이페이지', icon: <Icon name="user" /> },
+  { id: 'friends', label: '친구', icon: <Icon name="users" /> },
 ];
 
 // pathname 이 /chat/<id> 형태면 그 <id> 를 뽑는다 (/chat, /chat/create 는 제외).
@@ -37,7 +38,7 @@ function RoomSection() {
 
   return (
     <div className="mt-2 flex flex-col gap-1 px-3">
-      <div className="px-3 py-1 text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
+      <div className="text-text-subtle px-3 py-1 text-[10px] font-semibold tracking-wide uppercase">
         채팅방
       </div>
       {rooms.length > 0 && (
@@ -51,9 +52,13 @@ function RoomSection() {
         onClick={() => {
           router.push('/chat/create');
         }}
-        className="h-9 cursor-pointer rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 hover:border-purple-400 hover:text-purple-500"
+        className="border-border-strong text-caption text-text-subtle hover:border-primary-ring hover:text-primary flex h-9 items-center justify-center gap-1 rounded-lg border border-dashed"
       >
-        + 새 채팅방
+        <Icon
+          name="plus"
+          size={14}
+        />
+        새 채팅방
       </button>
     </div>
   );
