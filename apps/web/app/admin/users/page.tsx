@@ -1,95 +1,398 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import UserTable from '@/features/admin/components/UserTable';
-import type { AdminUser, NewAdminUserInput } from '@/features/admin/types';
+import Alert from '@/components/ui/Alert';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import Modal from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
+import Spinner from '@/components/ui/Spinner';
+import TextField from '@/components/ui/TextField';
+import {
+  createAdminUser,
+  deleteAdminUser,
+  fetchAdminUsers,
+  updateAdminUserStatus,
+  type AdminUser,
+  type AdminUserRole,
+} from '@/features/admin/adminApi';
+import AdminTopbar from '@/features/admin/AdminTopbar';
 
-const INITIAL_USERS: AdminUser[] = [
-  {
-    id: 1,
-    username: 'user_01',
-    name: '김지수',
-    email: 'jisoo@company.com',
-    role: 'user',
-    joinDate: '2025-01-15',
-    status: 'active',
-  },
-  {
-    id: 2,
-    username: 'user_02',
-    name: '박민준',
-    email: 'minjun@company.com',
-    role: 'user',
-    joinDate: '2025-02-03',
-    status: 'suspended',
-  },
-  {
-    id: 3,
-    username: 'admin',
-    name: '관리자',
-    email: 'admin@company.com',
-    role: 'admin',
-    joinDate: '2024-12-01',
-    status: 'active',
-  },
-];
+const STATUS_LABEL: Record<AdminUser['status'], string> = {
+  ACTIVE: '활성',
+  SUSPENDED: '정지',
+  WITHDRAWN: '탈퇴',
+};
+
+const STATUS_VARIANT: Record<AdminUser['status'], 'success' | 'danger' | 'neutral'> = {
+  ACTIVE: 'success',
+  SUSPENDED: 'danger',
+  WITHDRAWN: 'neutral',
+};
+
+function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date(iso));
+}
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AdminUser | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
-  // TODO(API): POST /admin/users 로 사용자 생성 필요 - 지금은 mock
-  function handleAddUser(input: NewAdminUserInput) {
-    // SUCCESS: 새 사용자를 목록 맨 앞에 추가 (실제로는 서버가 생성한 id를 받아와야 함)
-    setUsers((prev) => [
-      {
-        id: Date.now(),
-        username: input.username,
-        name: input.name,
-        email: input.email,
-        role: input.role,
-        joinDate: new Date().toISOString().slice(0, 10),
-        status: 'active',
-      },
-      ...prev,
-    ]);
-    // FAIL: 아이디 중복 등 실패 시 모달에 에러 메시지 표시 필요 (백엔드 연동 시 추가)
+  async function load(): Promise<void> {
+    try {
+      setError(null);
+      setUsers(await fetchAdminUsers());
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '불러오지 못했어요');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // TODO(API): PATCH /admin/users/:id 로 사용자 정보 수정 필요 - 지금은 mock
-  function handleSaveUser(id: number, input: Pick<AdminUser, 'username' | 'name' | 'email'>) {
-    // SUCCESS: 로컬 목록 갱신
-    setUsers((prev) => prev.map((user) => (user.id === id ? { ...user, ...input } : user)));
-    // FAIL: 실패 시 원래 값으로 롤백 필요 (백엔드 연동 시 추가)
-  }
+  useEffect(() => {
+    void load();
+  }, []);
 
-  // TODO(API): PATCH /admin/users/:id/suspend 필요 - 지금은 mock
-  function handleSuspendUser(id: number) {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, status: 'suspended' } : user)),
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    if (q === '') {
+      return users;
+    }
+
+    return users.filter(
+      (u) => u.name.toLowerCase().includes(q) || u.loginId.toLowerCase().includes(q),
     );
+  }, [users, search]);
+
+  async function changeStatus(user: AdminUser, status: AdminUser['status']): Promise<void> {
+    setBusyId(user.id);
+    setError(null);
+
+    try {
+      await updateAdminUserStatus(user.id, status);
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, status } : u)));
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '상태를 바꾸지 못했어요');
+    } finally {
+      setBusyId(null);
+    }
   }
 
-  // TODO(API): PATCH /admin/users/:id/restore 필요 - 지금은 mock
-  function handleRestoreUser(id: number) {
-    setUsers((prev) => prev.map((user) => (user.id === id ? { ...user, status: 'active' } : user)));
-  }
+  async function confirmDelete(): Promise<void> {
+    if (pendingDelete === null) {
+      return;
+    }
 
-  // TODO(API): DELETE /admin/users/:id 필요 - 지금은 mock
-  function handleDeleteUser(id: number) {
-    // SUCCESS: 목록에서 제거
-    setUsers((prev) => prev.filter((user) => user.id !== id));
-    // FAIL: 실패 시 목록을 그대로 유지하고 에러 토스트 필요 (백엔드 연동 시 추가)
+    const target = pendingDelete;
+
+    setPendingDelete(null);
+    setBusyId(target.id);
+
+    try {
+      await deleteAdminUser(target.id);
+      setUsers((prev) => prev.filter((u) => u.id !== target.id));
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '삭제하지 못했어요');
+    } finally {
+      setBusyId(null);
+    }
   }
 
   return (
-    <UserTable
-      users={users}
-      onAddUser={handleAddUser}
-      onSaveUser={handleSaveUser}
-      onSuspendUser={handleSuspendUser}
-      onRestoreUser={handleRestoreUser}
-      onDeleteUser={handleDeleteUser}
-    />
+    <>
+      <AdminTopbar
+        icon="👤"
+        title="사용자 관리"
+        trailing={`총 ${users.length}명`}
+      />
+
+      <div className="flex items-center gap-2 px-6 pt-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
+          placeholder="이름, 아이디 검색…"
+          className="h-9 w-60 rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm outline-none focus:border-purple-400"
+        />
+        <Button
+          className="ml-auto"
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            setLoading(true);
+            void load();
+          }}
+        >
+          새로고침
+        </Button>
+        <Button
+          onClick={() => {
+            setAddOpen(true);
+          }}
+        >
+          + 사용자 추가
+        </Button>
+      </div>
+
+      {error !== null && (
+        <div className="px-6 pt-3">
+          <Alert
+            variant="danger"
+            onClose={() => {
+              setError(null);
+            }}
+          >
+            {error}
+          </Alert>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-auto px-6 py-4">
+        {loading ? (
+          <div className="py-16 text-center">
+            <Spinner label="불러오는 중…" />
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b-2 border-gray-200 text-left text-[11px] font-semibold tracking-wide text-gray-400 uppercase">
+                <th className="px-3 py-2.5">아이디</th>
+                <th className="px-3 py-2.5">이름</th>
+                <th className="px-3 py-2.5">이메일</th>
+                <th className="px-3 py-2.5">역할</th>
+                <th className="px-3 py-2.5">가입일</th>
+                <th className="px-3 py-2.5">상태</th>
+                <th className="px-3 py-2.5 text-center">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((u) => {
+                const busy = busyId === u.id;
+
+                return (
+                  <tr
+                    key={u.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{u.loginId}</td>
+                    <td className="px-3 py-2.5 text-gray-900">{u.name}</td>
+                    <td className="px-3 py-2.5 text-gray-500">{u.email}</td>
+                    <td className="px-3 py-2.5">
+                      <Badge variant={u.role === 'ADMIN' ? 'primary' : 'neutral'}>
+                        {u.role === 'ADMIN' ? '관리자' : '일반'}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-2.5 text-gray-500">{formatDate(u.createdAt)}</td>
+                    <td className="px-3 py-2.5">
+                      <Badge variant={STATUS_VARIANT[u.status]}>{STATUS_LABEL[u.status]}</Badge>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex justify-center gap-1.5">
+                        {u.status === 'ACTIVE' && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            loading={busy}
+                            onClick={() => {
+                              void changeStatus(u, 'SUSPENDED');
+                            }}
+                          >
+                            정지
+                          </Button>
+                        )}
+                        {u.status === 'SUSPENDED' && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            loading={busy}
+                            onClick={() => {
+                              void changeStatus(u, 'ACTIVE');
+                            }}
+                          >
+                            복구
+                          </Button>
+                        )}
+                        {u.status !== 'WITHDRAWN' && (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            disabled={busy}
+                            onClick={() => {
+                              setPendingDelete(u);
+                            }}
+                          >
+                            삭제
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {!loading && visible.length === 0 && (
+          <p className="py-16 text-center text-sm text-gray-400">
+            {users.length === 0 ? '사용자가 없어요.' : '검색 결과가 없어요.'}
+          </p>
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="사용자를 삭제할까요?"
+        description={
+          pendingDelete === null ? undefined : `${pendingDelete.name} (${pendingDelete.loginId})`
+        }
+        confirmLabel="삭제"
+        danger
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+        onCancel={() => {
+          setPendingDelete(null);
+        }}
+      />
+
+      <AddUserModal
+        open={addOpen}
+        onClose={() => {
+          setAddOpen(false);
+        }}
+        onCreated={(user) => {
+          setUsers((prev) => [user, ...prev]);
+          setAddOpen(false);
+        }}
+      />
+    </>
+  );
+}
+
+function AddUserModal({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (user: AdminUser) => void;
+}) {
+  const [loginId, setLoginId] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState<AdminUserRole>('USER');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setLoginId('');
+      setPassword('');
+      setName('');
+      setEmail('');
+      setRole('USER');
+      setError(null);
+      setBusy(false);
+    }
+  }, [open]);
+
+  async function submit(): Promise<void> {
+    setBusy(true);
+    setError(null);
+
+    try {
+      const created = await createAdminUser({ loginId, password, name, email, role });
+
+      onCreated(created);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '만들지 못했어요');
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="사용자 추가"
+      footer={
+        <>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onClose}
+          >
+            취소
+          </Button>
+          <Button
+            size="sm"
+            loading={busy}
+            disabled={loginId.trim() === '' || password === ''}
+            onClick={() => {
+              void submit();
+            }}
+          >
+            추가
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <TextField
+          label="아이디"
+          value={loginId}
+          onChange={(e) => {
+            setLoginId(e.target.value);
+          }}
+        />
+        <TextField
+          label="비밀번호"
+          type="password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+        />
+        <TextField
+          label="이름"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+        />
+        <TextField
+          label="이메일"
+          type="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
+        />
+        <Select
+          label="역할"
+          value={role}
+          onChange={(e) => {
+            setRole(e.target.value === 'ADMIN' ? 'ADMIN' : 'USER');
+          }}
+        >
+          <option value="USER">일반</option>
+          <option value="ADMIN">관리자</option>
+        </Select>
+        {error !== null && <Alert variant="danger">{error}</Alert>}
+      </div>
+    </Modal>
   );
 }
