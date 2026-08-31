@@ -1,14 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
-import { DataSource } from 'typeorm';
+import type { AiTaskExtractionResult } from '@repo/schemas/chat';
 
 import type { ChatMessageResponseDto } from '#modules/chat/controllers/chat.dto.js';
 import { ChatRoomMessageEntity } from '#modules/chat/entities/chat-room-message.entity.js';
-import {
-  ChatAiService,
-  type AiTaskExtractionResult,
-} from '#modules/chat/services/chat-ai.service.js';
+import { ChatAiService } from '#modules/chat/services/chat-ai.service.js';
 import { RedisService } from '#modules/chat/services/redis.service.js';
 
 export interface CachedChatMessage {
@@ -26,7 +23,6 @@ export class ChatCacheBatchService {
 
   constructor(
     private readonly redisService: RedisService,
-    private readonly dataSource: DataSource,
     private readonly chatAiService: ChatAiService,
   ) {}
 

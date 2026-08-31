@@ -36,14 +36,14 @@ export class ChatRoomMemberEntity extends MutableAuditBase {
     name: 'role',
     type: 'enum',
     enum: ChatRoomMemberRole,
-    default: ChatRoomMemberRole.USER,
+    default: ChatRoomMemberRole.MEMBER,
   })
   role!: ChatRoomMemberRole;
 
   @Column({
     name: 'is_owner',
     type: 'tinyint',
-    asExpression: `IF(\`role\` = 'OWNER', 1, NULL)`,
+    asExpression: `IF(\`role\` = '${ChatRoomMemberRole.OWNER}', 1, NULL)`,
     generatedType: 'VIRTUAL',
     nullable: true,
     comment: '방장 유니크 제약 보장용 가상 컬럼 (role 값 수정시 자동 재계산)',

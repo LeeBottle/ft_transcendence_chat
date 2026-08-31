@@ -25,7 +25,7 @@ import { CalendarTaskEntity } from '#modules/calendar/entities/calendar-task.ent
 
 interface CreateCalendarTaskParams {
   readonly title: string;
-  readonly startedAt: string;
+  readonly startAt: string;
   readonly dueAt: string;
 }
 
@@ -37,7 +37,7 @@ interface ListCalendarTasksParams {
 
 interface UpdateCalendarTaskParams {
   readonly title?: string;
-  readonly startedAt?: string;
+  readonly startAt?: string;
   readonly dueAt?: string;
 }
 
@@ -66,7 +66,7 @@ export class CalendarService {
     const task = this.calendarTaskRepository.create({
       userId,
       title: params.title,
-      startedAt: new Date(params.startedAt),
+      startAt: new Date(params.startAt),
       dueAt: new Date(params.dueAt),
       completedAt: null,
     });
@@ -84,23 +84,23 @@ export class CalendarService {
     const to = new Date(params.to);
     const where: FindOptionsWhere<CalendarTaskEntity> = {
       userId,
-      startedAt: LessThan(to),
+      startAt: LessThan(to),
       dueAt: MoreThanOrEqual(from),
     };
 
     if (params.status === CalendarTaskStatus.PENDING) {
       where.completedAt = IsNull();
-      where.startedAt = And(LessThan(to), MoreThan(now));
+      where.startAt = And(LessThan(to), MoreThan(now));
     } else if (params.status === CalendarTaskStatus.IN_PROGRESS) {
       where.completedAt = IsNull();
-      where.startedAt = And(LessThan(to), LessThanOrEqual(now));
+      where.startAt = And(LessThan(to), LessThanOrEqual(now));
     } else if (params.status === CalendarTaskStatus.COMPLETED) {
       where.completedAt = Not(IsNull());
     }
 
     const tasks = await this.calendarTaskRepository.find({
       where,
-      order: { startedAt: 'ASC', id: 'ASC' },
+      order: { startAt: 'ASC', id: 'ASC' },
     });
 
     return tasks.map((task) => this.toResponse(task, now));
@@ -123,10 +123,10 @@ export class CalendarService {
     now = new Date(),
   ): Promise<CalendarTaskResponseDto> {
     const task = await this.findOwnedTaskOrThrow(userId, taskId);
-    const startedAt = params.startedAt === undefined ? task.startedAt : new Date(params.startedAt);
+    const startAt = params.startAt === undefined ? task.startAt : new Date(params.startAt);
     const dueAt = params.dueAt === undefined ? task.dueAt : new Date(params.dueAt);
 
-    if (dueAt < startedAt) {
+    if (dueAt < startAt) {
       throw new BadRequestException('마감 시각은 시작 시각보다 빠를 수 없습니다.');
     }
 
@@ -134,7 +134,7 @@ export class CalendarService {
       task.title = params.title;
     }
 
-    task.startedAt = startedAt;
+    task.startAt = startAt;
     task.dueAt = dueAt;
 
     const savedTask = await this.calendarTaskRepository.save(task);
@@ -183,7 +183,7 @@ export class CalendarService {
 
     if (task.completedAt !== null) {
       status = CalendarTaskStatus.COMPLETED;
-    } else if (task.startedAt > now) {
+    } else if (task.startAt > now) {
       status = CalendarTaskStatus.PENDING;
     } else {
       status = CalendarTaskStatus.IN_PROGRESS;
@@ -192,7 +192,7 @@ export class CalendarService {
     return {
       id: task.id,
       title: task.title,
-      startedAt: task.startedAt.toISOString(),
+      startAt: task.startAt.toISOString(),
       dueAt: task.dueAt.toISOString(),
       completedAt: task.completedAt?.toISOString() ?? null,
       status,

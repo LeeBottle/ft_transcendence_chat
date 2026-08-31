@@ -19,26 +19,34 @@ const commitScopes = [
   'web',
 
   /* Modules */
+  'api/admin',
   'api/auth',
   'api/calendar',
   'api/chat',
+  'api/session',
   'api/user',
+  'web/admin',
   'web/auth',
   'web/calendar',
   'web/chat',
+  'web/session',
   'web/user',
 
   /* Shared packages */
-  'schemas',
-  'schemas/auth',
-  'schemas/calendar',
-  'schemas/chat',
-  'schemas/user',
   'constants',
+  'constants/admin',
   'constants/auth',
   'constants/calendar',
   'constants/chat',
+  'constants/session',
   'constants/user',
+  'schemas',
+  'schemas/admin',
+  'schemas/auth',
+  'schemas/calendar',
+  'schemas/chat',
+  'schemas/session',
+  'schemas/user',
 
   /* Shared Configs */
   'lint', // eslint-config 패키지 내부 설정 파일 수정 (개별 패키지 eslint.config.js 수정은 chore(해당 패키지 스코프) 사용)

@@ -5,13 +5,13 @@ export class AddCalendarTaskRangeIndex1788350000000 implements MigrationInterfac
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
-      CREATE INDEX \`idx_calendar_tasks_user_deleted_started_due\` ON \`calendar_tasks\` (\`user_id\`, \`deleted_at\`, \`started_at\`, \`due_at\`)
+      CREATE INDEX \`idx_calendar_tasks_user_deleted_start_due\` ON \`calendar_tasks\` (\`user_id\`, \`deleted_at\`, \`start_at\`, \`due_at\`)
     `);
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
-      DROP INDEX \`idx_calendar_tasks_user_deleted_started_due\` ON \`calendar_tasks\`
+      DROP INDEX \`idx_calendar_tasks_user_deleted_start_due\` ON \`calendar_tasks\`
     `);
   }
 }

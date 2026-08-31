@@ -10,21 +10,25 @@
     }
   },
   "exports": {
+    "./admin": {
+      "types": "./src/admin/admin.schema.ts",
+      "default": "./dist/admin/admin.schema.js"
+    },
     "./auth": {
       "types": "./src/auth/auth.schema.ts",
       "default": "./dist/auth/auth.schema.js"
     },
+    "./calendar": {
+      "types": "./src/calendar/calendar.schema.ts",
+      "default": "./dist/calendar/calendar.schema.js"
+    },
+    "./chat": {
+      "types": "./src/chat/chat.schema.ts",
+      "default": "./dist/chat/chat.schema.js"
+    },
     "./user": {
       "types": "./src/user/user.schema.ts",
       "default": "./dist/user/user.schema.js"
-    },
-    "./chat": {
-      "types": "./src/chat/index.ts",
-      "default": "./dist/chat/index.js"
-    },
-    "./calendar-task": {
-      "types": "./src/calendar/calendar-task.schema.ts",
-      "default": "./dist/calendar/calendar-task.schema.js"
     }
   },
   "files": [

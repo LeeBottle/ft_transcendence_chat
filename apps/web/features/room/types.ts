@@ -3,22 +3,15 @@
 // 백엔드 DB enum: OWNER=방장 / MANAGER=운영자 / MEMBER=일반
 export type RoomMemberRole = 'OWNER' | 'MANAGER' | 'MEMBER';
 
-export interface RoomMember {
-  userId: string;
-  name: string;
-  role: string;
-}
-
 export interface Room {
   id: string;
   name: string;
   avatarLabel: string;
   avatarColor: 'indigo' | 'teal' | 'orange' | 'pink';
-  unreadCount?: number;
-  members?: RoomMember[];
-  topic?: string | null;
-  hasPassword?: boolean;
-  creatorUserId?: string;
+  /** 내 방 내 역할 (OWNER/MANAGER/MEMBER) */
+  role?: string;
+  /** 회의 종료(close) 된 방이면 종료 시각 */
+  closedAt?: string | null;
 }
 
 export interface RoomFormValues {

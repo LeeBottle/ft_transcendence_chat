@@ -4,13 +4,8 @@ import { CalendarTaskStatus } from '@repo/constants/calendar-task';
 
 const CALENDAR_TASK_TITLE_MAX_LENGTH = 255;
 const MAX_LIST_RANGE_MILLISECONDS = 366 * 24 * 60 * 60 * 1000;
-const UNSIGNED_BIGINT_MAX = 18_446_744_073_709_551_615n;
 
-const calendarTaskStatusSchema = z.union([
-  z.literal(CalendarTaskStatus.PENDING),
-  z.literal(CalendarTaskStatus.IN_PROGRESS),
-  z.literal(CalendarTaskStatus.COMPLETED),
-]);
+const calendarTaskStatusSchema = z.enum(CalendarTaskStatus);
 
 const calendarTaskTitleSchema = z
   .string()
@@ -27,29 +22,20 @@ const requestDateTimeSchema = z.iso
 
 const responseDateTimeSchema = z.iso.datetime();
 
-export const calendarTaskIdSchema = z
-  .string()
-  .regex(/^[1-9]\d*$/, '태스크 ID는 양의 정수 문자열이어야 합니다.')
-  .refine((value) => BigInt(value) <= UNSIGNED_BIGINT_MAX, {
-    message: '태스크 ID가 BIGINT UNSIGNED 범위를 벗어났습니다.',
-  });
+export const calendarTaskIdSchema = z.string().regex(/^[1-9]\d*$/);
 
-export const calendarTaskParamsSchema = z
-  .object({
-    taskId: calendarTaskIdSchema,
-  })
-  .strict();
+export const calendarTaskParamsSchema = z.object({ taskId: calendarTaskIdSchema }).strict();
 export type CalendarTaskParams = z.infer<typeof calendarTaskParamsSchema>;
 
 export const createCalendarTaskRequestSchema = z
   .object({
     title: calendarTaskTitleSchema,
-    startedAt: requestDateTimeSchema,
+    startAt: requestDateTimeSchema,
     dueAt: requestDateTimeSchema,
   })
   .strict()
-  .superRefine(({ startedAt, dueAt }, ctx) => {
-    if (dueAt < startedAt) {
+  .superRefine(({ startAt, dueAt }, ctx) => {
+    if (dueAt < startAt) {
       ctx.addIssue({
         code: 'custom',
         message: '마감 시각은 시작 시각보다 빠를 수 없습니다.',
@@ -62,16 +48,16 @@ export type CreateCalendarTaskRequest = z.infer<typeof createCalendarTaskRequest
 export const updateCalendarTaskRequestSchema = z
   .object({
     title: calendarTaskTitleSchema.optional(),
-    startedAt: requestDateTimeSchema.optional(),
+    startAt: requestDateTimeSchema.optional(),
     dueAt: requestDateTimeSchema.optional(),
   })
   .strict()
-  .superRefine(({ title, startedAt, dueAt }, ctx) => {
-    if (title === undefined && startedAt === undefined && dueAt === undefined) {
+  .superRefine(({ title, startAt, dueAt }, ctx) => {
+    if (title === undefined && startAt === undefined && dueAt === undefined) {
       ctx.addIssue({ code: 'custom', message: '수정할 필드를 하나 이상 입력해 주세요.' });
     }
 
-    if (startedAt !== undefined && dueAt !== undefined && dueAt < startedAt) {
+    if (startAt !== undefined && dueAt !== undefined && dueAt < startAt) {
       ctx.addIssue({
         code: 'custom',
         message: '마감 시각은 시작 시각보다 빠를 수 없습니다.',
@@ -125,7 +111,7 @@ export const calendarTaskResponseSchema = z
   .object({
     id: calendarTaskIdSchema,
     title: calendarTaskTitleSchema,
-    startedAt: responseDateTimeSchema,
+    startAt: responseDateTimeSchema,
     dueAt: responseDateTimeSchema,
     completedAt: responseDateTimeSchema.nullable(),
     status: calendarTaskStatusSchema,

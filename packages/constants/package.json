@@ -10,6 +10,10 @@
     }
   },
   "exports": {
+    "./admin": {
+      "types": "./src/admin/admin.ts",
+      "default": "./dist/admin/admin.js"
+    },
     "./user-login-history": {
       "types": "./src/auth/user-login-history.ts",
       "default": "./dist/auth/user-login-history.js"

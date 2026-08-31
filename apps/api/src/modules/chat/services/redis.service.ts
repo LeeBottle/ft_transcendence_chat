@@ -14,15 +14,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly configService: ConfigService<ApiEnv, true>) {}
 
   onModuleInit(): void {
-    const host = this.configService.get('REDIS_HOST', { infer: true });
-    const port = this.configService.get('REDIS_PORT', { infer: true });
-    const password = this.configService.get('REDIS_PASSWORD', { infer: true });
+    const host = this.configService.getOrThrow('REDIS_HOST', { infer: true });
+    const port = this.configService.getOrThrow('REDIS_PORT', { infer: true });
+    const password = this.configService.getOrThrow('REDIS_PASSWORD', { infer: true });
 
     this.client = new Redis({
       host,
       port,
-      password: password.length > 0 ? password : undefined,
-      lazyConnect: true,
+      password,
+      // lazyConnect: true,
       maxRetriesPerRequest: 3,
     });
 

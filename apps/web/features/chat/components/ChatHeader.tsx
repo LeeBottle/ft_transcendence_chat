@@ -9,8 +9,8 @@ interface ChatHeaderProps {
   taskPanelOpen: boolean;
   onToggleTaskPanel: () => void;
   meetingEnded: boolean;
+  canEndMeeting: boolean;
   onEndMeeting: () => void;
-  onOpenManage: () => void;
 }
 
 function ChatHeader({
@@ -21,8 +21,8 @@ function ChatHeader({
   taskPanelOpen,
   onToggleTaskPanel,
   meetingEnded,
+  canEndMeeting,
   onEndMeeting,
-  onOpenManage,
 }: ChatHeaderProps) {
   return (
     <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-gray-100 px-4.5">
@@ -50,24 +50,19 @@ function ChatHeader({
         >
           ☑
         </button>
-        <button
-          onClick={onEndMeeting}
-          disabled={meetingEnded}
-          className={`flex h-7.5 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold whitespace-nowrap ${
-            meetingEnded
-              ? 'cursor-not-allowed bg-gray-100 text-gray-400'
-              : 'cursor-pointer border border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
-          } `}
-        >
-          ■ {meetingEnded ? '종료됨' : '회의 종료'}
-        </button>
-        <button
-          onClick={onOpenManage}
-          aria-label="방 관리"
-          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50"
-        >
-          ⋯
-        </button>
+        {canEndMeeting && (
+          <button
+            onClick={onEndMeeting}
+            disabled={meetingEnded}
+            className={`flex h-7.5 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold whitespace-nowrap ${
+              meetingEnded
+                ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                : 'cursor-pointer border border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+            } `}
+          >
+            ■ {meetingEnded ? '종료됨' : '회의 종료'}
+          </button>
+        )}
       </div>
     </div>
   );

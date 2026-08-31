@@ -9,7 +9,7 @@ import type { UserSearchResult } from '@/features/room/roomApi';
 
 interface CreateRoomFormProps {
   onCancel: () => void;
-  onSubmit: (input: { name: string; memberIds: string[] }) => Promise<void>;
+  onSubmit: (input: { name: string; memberLoginIds: string[] }) => Promise<void>;
 }
 
 function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
@@ -41,7 +41,8 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
     setError(null);
 
     try {
-      await onSubmit({ name: trimmed, memberIds: members.map((m) => m.id) });
+      // 백엔드가 loginId 로 멤버를 받는다 (memberUserLoginIds)
+      await onSubmit({ name: trimmed, memberLoginIds: members.map((m) => m.loginId) });
       // 성공 시 상위에서 페이지 이동 → submitting 해제 불필요
     } catch (error_) {
       setError(error_ instanceof Error ? error_.message : '채팅방을 만들지 못했어요.');

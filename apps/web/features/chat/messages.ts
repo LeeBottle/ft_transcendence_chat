@@ -2,7 +2,7 @@
 
 import { apiFetch } from '@/features/auth/apiClient';
 
-import { chatMessageResponseSchema, type ChatMessageResponse } from '@repo/schemas/chat';
+import { getMessagesResponseSchema, type ChatMessageResponse } from '@repo/schemas/chat';
 
 import type { Message } from './types';
 
@@ -37,13 +37,13 @@ export async function fetchMessages(
     throw new Error(`메시지를 불러오지 못했어요 (${res.status})`);
   }
 
-  const parsed = chatMessageResponseSchema.array().safeParse(await res.json());
+  const parsed = getMessagesResponseSchema.safeParse(await res.json());
 
   if (!parsed.success) {
     throw new Error('메시지 응답 형식이 예상과 달라요.');
   }
 
-  return parsed.data.reverse();
+  return parsed.data.messages.reverse();
 }
 
 export { HISTORY_PAGE_SIZE };

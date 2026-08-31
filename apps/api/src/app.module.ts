@@ -6,13 +6,15 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { parseApiEnv } from '#config/api-env.schema.js';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
-import { RolesGuard } from './common/guards/role.guard.js';
+import { RolesGuard } from './common/guards/roles.guard.js';
 import { ZodValidationPipe } from './common/pipes/zod-validation.pipe.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { CalendarModule } from './modules/calendar/calendar.module.js';
 import { ChatModule } from './modules/chat/chat.module.js';
+import { SessionModule } from './modules/session/session.module.js';
 import { UserModule } from './modules/user/user.module.js';
 
 @Module({
@@ -22,9 +24,11 @@ import { UserModule } from './modules/user/user.module.js';
     DatabaseModule,
     HealthModule,
 
+    AdminModule,
     AuthModule,
     CalendarModule,
     ChatModule,
+    SessionModule,
     UserModule,
   ],
   providers: [

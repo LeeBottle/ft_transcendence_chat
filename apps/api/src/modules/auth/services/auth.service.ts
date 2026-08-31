@@ -6,24 +6,19 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { In, MoreThan } from 'typeorm';
-
 import { UserRole, UserStatus } from '@repo/constants/user';
 import { UserLoginHistoryFailureReason } from '@repo/constants/user-login-history';
 
 import { parseDurationToMs } from '#common/utils/duration.util.js';
 import type { ApiEnv } from '#config/api-env.schema.js';
-import type {
-  GetUserPresencesResponseDto,
-  RegisterUserResponseDto,
-} from '#modules/auth/controllers/auth.dto.js';
+import type { RegisterUserResponseDto } from '#modules/auth/controllers/auth.dto.js';
+import { UserSessionService } from '#modules/session/services/session.service.js';
 import { UserService } from '#modules/user/services/user.service.js';
 
 import { hashSha256 } from './common/crypto.util.js';
 import { PasswordService } from './password.service.js';
 import { TokenService, type GeneratedTokenPair } from './token.service.js';
 import { UserLoginHistoryService } from './user-login-history.service.js';
-import { UserSessionService } from './user-session.service.js';
 
 interface RegisterUserParams {
   readonly loginId: string;
@@ -73,7 +68,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
-    private readonly userSessionService: UserSessionService,
+    private readonly sessionService: UserSessionService,
     private readonly userLoginHistoryService: UserLoginHistoryService,
   ) {}
 
@@ -171,7 +166,7 @@ export class AuthService {
         userAgent,
         failureReason: null,
       }),
-      this.userSessionService.create({
+      this.sessionService.create({
         userId: user.id,
         refreshTokenHash,
         ipAddress,
@@ -197,7 +192,7 @@ export class AuthService {
   async logout(refreshToken: string): Promise<void> {
     const refreshTokenHash = hashSha256(refreshToken);
 
-    await this.userSessionService.deleteByRefreshTokenHash(refreshTokenHash);
+    await this.sessionService.deleteByRefreshTokenHash(refreshTokenHash);
   }
 
   async changePassword(params: ChangePasswordParams): Promise<GeneratedTokenPair> {
@@ -219,7 +214,7 @@ export class AuthService {
 
     await this.userService.updatePasswordHash(user.id, newPasswordHash);
 
-    await this.userSessionService.deleteByUserId(user.id); // 해당 유저의 전체 세션 삭제(모든 기기)
+    await this.sessionService.deleteByUserId(user.id); // 해당 유저의 전체 세션 삭제(모든 기기)
 
     const newTokens = await this.tokenService.generateTokenPair({
       id: user.id,
@@ -233,7 +228,7 @@ export class AuthService {
     const refreshTokenExpiresAt = new Date(Date.now() + refreshTokenExpiration);
     const refreshTokenHash = hashSha256(newTokens.refreshToken);
 
-    await this.userSessionService.create({
+    await this.sessionService.create({
       userId: user.id,
       refreshTokenHash,
       ipAddress,
@@ -252,8 +247,7 @@ export class AuthService {
 
     // 2. DB 세션 조회 (해시값 기반 매칭)
     const incomingRefreshTokenHash = hashSha256(refreshToken);
-    const userSession =
-      await this.userSessionService.findByRefreshTokenHash(incomingRefreshTokenHash);
+    const userSession = await this.sessionService.findByRefreshTokenHash(incomingRefreshTokenHash);
 
     if (userSession === null) {
       // 세션이 없거나 이미 회전되어 폐기된 토큰인 경우
@@ -264,7 +258,7 @@ export class AuthService {
     const user = await this.userService.findById(payload.sub);
 
     if (user?.status !== UserStatus.ACTIVE) {
-      await this.userSessionService.deleteByRefreshTokenHash(incomingRefreshTokenHash);
+      await this.sessionService.deleteByRefreshTokenHash(incomingRefreshTokenHash);
 
       throw new UnauthorizedException('계정이 비활성화되었거나 존재하지 않습니다.');
     }
@@ -283,7 +277,7 @@ export class AuthService {
     const newExpiresAt = new Date(Date.now() + refreshTokenExpiration);
     const newRefreshTokenHash = hashSha256(newTokens.refreshToken);
 
-    await this.userSessionService.rotateSession({
+    await this.sessionService.rotateSession({
       userSessionId: userSession.id,
       newRefreshTokenHash,
       ipAddress,

@@ -10,7 +10,7 @@ import {
   calendarTaskListResponseSchema,
   calendarTaskResponseSchema,
   type CalendarTaskResponse,
-} from '@repo/schemas/calendar-task';
+} from '@repo/schemas/calendar';
 
 import type { CalendarTask, CalendarTaskStatusValue } from './types';
 
@@ -57,12 +57,13 @@ export function writeColor(id: string, color: string): void {
 }
 
 export function toCalendarTask(res: CalendarTaskResponse): CalendarTask {
+  // 백엔드 status 는 1|2|3 을 보장한다
   const status = res.status;
 
   return {
     id: res.id,
     title: res.title,
-    start: isoToDateStr(res.startedAt),
+    start: isoToDateStr(res.startAt),
     end: isoToDateStr(res.dueAt),
     room: '개인생성', // 백엔드에 방 개념 없음 (채팅→캘린더 연동은 MVP 밖)
     color: readColor(res.id) ?? STATUS_COLOR[status],
@@ -140,7 +141,7 @@ export async function createTask(input: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: input.title,
-        startedAt: dateToStartIso(input.start),
+        startAt: dateToStartIso(input.start),
         dueAt: dateToEndIso(input.end),
       }),
     },
@@ -162,7 +163,7 @@ export async function updateTask(
     body.title = patch.title;
   }
   if (patch.start !== undefined) {
-    body.startedAt = dateToStartIso(patch.start);
+    body.startAt = dateToStartIso(patch.start);
   }
   if (patch.end !== undefined) {
     body.dueAt = dateToEndIso(patch.end);

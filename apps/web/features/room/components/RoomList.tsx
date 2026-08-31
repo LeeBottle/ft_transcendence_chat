@@ -37,13 +37,6 @@ function RoomList({ rooms, activeRoomId, onSelectRoom }: RoomListProps) {
               {room.avatarLabel}
             </span>
             <span className="flex-1 truncate">{room.name}</span>
-            {Boolean(room.unreadCount) && (
-              <span
-                className={`flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold ${isActive ? 'bg-white/20 text-white' : 'bg-purple-500 text-white'} `}
-              >
-                {room.unreadCount}
-              </span>
-            )}
           </button>
         );
       })}

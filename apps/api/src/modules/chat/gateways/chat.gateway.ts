@@ -15,11 +15,7 @@ import type { ZodType } from 'zod';
 
 import { sendMessageRequestSchema } from '@repo/schemas/chat';
 
-import {
-  WsJwtGuard,
-  type AuthenticatedSocket,
-  type WsUser,
-} from '#modules/chat/guards/ws-jwt.guard.js';
+import { WsJwtGuard, type AuthenticatedSocket } from '#modules/chat/guards/ws-jwt.guard.js';
 import { ChatCacheBatchService } from '#modules/chat/services/chat-cache-batch.service.js';
 import { ChatMessageService } from '#modules/chat/services/chat-message.service.js';
 import { ChatService } from '#modules/chat/services/chat.service.js';

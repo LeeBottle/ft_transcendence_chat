@@ -1,5 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 
+import { z } from 'zod';
+
 import {
   calendarTaskListResponseSchema,
   calendarTaskParamsSchema,
@@ -8,7 +10,7 @@ import {
   listCalendarTasksQuerySchema,
   updateCalendarTaskCompletionRequestSchema,
   updateCalendarTaskRequestSchema,
-} from '@repo/schemas/calendar-task';
+} from '@repo/schemas/calendar';
 
 export class CalendarTaskParamsDto extends createZodDto(calendarTaskParamsSchema) {}
 export class ListCalendarTasksQueryDto extends createZodDto(listCalendarTasksQuerySchema) {}

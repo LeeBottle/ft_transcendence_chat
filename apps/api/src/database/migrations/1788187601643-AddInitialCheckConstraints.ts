@@ -1,6 +1,6 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddInitialCheckConstraints1787551480827 implements MigrationInterface {
+export class AddInitialCheckConstraints1788187601643 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     // PostgreSQL 마이그레이션 전 데이터 오염 방지용
     await queryRunner.query(/* sql */ `
@@ -8,10 +8,10 @@ export class AddInitialCheckConstraints1787551480827 implements MigrationInterfa
       ADD CONSTRAINT \`chk_user_login_histories_is_success_valid\` CHECK (\`is_success\` IN (0, 1));
     `);
 
-    // 마감 시각(due_at)은 시작 시각(started_at) 이후여야 함
+    // 마감 시각(due_at)은 시작 시각(start_at) 이후여야 함
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`calendar_tasks\`
-      ADD CONSTRAINT \`chk_calendar_tasks_due_after_started\` CHECK (\`due_at\` >= \`started_at\`);
+      ADD CONSTRAINT \`chk_calendar_tasks_due_after_start\` CHECK (\`due_at\` >= \`start_at\`);
     `);
 
     // 퇴장 시각(left_at)은 NULL이거나 입장 시각(joined_at) 이후여야 함
@@ -23,10 +23,10 @@ export class AddInitialCheckConstraints1787551480827 implements MigrationInterfa
       );
     `);
 
-    // 마감 시각(due_at)은 시작 시각(started_at) 이후여야 함
+    // 마감 시각(due_at)은 시작 시각(start_at) 이후여야 함
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`chat_room_tasks\`
-      ADD CONSTRAINT \`chk_chat_room_tasks_due_after_started\` CHECK (\`due_at\` >= \`started_at\`);
+      ADD CONSTRAINT \`chk_chat_room_tasks_due_after_start\` CHECK (\`due_at\` >= \`start_at\`);
     `);
   }
 
@@ -35,7 +35,7 @@ export class AddInitialCheckConstraints1787551480827 implements MigrationInterfa
 
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`chat_room_tasks\`
-      DROP CHECK \`chk_chat_room_tasks_due_after_started\`;
+      DROP CHECK \`chk_chat_room_tasks_due_after_start\`;
     `);
 
     await queryRunner.query(/* sql */ `
@@ -45,7 +45,7 @@ export class AddInitialCheckConstraints1787551480827 implements MigrationInterfa
 
     await queryRunner.query(/* sql */ `
       ALTER TABLE \`calendar_tasks\`
-      DROP CHECK \`chk_calendar_tasks_due_after_started\`;
+      DROP CHECK \`chk_calendar_tasks_due_after_start\`;
     `);
 
     await queryRunner.query(/* sql */ `

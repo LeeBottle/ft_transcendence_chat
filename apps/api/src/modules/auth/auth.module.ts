@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { SessionModule } from '#modules/session/session.module.js';
 import { UserModule } from '#modules/user/user.module.js';
 
 import { AuthController } from './controllers/auth.controller.js';
@@ -13,7 +14,6 @@ import { PasswordService } from './services/password.service.js';
 import { TokenService } from './services/token.service.js';
 import { UserLoginHistoryService } from './services/user-login-history.service.js';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy.js';
-import { UserSessionModule } from './user-session.module.js';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { UserSessionModule } from './user-session.module.js';
     }),
     PassportModule,
     UserModule,
-    UserSessionModule,
+    SessionModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -35,6 +35,6 @@ import { UserSessionModule } from './user-session.module.js';
     JwtAccessStrategy,
     { provide: PasswordService, useClass: BcryptPasswordService },
   ],
-  exports: [],
+  exports: [PasswordService],
 })
 export class AuthModule {}

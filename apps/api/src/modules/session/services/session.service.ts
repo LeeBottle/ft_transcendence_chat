@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, MoreThan, type Repository } from 'typeorm';
 
 import type { GetUserPresencesResponseDto } from '#modules/auth/controllers/auth.dto.js';
-import { UserSessionEntity } from '#modules/auth/entities/user-session.entity.js';
+import { UserSessionEntity } from '#modules/session/entities/user-session.entity.js';
 
 interface CreateUserSessionParams {
   readonly userId: string;
