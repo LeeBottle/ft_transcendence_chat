@@ -8,7 +8,7 @@ _This project has been created as part of the 42 curriculum by byeolee, hjang, h
 
 A real-time chat and channel management platform providing
 Socket.IO-based multi-party chat, channel permission management
-(owner/operator/user), password-protected channels, high-performance
+(owner/user), password-protected channels, high-performance
 Redis caching message processing.
 
 ---
