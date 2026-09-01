@@ -105,7 +105,7 @@ export async function fetchTasks(params: {
     throw new Error('태스크 응답 형식이 예상과 달라요.');
   }
 
-  return parsed.data.map(toCalendarTask);
+  return parsed.data.tasks.map(toCalendarTask);
 }
 
 async function sendTask(

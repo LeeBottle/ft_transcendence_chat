@@ -1,20 +1,21 @@
 import { createZodDto } from 'nestjs-zod';
 
 import {
-  createTaskRequestSchema,
-  createTaskResponseSchema,
-  getTasksRequestSchema,
-  getTasksResponseSchema,
-  taskIdParamSchema,
+  calendarTaskListResponseSchema,
+  calendarTaskParamsSchema,
+  calendarTaskResponseSchema,
+  createCalendarTaskRequestSchema,
+  listCalendarTasksQuerySchema,
+  updateCalendarTaskCompletionRequestSchema,
   updateCalendarTaskRequestSchema,
-  updateCalendarTaskResponseSchema,
 } from '@repo/schemas/calendar';
 
-export class TaskIdParamDto extends createZodDto(taskIdParamSchema) {}
-
-export class GetTasksRequestDto extends createZodDto(getTasksRequestSchema) {}
-export class GetTasksResponseDto extends createZodDto(getTasksResponseSchema) {}
-export class CreateTaskRequestDto extends createZodDto(createTaskRequestSchema) {}
-export class CreateTaskResponseDto extends createZodDto(createTaskResponseSchema) {}
+export class CalendarTaskParamsDto extends createZodDto(calendarTaskParamsSchema) {}
+export class ListCalendarTasksQueryDto extends createZodDto(listCalendarTasksQuerySchema) {}
+export class CreateCalendarTaskRequestDto extends createZodDto(createCalendarTaskRequestSchema) {}
 export class UpdateCalendarTaskRequestDto extends createZodDto(updateCalendarTaskRequestSchema) {}
-export class UpdateCalendarTaskResponseDto extends createZodDto(updateCalendarTaskResponseSchema) {}
+export class UpdateCalendarTaskCompletionRequestDto extends createZodDto(
+  updateCalendarTaskCompletionRequestSchema,
+) {}
+export class CalendarTaskResponseDto extends createZodDto(calendarTaskResponseSchema) {}
+export class CalendarTaskListResponseDto extends createZodDto(calendarTaskListResponseSchema) {}

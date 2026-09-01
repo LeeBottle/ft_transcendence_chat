@@ -16,13 +16,13 @@ import { ZodValidateResponse } from '#common/decorators/zod-validation-response.
 import { CalendarService } from '#modules/calendar/services/calendar.service.js';
 
 import {
-  CreateTaskRequestDto,
-  CreateTaskResponseDto,
-  GetTasksRequestDto,
-  GetTasksResponseDto,
-  TaskIdParamDto,
+  CalendarTaskListResponseDto,
+  CalendarTaskParamsDto,
+  CalendarTaskResponseDto,
+  CreateCalendarTaskRequestDto,
+  ListCalendarTasksQueryDto,
+  UpdateCalendarTaskCompletionRequestDto,
   UpdateCalendarTaskRequestDto,
-  UpdateCalendarTaskResponseDto,
 } from './calendar.dto.js';
 
 @Controller('calendar/tasks')
@@ -30,50 +30,58 @@ export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
 
   @Get()
-  @ZodValidateResponse(GetTasksResponseDto)
-  async getTasks(
+  @ZodValidateResponse(CalendarTaskListResponseDto)
+  async findAll(
     @CurrentUserId() userId: string,
-    @Query() query: GetTasksRequestDto,
-  ): Promise<GetTasksResponseDto> {
-    const tasks = await this.calendarService.findTasksWithinRange(userId, query);
+    @Query() query: ListCalendarTasksQueryDto,
+  ): Promise<CalendarTaskListResponseDto> {
+    return await this.calendarService.findAll(userId, query);
+  }
 
-    return {
-      userId,
-      tasks: tasks.map((task) => ({
-        id: task.id,
-        title: task.title,
-        startAt: task.startAt.toISOString(),
-        dueAt: task.dueAt.toISOString(),
-        completedAt: task.completedAt?.toISOString() ?? null,
-        color: task.color,
-        memo: task.memo,
-        createdAt: task.createdAt.toISOString(),
-      })),
-    };
+  @Get(':taskId')
+  @ZodValidateResponse(CalendarTaskResponseDto)
+  async findOne(
+    @CurrentUserId() userId: string,
+    @Param() params: CalendarTaskParamsDto,
+  ): Promise<CalendarTaskResponseDto> {
+    return await this.calendarService.findOne(userId, params.taskId);
   }
 
   @Post()
-  @ZodValidateResponse(CreateTaskResponseDto)
+  @ZodValidateResponse(CalendarTaskResponseDto)
   async create(
     @CurrentUserId() userId: string,
-    @Body() dto: CreateTaskRequestDto,
-  ): Promise<CreateTaskResponseDto> {
+    @Body() dto: CreateCalendarTaskRequestDto,
+  ): Promise<CalendarTaskResponseDto> {
     return await this.calendarService.create(userId, dto);
   }
 
   @Patch(':taskId')
-  @ZodValidateResponse(UpdateCalendarTaskResponseDto)
+  @ZodValidateResponse(CalendarTaskResponseDto)
   async update(
     @CurrentUserId() userId: string,
-    @Param() params: TaskIdParamDto,
+    @Param() params: CalendarTaskParamsDto,
     @Body() dto: UpdateCalendarTaskRequestDto,
-  ): Promise<UpdateCalendarTaskResponseDto> {
+  ): Promise<CalendarTaskResponseDto> {
     return await this.calendarService.update(userId, params.taskId, dto);
+  }
+
+  @Patch(':taskId/completion')
+  @ZodValidateResponse(CalendarTaskResponseDto)
+  async updateCompletion(
+    @CurrentUserId() userId: string,
+    @Param() params: CalendarTaskParamsDto,
+    @Body() dto: UpdateCalendarTaskCompletionRequestDto,
+  ): Promise<CalendarTaskResponseDto> {
+    return await this.calendarService.updateCompletion(userId, params.taskId, dto);
   }
 
   @Delete(':taskId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@CurrentUserId() userId: string, @Param() params: TaskIdParamDto): Promise<void> {
-    await this.calendarService.delete(userId, params.taskId);
+  async remove(
+    @CurrentUserId() userId: string,
+    @Param() params: CalendarTaskParamsDto,
+  ): Promise<void> {
+    await this.calendarService.remove(userId, params.taskId);
   }
 }
