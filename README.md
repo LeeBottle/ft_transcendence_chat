@@ -5,7 +5,7 @@
 ## 1. Description
 
 ### 1.1 Project Overview
-A real-time chat and channel management platform providing Socket.IO-based multi-party chat, channel permission management (owner/operator/user), password-protected channels, high-performance Redis caching message processing, and AI-driven automated meeting summary and action item extraction upon session end.
+A real-time chat and channel management platform providing Socket.IO-based multi-party chat, channel permission management (owner/operator/user), password-protected channels, high-performance Redis caching message processing.
 
 ---
 
