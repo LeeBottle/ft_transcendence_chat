@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by <login1>[, <login2>[, <login3>[...]]].*
+*This project has been created as part of the 42 curriculum by <byeolee>, <hjang>, <hyeyeom>, <sanghul2>, <seonhwan>.*
 
 # ft_transcendence
 
@@ -309,7 +309,6 @@ The subject requires **14 points minimum** (Major = 2 pts, Minor = 1 pt). Based 
 | Web | Notification system (all creation/update/deletion actions) | Minor | 1 | Unconfirmed — chat toasts and kick/ban socket events exist, but full CRUD coverage is not confirmed |
 | **Subtotal (confirmed)** | | | **14** | SSR, advanced search, and the notification system are excluded from the subtotal as unconfirmed |
 
-**Gap to reach 14 points:** the project currently totals **12 confirmed points**, 2 short of the mandatory minimum. Besides SSR / advanced search / notifications above, the following candidates were also investigated but are 
 
 ---
 
