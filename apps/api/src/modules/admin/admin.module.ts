@@ -6,12 +6,13 @@ import { ChatRoomEntity } from '#modules/chat/entities/chat-room.entity.js';
 import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 import { AdminController } from './controllers/admin.controller.js';
+import { AdminSeedService } from './services/admin-seed.service.js';
 import { AdminService } from './services/admin.service.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, ChatRoomEntity]), AuthModule],
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService, AdminSeedService],
   exports: [],
 })
 export class AdminModule {}
