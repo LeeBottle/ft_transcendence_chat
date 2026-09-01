@@ -157,13 +157,13 @@ export async function searchUsers(query: string): Promise<UserSearchResult[]> {
     throw new Error(await readErrorMessage(res, `유저 검색에 실패했어요 (${res.status})`));
   }
 
-  const data = (await res.json().catch(() => [])) as unknown;
+  const data = (await res.json().catch(() => ({}))) as { users?: unknown };
 
-  if (!Array.isArray(data)) {
+  if (!Array.isArray(data.users)) {
     return [];
   }
 
-  return data.map((raw) => {
+  return data.users.map((raw) => {
     const u = raw as Record<string, unknown>;
 
     return {
