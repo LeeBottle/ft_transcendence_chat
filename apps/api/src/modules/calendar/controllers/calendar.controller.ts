@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 
 import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
+import { ZodValidateResponse } from '#common/decorators/zod-validation-response.decorator.js';
 import { CalendarService } from '#modules/calendar/services/calendar.service.js';
 
 import {
@@ -29,6 +30,7 @@ export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
 
   @Get()
+  @ZodValidateResponse(GetTasksResponseDto)
   async getTasks(
     @CurrentUserId() userId: string,
     @Query() query: GetTasksRequestDto,
@@ -51,6 +53,7 @@ export class CalendarController {
   }
 
   @Post()
+  @ZodValidateResponse(CreateTaskResponseDto)
   async create(
     @CurrentUserId() userId: string,
     @Body() dto: CreateTaskRequestDto,
@@ -59,6 +62,7 @@ export class CalendarController {
   }
 
   @Patch(':taskId')
+  @ZodValidateResponse(UpdateCalendarTaskResponseDto)
   async update(
     @CurrentUserId() userId: string,
     @Param() params: TaskIdParamDto,
@@ -69,7 +73,7 @@ export class CalendarController {
 
   @Delete(':taskId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@CurrentUserId() userId: string, @Param() params: TaskIdParamDto): Promise<void> {
+  async delete(@CurrentUserId() userId: string, @Param() params: TaskIdParamDto): Promise<void> {
     await this.calendarService.delete(userId, params.taskId);
   }
 }

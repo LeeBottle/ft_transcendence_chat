@@ -90,7 +90,11 @@ export const userSearchItemResponseSchema = z.object({
   name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
   profileImagePath: createProfileImagePathSchema(),
 });
-export type UserSearchItemResponse = z.infer<typeof userSearchItemResponseSchema>;
+
+export const userSearchItemsResponseSchema = z.object({
+  users: z.array(userSearchItemResponseSchema),
+});
+export type UserSearchItemsResponse = z.infer<typeof userSearchItemsResponseSchema>;
 
 export const searchUsersResponseSchema = z.array(userSearchItemResponseSchema);
 export type SearchUsersResponse = z.infer<typeof searchUsersResponseSchema>;

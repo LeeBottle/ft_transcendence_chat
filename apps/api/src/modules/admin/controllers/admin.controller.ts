@@ -14,6 +14,7 @@ import {
 import { UserRole } from '@repo/constants/user';
 
 import { Roles } from '#common/decorators/roles.decorator.js';
+import { ZodValidateResponse } from '#common/decorators/zod-validation-response.decorator.js';
 import {
   AdminChatRoomIdParamDto,
   AdminChatRoomListResponseDto,
@@ -35,6 +36,7 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('users')
+  @ZodValidateResponse(AdminUserListQueryResponseDto)
   async findAllUsers(
     @Query() query: AdminUserListQueryRequestDto,
   ): Promise<AdminUserListQueryResponseDto> {
@@ -42,6 +44,7 @@ export class AdminController {
   }
 
   @Patch('users/:userId/status')
+  @ZodValidateResponse(AdminUpdateUserStatusResponseDto)
   async updateUserStatus(
     @Param() param: AdminUserIdParamDto,
     @Body() body: AdminUpdateUserStatusRequestDto,
@@ -56,16 +59,19 @@ export class AdminController {
   }
 
   @Post('users')
+  @ZodValidateResponse(AdminCreateUserResponseDto)
   async createUser(@Body() body: AdminCreateUserRequestDto): Promise<AdminCreateUserResponseDto> {
     return await this.adminService.createUser(body);
   }
 
   @Get('chat/rooms')
+  @ZodValidateResponse(AdminChatRoomListResponseDto)
   async findAllChatRooms(): Promise<AdminChatRoomListResponseDto> {
     return await this.adminService.findAllChatRooms();
   }
 
   @Patch('chat/rooms/:chatRoomId/title')
+  @ZodValidateResponse(AdminUpdateChatRoomTitleResponseDto)
   async updateChatRoomTitle(
     @Param() param: AdminChatRoomIdParamDto,
     @Body() body: AdminUpdateChatRoomTitleRequestDto,

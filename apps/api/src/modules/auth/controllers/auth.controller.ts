@@ -15,6 +15,7 @@ import { ClientIp, UserAgent } from '#common/decorators/client-info.decorator.js
 import { Cookies } from '#common/decorators/cookies.decorator.js';
 import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
 import { Public } from '#common/decorators/public.decorator.js';
+import { ZodValidateResponse } from '#common/decorators/zod-validation-response.decorator.js';
 import { parseDurationToMs } from '#common/utils/duration.util.js';
 import type { ApiEnv } from '#config/api-env.schema.js';
 import {
@@ -37,6 +38,7 @@ export class AuthController {
 
   @Post('register')
   @Public()
+  @ZodValidateResponse(RegisterUserResponseDto)
   async register(@Body() dto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
     return await this.authService.register({
       loginId: dto.loginId,
@@ -49,6 +51,7 @@ export class AuthController {
   @Post('login')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ZodValidateResponse(LoginUserResponseDto)
   async login(
     @Body() dto: LoginUserRequestDto,
     @ClientIp() ipAddress: string,
@@ -87,6 +90,7 @@ export class AuthController {
   // 나머지 기기(세션)들은 로그아웃 처리
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
+  @ZodValidateResponse(ChangePasswordResponseDto)
   async changePassword(
     @CurrentUserId() userId: string,
     @Body() dto: ChangePasswordRequestDto,
@@ -110,6 +114,7 @@ export class AuthController {
   @Post('refresh')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ZodValidateResponse(RefreshTokenResponseDto)
   async refresh(
     @Cookies('refreshToken') refreshToken: string | null,
     @ClientIp() ipAddress: string,
