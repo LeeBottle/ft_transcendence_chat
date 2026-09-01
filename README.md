@@ -29,7 +29,7 @@ A real-time chat and channel management platform providing Socket.IO-based multi
 
 #### hyeyeom
 - Assigned Role
-  - Frontend Developer
+  - PO / Frontend Developer
 - Responsibilities
     - Designed and implemented the overall Next.js frontend (Auth, Chat, Calendar, Admin, My Page, Friends) and its Design System (color/typography tokens, reusable components, style guide page)
     - Integrated real-time Socket.IO chat client (room list, history, room management modal, member invite) and Calendar task CRUD UI
@@ -45,7 +45,7 @@ A real-time chat and channel management platform providing Socket.IO-based multi
 
 #### seonhwan
 - Assigned Role
-	- Backend, Database, and Infrastructure Architect / User & Admin Module Developer
+	- PM / Backend, Database, and Infrastructure Architect / User & Admin Module Developer
 - Responsibilities
 	- Designed the overall backend and infrastructure architecture, as well as the database schema
 	- Developed user and admin modules, and implemented a role-based access control (RBAC) authorization system
@@ -407,54 +407,13 @@ The subject requires **14 points minimum** (Major = 2 pts, Minor = 1 pt). Based 
 ## 2. Instructions
 
 ### 2.1 Prerequisites
-- Node.js: v24 or higher
-- pnpm: Package manager
-- PostgreSQL: v15 or higher
+- Node.js: v24.18.0 or higher
+- pnpm: 11.17.0 or higher
+- MySQL: v8.0 or higher
 - Redis Server: v7 or higher
-
 ---
 
-### 2.2 Environment Configuration (`.env`)
-Set the required environment variables in the root path and API service path as follows:
-
-```bash
-cat << 'EOF' > infra/.env.database
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USERNAME=transcendence
-DB_PASSWORD=transcendence_pass
-DB_SCHEMA_NAME=transcendence_db
-DB_ROOT_USERNAME=root
-DB_ROOT_PASSWORD=root_pass
-CHAT_STORE_PASSWORD=redis_pass
-EOF
-
-cat << 'EOF' > infra/.env.api
-API_PORT=4000
-CLIENT_URL=http://localhost:3000
-UPLOAD_BASE_DIR=./uploads
-BCRYPT_SALT_ROUNDS=10
-EOF
-
-cat << 'EOF' > infra/.env.web
-NEXT_PUBLIC_API_URL=http://localhost:4000
-EOF
-
-cat << 'EOF' > apps/api/.env.development
-CLIENT_URL=http://localhost:3000
-UPLOAD_BASE_DIR=./uploads
-BCRYPT_SALT_ROUNDS=10
-
-DB_HOST=127.0.0.1
-DB_USERNAME=transcendence
-DB_PASSWORD=transcendence_pass
-DB_SCHEMA_NAME=transcendence_db
-EOF
-```
-
----
-
-### 2.3 Execution Guide (Step-by-Step)
+### 2.2 Execution Guide (Step-by-Step)
 
 ```bash
 #1.  
