@@ -13,7 +13,7 @@ import { RoomProvider, useRoomContext } from '@/features/room/RoomContext';
 
 const NAV_ITEMS: SidebarItem[] = [
   { id: 'calendar', label: '캘린더', icon: <Icon name="calendar" /> },
-  { id: 'my-page', label: '마이페이지', icon: <Icon name="user" /> },
+  { id: 'my-page', label: '마이페이지', icon: <Icon name="settings" /> },
   { id: 'friends', label: '친구', icon: <Icon name="users" /> },
 ];
 
@@ -37,8 +37,8 @@ function RoomSection() {
   }
 
   return (
-    <div className="mt-2 flex flex-col gap-1 px-3">
-      <div className="text-text-subtle px-3 py-1 text-[10px] font-semibold tracking-wide uppercase">
+    <div className="mt-2 flex flex-col gap-1 px-1.5 md:px-3">
+      <div className="text-text-subtle hidden px-3 py-1 text-[10px] font-semibold tracking-wide uppercase md:block">
         채팅방
       </div>
       {rooms.length > 0 && (
@@ -52,13 +52,14 @@ function RoomSection() {
         onClick={() => {
           router.push('/chat/create');
         }}
+        title="새 채팅방"
         className="border-border-strong text-caption text-text-subtle hover:border-primary-ring hover:text-primary flex h-9 items-center justify-center gap-1 rounded-lg border border-dashed"
       >
         <Icon
           name="plus"
           size={14}
         />
-        새 채팅방
+        <span className="hidden md:inline">새 채팅방</span>
       </button>
     </div>
   );
@@ -98,7 +99,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <div className="flex flex-1 overflow-hidden">
-          <aside className="flex h-full w-56 shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white">
+          <aside className="border-border bg-surface flex h-full w-14 shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r md:w-56">
             <Sidebar
               items={NAV_ITEMS}
               activeId={activeId}

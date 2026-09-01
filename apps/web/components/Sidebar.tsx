@@ -17,7 +17,7 @@ interface SidebarProps {
 
 function Sidebar({ items, activeId, onSelect }: SidebarProps) {
   return (
-    <nav className="flex flex-col gap-1 px-3 py-4">
+    <nav className="flex flex-col gap-1 px-1.5 py-4 md:px-3">
       {items.map((item) => {
         const isActive = item.id === activeId;
 
@@ -25,12 +25,13 @@ function Sidebar({ items, activeId, onSelect }: SidebarProps) {
           <button
             key={item.id}
             onClick={() => onSelect?.(item.id)}
-            className={`text-body flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-left transition-colors ${
+            title={item.label}
+            className={`text-body flex h-10 cursor-pointer items-center justify-center gap-0 rounded-lg px-0 text-left transition-colors md:justify-start md:gap-2 md:px-3 ${
               isActive ? 'bg-primary text-white' : 'text-text-muted hover:bg-surface-muted'
             } `}
           >
             {item.icon}
-            <span>{item.label}</span>
+            <span className="hidden md:inline">{item.label}</span>
           </button>
         );
       })}

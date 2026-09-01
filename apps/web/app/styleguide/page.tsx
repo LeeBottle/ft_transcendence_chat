@@ -54,6 +54,7 @@ const ICON_NAMES: IconName[] = [
   'inbox',
   'eye',
   'eye-off',
+  'settings',
 ];
 
 const COLOR_TOKENS = [
