@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/features/auth/AuthContext';
 import ChatHeader from '@/features/chat/components/ChatHeader';
 import InputBar from '@/features/chat/components/InputBar';
@@ -41,6 +42,7 @@ export default function ChatRoomPage() {
   const [messageInput, setMessageInput] = useState('');
   const [locallyEnded, setLocallyEnded] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [endConfirmOpen, setEndConfirmOpen] = useState(false);
 
   // 서버 기준으로 이미 종료된 방(closedAt) 이거나, 방금 내가 종료한 경우
   const roomClosed = activeRoom?.closedAt !== null && activeRoom?.closedAt !== undefined;
@@ -177,6 +179,8 @@ export default function ChatRoomPage() {
   })();
 
   async function handleEndMeeting(): Promise<void> {
+    setEndConfirmOpen(false);
+
     if (meetingEnded) {
       return;
     }
@@ -261,11 +265,25 @@ export default function ChatRoomPage() {
         meetingEnded={meetingEnded}
         canEndMeeting={iAmOwner}
         onEndMeeting={() => {
-          void handleEndMeeting();
+          setEndConfirmOpen(true);
         }}
       />
 
       {chatBody}
+
+      <ConfirmDialog
+        open={endConfirmOpen}
+        title="회의를 종료할까요?"
+        description="종료하면 이 채팅방은 다시 열 수 없고, 참여자는 더 이상 메시지를 보낼 수 없어요. 대화 내용은 그대로 남습니다."
+        confirmLabel="종료"
+        danger
+        onConfirm={() => {
+          void handleEndMeeting();
+        }}
+        onCancel={() => {
+          setEndConfirmOpen(false);
+        }}
+      />
 
       {meetingEnded ? (
         <div className="shrink-0 border-t border-gray-100 px-4 py-3 text-center text-xs text-gray-400">
