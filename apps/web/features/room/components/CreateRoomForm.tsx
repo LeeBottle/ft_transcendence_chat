@@ -51,16 +51,16 @@ function CreateRoomForm({ onCancel, onSubmit }: CreateRoomFormProps) {
   }
 
   return (
-    <main className="flex h-screen items-center justify-center bg-gray-50">
+    <main className="flex h-screen items-center justify-center bg-gray-50 px-4">
       <form
         onSubmit={(e) => {
           void handleSubmit(e);
         }}
         // overflow-hidden 을 걸면 UserSearchInput 의 검색 결과 드롭다운이 폼 경계에서 잘린다.
         // 대신 헤더/푸터에 개별로 라운드를 줘서 모서리를 정리한다.
-        className="w-[440px] rounded-2xl border border-gray-200 bg-white"
+        className="w-full max-w-110 rounded-2xl border border-gray-200 bg-white"
       >
-        <div className="flex h-[50px] items-center rounded-t-2xl border-b border-gray-100 px-5">
+        <div className="flex h-12.5 items-center rounded-t-2xl border-b border-gray-100 px-5">
           <span className="flex-1 text-sm font-semibold text-gray-900">새 채팅방 만들기</span>
           <button
             type="button"
