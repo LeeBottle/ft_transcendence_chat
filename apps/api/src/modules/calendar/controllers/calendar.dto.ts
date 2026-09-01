@@ -1,7 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
 
-import { z } from 'zod';
-
 import {
   calendarTaskListResponseSchema,
   calendarTaskParamsSchema,

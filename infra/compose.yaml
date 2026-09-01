@@ -185,8 +185,6 @@ services:
       - ./redis/chat-store.conf:/usr/local/etc/redis/redis.conf:ro
       - chat-store-data:/data:rw
 
-    ports:
-      - "127.0.0.1:6379:6379"
     networks:
       - internal-network
     security_opt:
@@ -231,8 +229,6 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
 
-    ports:
-      - "127.0.0.1:3306:3306"
     networks:
       - internal-network
     security_opt:
@@ -276,3 +272,4 @@ networks:
     driver: bridge
   internal-network:
     driver: bridge
+    internal: true

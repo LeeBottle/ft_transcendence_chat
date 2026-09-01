@@ -1,8 +1,7 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
-
-import type { AiTaskExtractionResult } from '@repo/schemas/chat';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 
 import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
+import { ZodValidateResponse } from '#common/decorators/zod-validation-response.decorator.js';
 import { ChatGateway } from '#modules/chat/gateways/chat.gateway.js';
 import { ChatCacheBatchService } from '#modules/chat/services/chat-cache-batch.service.js';
 import { ChatMessageService } from '#modules/chat/services/chat-message.service.js';
@@ -30,6 +29,7 @@ export class ChatController {
   ) {}
 
   @Post()
+  @ZodValidateResponse(CreateChatRoomResponseDto)
   async createRoom(
     @CurrentUserId() userId: string,
     @Body() dto: CreateChatRoomRequestDto,
@@ -47,6 +47,7 @@ export class ChatController {
   }
 
   @Get()
+  @ZodValidateResponse(ChatRoomListResponseDto)
   async myRooms(@CurrentUserId() userId: string): Promise<ChatRoomListResponseDto> {
     return await this.chatService.findJoinedChatRoomsByUserId(userId);
   }
@@ -60,6 +61,7 @@ export class ChatController {
   }
 
   @Post(':roomId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async closeRoom(@CurrentUserId() userId: string, @Param('roomId') roomId: string): Promise<void> {
     await this.chatService.closeRoom(roomId, userId);
 
@@ -84,6 +86,7 @@ export class ChatController {
   }
 
   @Get(':roomId/messages')
+  @ZodValidateResponse(GetMessagesResponseDto)
   async getMessages(
     @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
@@ -93,7 +96,8 @@ export class ChatController {
   }
 
   @Post(':roomId/messages')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
+  @ZodValidateResponse(ChatMessageResponseDto)
   async sendMessage(
     @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,
@@ -116,7 +120,8 @@ export class ChatController {
   }
 
   @Post(':roomId/end-session')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
+  @ZodValidateResponse(EndSessionResponseDto)
   async endSession(
     @CurrentUserId() userId: string,
     @Param('roomId') roomId: string,

@@ -103,7 +103,9 @@ export class CalendarService {
       order: { startAt: 'ASC', id: 'ASC' },
     });
 
-    return tasks.map((task) => this.toResponse(task, now));
+    return {
+      tasks: tasks.map((task) => this.toResponse(task, now)),
+    };
   }
 
   async findOne(

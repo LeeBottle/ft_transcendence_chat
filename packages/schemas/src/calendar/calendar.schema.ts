@@ -24,7 +24,7 @@ const responseDateTimeSchema = z.iso.datetime();
 
 export const calendarTaskIdSchema = z.string().regex(/^[1-9]\d*$/);
 
-export const calendarTaskParamsSchema = z.object({ taskId: calendarTaskIdSchema }).strict();
+export const calendarTaskParamsSchema = z.object({ taskId: calendarTaskIdSchema });
 export type CalendarTaskParams = z.infer<typeof calendarTaskParamsSchema>;
 
 export const createCalendarTaskRequestSchema = z
@@ -33,7 +33,6 @@ export const createCalendarTaskRequestSchema = z
     startAt: requestDateTimeSchema,
     dueAt: requestDateTimeSchema,
   })
-  .strict()
   .superRefine(({ startAt, dueAt }, ctx) => {
     if (dueAt < startAt) {
       ctx.addIssue({
@@ -67,11 +66,7 @@ export const updateCalendarTaskRequestSchema = z
   });
 export type UpdateCalendarTaskRequest = z.infer<typeof updateCalendarTaskRequestSchema>;
 
-export const updateCalendarTaskCompletionRequestSchema = z
-  .object({
-    completed: z.boolean(),
-  })
-  .strict();
+export const updateCalendarTaskCompletionRequestSchema = z.object({ completed: z.boolean() });
 export type UpdateCalendarTaskCompletionRequest = z.infer<
   typeof updateCalendarTaskCompletionRequestSchema
 >;
@@ -82,7 +77,6 @@ export const listCalendarTasksQuerySchema = z
     to: requestDateTimeSchema,
     status: z.coerce.number().pipe(calendarTaskStatusSchema).optional(),
   })
-  .strict()
   .superRefine(({ from, to }, ctx) => {
     const fromTime = new Date(from).getTime();
     const toTime = new Date(to).getTime();
@@ -107,19 +101,19 @@ export const listCalendarTasksQuerySchema = z
   });
 export type ListCalendarTasksQuery = z.infer<typeof listCalendarTasksQuerySchema>;
 
-export const calendarTaskResponseSchema = z
-  .object({
-    id: calendarTaskIdSchema,
-    title: calendarTaskTitleSchema,
-    startAt: responseDateTimeSchema,
-    dueAt: responseDateTimeSchema,
-    completedAt: responseDateTimeSchema.nullable(),
-    status: calendarTaskStatusSchema,
-    createdAt: responseDateTimeSchema,
-    updatedAt: responseDateTimeSchema,
-  })
-  .strict();
+export const calendarTaskResponseSchema = z.object({
+  id: calendarTaskIdSchema,
+  title: calendarTaskTitleSchema,
+  startAt: responseDateTimeSchema,
+  dueAt: responseDateTimeSchema,
+  completedAt: responseDateTimeSchema.nullable(),
+  status: calendarTaskStatusSchema,
+  createdAt: responseDateTimeSchema,
+  updatedAt: responseDateTimeSchema,
+});
 export type CalendarTaskResponse = z.infer<typeof calendarTaskResponseSchema>;
 
-export const calendarTaskListResponseSchema = z.array(calendarTaskResponseSchema);
+export const calendarTaskListResponseSchema = z.object({
+  tasks: z.array(calendarTaskResponseSchema),
+});
 export type CalendarTaskListResponse = z.infer<typeof calendarTaskListResponseSchema>;

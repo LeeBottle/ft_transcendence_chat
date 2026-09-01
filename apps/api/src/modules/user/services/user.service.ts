@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Like, Not, QueryFailedError, type Repository } from 'typeorm';
 
 import { UserStatus } from '@repo/constants/user';
-import type { SearchUsersQuery, UserSearchItemResponse } from '@repo/schemas/user';
+import type { SearchUsersQuery } from '@repo/schemas/user';
 
 import { UserSessionService } from '#modules/session/services/session.service.js';
 import type {
@@ -12,6 +12,7 @@ import type {
   ProfileResponseDto,
   UpdateProfileRequestDto,
   UpdateProfileResponseDto,
+  UserSearchItemsResponseDto,
 } from '#modules/user/controllers/user.dto.js';
 import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
 import { UserEntity } from '#modules/user/entities/user.entity.js';
@@ -108,7 +109,7 @@ export class UserService {
   }
 
   // 유저 검색 — loginId / name 부분 일치 (대소문자 무시: 테이블 기본 collation), 활성 유저, 본인 제외
-  async search(meId: string, params: SearchUsersQuery): Promise<UserSearchItemResponse[]> {
+  async search(meId: string, params: SearchUsersQuery): Promise<UserSearchItemsResponseDto> {
     const pattern = `%${params.q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
     const base = { status: UserStatus.ACTIVE, id: Not(meId) };
 
@@ -121,12 +122,14 @@ export class UserService {
       order: { loginId: 'ASC' },
     });
 
-    return users.map((user) => ({
-      id: user.id,
-      loginId: user.loginId,
-      name: user.name,
-      profileImagePath: user.profileImagePath,
-    }));
+    return {
+      users: users.map((user) => ({
+        id: user.id,
+        loginId: user.loginId,
+        name: user.name,
+        profileImagePath: user.profileImagePath,
+      })),
+    };
   }
 
   async profile(id: string): Promise<ProfileResponseDto> {

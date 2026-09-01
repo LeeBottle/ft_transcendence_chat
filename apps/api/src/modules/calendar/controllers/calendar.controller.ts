@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 
 import { CurrentUserId } from '#common/decorators/current-user.decorator.js';
+import { ZodValidateResponse } from '#common/decorators/zod-validation-response.decorator.js';
 import { CalendarService } from '#modules/calendar/services/calendar.service.js';
 
 import {
@@ -29,6 +30,7 @@ export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
 
   @Get()
+  @ZodValidateResponse(CalendarTaskListResponseDto)
   async findAll(
     @CurrentUserId() userId: string,
     @Query() query: ListCalendarTasksQueryDto,
@@ -37,6 +39,7 @@ export class CalendarController {
   }
 
   @Get(':taskId')
+  @ZodValidateResponse(CalendarTaskResponseDto)
   async findOne(
     @CurrentUserId() userId: string,
     @Param() params: CalendarTaskParamsDto,
@@ -45,6 +48,7 @@ export class CalendarController {
   }
 
   @Post()
+  @ZodValidateResponse(CalendarTaskResponseDto)
   async create(
     @CurrentUserId() userId: string,
     @Body() dto: CreateCalendarTaskRequestDto,
@@ -53,6 +57,7 @@ export class CalendarController {
   }
 
   @Patch(':taskId')
+  @ZodValidateResponse(CalendarTaskResponseDto)
   async update(
     @CurrentUserId() userId: string,
     @Param() params: CalendarTaskParamsDto,
@@ -62,6 +67,7 @@ export class CalendarController {
   }
 
   @Patch(':taskId/completion')
+  @ZodValidateResponse(CalendarTaskResponseDto)
   async updateCompletion(
     @CurrentUserId() userId: string,
     @Param() params: CalendarTaskParamsDto,

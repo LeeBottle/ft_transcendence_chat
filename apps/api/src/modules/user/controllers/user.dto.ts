@@ -6,6 +6,7 @@ import {
   searchUsersQuerySchema,
   updateProfileRequestSchema,
   updateProfileResponseSchema,
+  userSearchItemsResponseSchema,
 } from '@repo/schemas/user';
 
 export class UpdateProfileRequestDto extends createZodDto(updateProfileRequestSchema) {}
@@ -15,3 +16,4 @@ export class GetMyFriendsResponseDto extends createZodDto(getMyFriendsResponseSc
 
 // 유저 검색 (초대 대상 고르기) — 쿼리만 DTO, 응답은 UserSearchItemResponse[] 타입으로 반환
 export class SearchUsersQueryDto extends createZodDto(searchUsersQuerySchema) {}
+export class UserSearchItemsResponseDto extends createZodDto(userSearchItemsResponseSchema) {}

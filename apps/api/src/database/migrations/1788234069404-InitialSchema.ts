@@ -1,7 +1,7 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class InitialSchema1788187582229 implements MigrationInterface {
-  name = 'InitialSchema1788187582229';
+export class InitialSchema1788234069404 implements MigrationInterface {
+  name = 'InitialSchema1788234069404';
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(/* sql */ `
@@ -53,8 +53,6 @@ export class InitialSchema1788187582229 implements MigrationInterface {
         \`start_at\` DATETIME(3) NOT NULL,
         \`due_at\` DATETIME(3) NOT NULL,
         \`completed_at\` DATETIME(3) NULL,
-        \`color\` CHAR(7) NOT NULL DEFAULT '#6C63FF',
-        \`memo\` VARCHAR(255) NOT NULL DEFAULT '',
         INDEX \`idx_calendar_tasks_user_id\` (\`user_id\`),
         PRIMARY KEY (\`id\`)
       ) ENGINE = InnoDB
@@ -95,7 +93,7 @@ export class InitialSchema1788187582229 implements MigrationInterface {
     await queryRunner.query(
       /* sql */ `
         INSERT INTO
-          \`typeorm_metadata\` (
+          \`app_production\`.\`typeorm_metadata\` (
             \`database\`,
             \`schema\`,
             \`table\`,
@@ -104,9 +102,15 @@ export class InitialSchema1788187582229 implements MigrationInterface {
             \`value\`
           )
         VALUES
-          (DEFAULT, DATABASE(), ?, ?, ?, ?)
+          (DEFAULT, ?, ?, ?, ?, ?)
       `,
-      ['chat_room_members', 'GENERATED_COLUMN', 'is_owner', "IF(`role` = 'OWNER', 1, NULL)"],
+      [
+        'app_production',
+        'chat_room_members',
+        'GENERATED_COLUMN',
+        'is_owner',
+        "IF(`role` = 'OWNER', 1, NULL)",
+      ],
     );
     await queryRunner.query(/* sql */ `
       CREATE TABLE \`chat_room_messages\` (
@@ -293,14 +297,14 @@ export class InitialSchema1788187582229 implements MigrationInterface {
     await queryRunner.query(/* sql */ `DROP TABLE \`chat_room_messages\``);
     await queryRunner.query(
       /* sql */ `
-        DELETE FROM \`typeorm_metadata\`
+        DELETE FROM \`app_production\`.\`typeorm_metadata\`
         WHERE
           \`type\` = ?
           AND \`name\` = ?
-          AND \`schema\` = DATABASE()
+          AND \`schema\` = ?
           AND \`table\` = ?
       `,
-      ['GENERATED_COLUMN', 'is_owner', 'chat_room_members'],
+      ['GENERATED_COLUMN', 'is_owner', 'app_production', 'chat_room_members'],
     );
     await queryRunner.query(/* sql */ `
       DROP INDEX \`uq_chat_room_members_chat_room_id_user_id\` ON \`chat_room_members\`
