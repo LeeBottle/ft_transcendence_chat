@@ -1,5 +1,4 @@
-_This project has been created as part of the 42 curriculum by
-<byeolee>, <hjang>, <hyeyeom>, <sanghul2>, <seonhwan>._
+_This project has been created as part of the 42 curriculum by byeolee, hjang, hyeyeom, sanghul2, seonhwan._
 
 # ft_transcendence
 
@@ -426,17 +425,16 @@ Redis caching message processing.
 | Chat Module                  | byeolee   | Chat room CRUD (`POST/GET/DELETE /chat/rooms`), Socket.IO real-time 1:1/group messaging, member role management (FOUNDER/OPERATOR/USER) & kick/ban REST API & socket sync, private room Bcrypt password & `WsJwtGuard` socket auth, Redis in-memory caching & 5-minute Cron batch DB sync, AI meeting summary & action item extraction upon session close |
 | Frontend (Web) Overall       | hyeyeom   | Next.js UI/UX for Auth, Chat, Calendar, Admin, My Page, and Friends; Socket.IO client integration; reusable Design System components; responsive/mobile layout                                                                                                                                                                                            |
 | Infrastructure & Refactoring | seonhwan  | Docker/Docker Compose, NGINX, MySQL/Redis provisioning, TLS & host init scripts; NestJS module refactoring (Auth/Session split, guards, decorators, Zod interceptor); monorepo build tooling                                                                                                                                                              |
-
 ---
 
 ### 1.7 Modules
 
 The subject requires **14 points minimum** (Major = 2 pts, Minor = 1
-pt). Based on the current codebase (`front-feature` branch), the
+pt). Based on the current codebase, the
 following modules are implemented and demonstrable:
 
 
-### **Subtotal (confirmed)** : **14** 
+### **Subtotal (confirmed)** : **18** 
 | Category                                         | Module                                                                         | Type  | Pts | Notes                                                                                                                                                                                          |
 | :----------------------------------------------- | :----------------------------------------------------------------------------- | :---- | :-- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Web                                              | Use a framework for both frontend and backend (Next.js + NestJS)               | Major | 2   | Full-stack monorepo (`apps/web`, `apps/api`)                                                                                                                                                   |
@@ -450,7 +448,6 @@ following modules are implemented and demonstrable:
 | Web                                              | Implement advanced search functionality with filters, sorting, and pagination  | Minor | 1   |                                                                                                                                                                                                |
 | User Management                                  | Standard user management and authentication                                    | Major | 2   | Profile view/edit, friends + online presence, profile page                                                                                                                                     |
 | User Management                                  | Advanced permissions system (CRUD users, roles, admin views)                   | Major | 2   | `AdminController` (list/update-status/delete users), `@Roles(ADMIN)` guard, dedicated `/admin` UI                                                                                              |
-| User Management                                  | Advanced search (filters/sorting/pagination)                                   | Minor | 1   | a basic user search endpoint exists, but filters/sorting/pagination are not confirmed                                                                                            
 | Devops                                           | Health check and status page system with automated backups and disaster recovery procedures     | Minor| 1    |
 
 
