@@ -435,26 +435,25 @@ The subject requires **14 points minimum** (Major = 2 pts, Minor = 1
 pt). Based on the current codebase (`front-feature` branch), the
 following modules are implemented and demonstrable:
 
+
+### **Subtotal (confirmed)** : **14** 
 | Category                                         | Module                                                                         | Type  | Pts | Notes                                                                                                                                                                                          |
 | :----------------------------------------------- | :----------------------------------------------------------------------------- | :---- | :-- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Web                                              | Use a framework for both frontend and backend (Next.js + NestJS)               | Major | 2   | Full-stack monorepo (`apps/web`, `apps/api`)                                                                                                                                                   |
 | Web                                              | Real-time features using WebSockets (Socket.IO chat)                           | Major | 2   | `ChatGateway`, real-time room messaging/sync                                                                                                                                                   |
 | Web                                              | Allow users to interact with other users (chat, profile, friends)              | Major | 2   | Basic chat, profile view, friends add/remove/list + online presence                                                                                                                            |
-| Web                                              | A public API to interact with the database with a secured API key, rate        |
-| limiting, documentation, and at least 5 endpoint | Major                                                                          | 2     |     |
+| Web                                              | A public API to interact with the database with a secured API key, rate limiting, documentation, and at least 5 endpoint  | Major                                                                          | 2     |     |
 | Web                                              | Use an ORM for the database                                                    | Minor | 1   | TypeORM entities/migrations across all modules                                                                                                                                                 |
 | Web                                              | A complete notification system for all creation, update, and deletion actions. | Minor | 1   |                                                                                                                                                                                                |
-| Web                                              | SSR (Server-Side Rendering)                                                    | Minor | 1   | Unconfirmed — `apps/web/app/ssr` is a demo/verification page only (`force-dynamic`, random value per request), not real product content. Needs to be applied to actual content before claiming |
+| Web                                              | SSR (Server-Side Rendering)                                                    | Minor | 1   | `apps/web/app/ssr` is a demo/verification page only (`force-dynamic`, random value per request), not real product content. Needs to be applied to actual content before claiming |
 | Web                                              | Custom-made design system with reusable components                             | Minor | 1   | 24 components (`apps/web/components`) + color/typography tokens + `/styleguide` page                                                                                                           |
 | Web                                              | Implement advanced search functionality with filters, sorting, and pagination  | Minor | 1   |                                                                                                                                                                                                |
 | User Management                                  | Standard user management and authentication                                    | Major | 2   | Profile view/edit, friends + online presence, profile page                                                                                                                                     |
 | User Management                                  | Advanced permissions system (CRUD users, roles, admin views)                   | Major | 2   | `AdminController` (list/update-status/delete users), `@Roles(ADMIN)` guard, dedicated `/admin` UI                                                                                              |
-| User Management                                  | Advanced search (filters/sorting/pagination)                                   | Minor | 1   | Unconfirmed — a basic user search endpoint exists, but filters/sorting/pagination are not confirmed                                                                                            |
-| Devops                                           | Health check and status page system with automated backups and disaster        |
-| recovery procedures                              | Minor                                                                          | 1     |     |
+| User Management                                  | Advanced search (filters/sorting/pagination)                                   | Minor | 1   | a basic user search endpoint exists, but filters/sorting/pagination are not confirmed                                                                                            
+| Devops                                           | Health check and status page system with automated backups and disaster recovery procedures     | Minor| 1    |
 
-| **Subtotal (confirmed)** | | | **14** | SSR, advanced search, and the
-notification system are excluded from the subtotal as unconfirmed |
+
 
 ---
 
