@@ -4,11 +4,13 @@ import { ChatRoomMemberEntity } from '#modules/chat/entities/chat-room-member.en
 import { ChatRoomMessageEntity } from '#modules/chat/entities/chat-room-message.entity.js';
 import { ChatRoomTaskEntity } from '#modules/chat/entities/chat-room-task.entity.js';
 import { ChatRoomEntity } from '#modules/chat/entities/chat-room.entity.js';
+import { UserSessionEntity } from '#modules/session/entities/user-session.entity.js';
 import { UserFriendEntity } from '#modules/user/entities/user-friend.entity.js';
 import { UserEntity } from '#modules/user/entities/user.entity.js';
 
 export const entities = [
   UserLoginHistoryEntity,
+  UserSessionEntity,
   CalendarTaskEntity,
   ChatRoomMemberEntity,
   ChatRoomMessageEntity,

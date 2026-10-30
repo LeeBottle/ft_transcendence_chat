@@ -11,13 +11,8 @@ export const ChatRoomMemberStatus = {
 export type ChatRoomMemberStatus = (typeof ChatRoomMemberStatus)[keyof typeof ChatRoomMemberStatus];
 
 export const ChatRoomMemberRole = {
-  /** 일반 멤버 */
-  MEMBER: 'MEMBER',
-
-  /** 매니저 */
-  MANAGER: 'MANAGER',
-
-  /** 방장 */
   OWNER: 'OWNER',
+  MANAGER: 'MANAGER',
+  MEMBER: 'MEMBER',
 } as const;
 export type ChatRoomMemberRole = (typeof ChatRoomMemberRole)[keyof typeof ChatRoomMemberRole];

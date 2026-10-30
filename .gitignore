@@ -22,7 +22,11 @@ uploads/*
 
 *.tsbuildinfo
 
+tsup.config.bundled_*.mjs
+
 *.pem
+
+.husky/_/
 
 # Each member's private ignores
 .cspell.json

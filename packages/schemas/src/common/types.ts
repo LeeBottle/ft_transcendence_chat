@@ -112,7 +112,7 @@ export type InnerKeys<T extends object> = {
 }[keyof T];
 
 /** IDE 툴팁에서 타입을 원형 그대로 평가하여 펼쳐주는 유틸리티 */
-type Prettify<T> = { [K in keyof T]: T[K] } & {};
+export type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
 type SafeIndex<T, P extends PropertyKey> =
   NonNullable<T> extends infer U ? (P extends keyof U ? U[P] : never) : never;

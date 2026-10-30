@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { createdAtSchema } from '#common/timestamp.schema.js';
+import type { Prettify } from '#common/types.js';
 import { createStringFieldSchema, validateNestedSchema } from '#common/utils.js';
 import {
   createEmailSchema,
@@ -74,37 +75,49 @@ export const loginUserRequestSchema = z
     ) {
       return;
     }
-
-    // const loginIdAllowedCharsSchema = z
-    //   .string()
-    //   .regex(/^$/, "아이디에는 영문 소문자, 숫자, 언더바('_')만 입력할 수 있어요.");
-
-    // if (!validateNestedSchema(ctx, loginIdAllowedCharsSchema, data.loginId, ['loginId'])) {
-    //   return;
-    // }
-
-    // if (
-    //   data.loginId.length < 4 ||
-    //   data.loginId.length > 20 ||
-    //   data.password.length < 8 ||
-    //   data.password.length > 100 ||
-    //   !PASSWORD_FORMAT_REGEX.test(data.password)
-    // ) {
-    //   ctx.addIssue({ code: 'custom', message: LOGIN_FAIL_MESSAGE });
-    // }
   });
 export type LoginUserRequest = z.infer<typeof loginUserRequestSchema>;
 
 export const loginUserResponseSchema = z.object({
-  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
-  name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
-  email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
-  emailVerifiedAt: emailVerifiedAtSchema,
-  role: roleSchema,
-  status: statusSchema,
-  profileImagePath: createProfileImagePathSchema(),
+  accessToken: z.string().min(1),
+  user: z.object({
+    loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId),
+    name: createNameSchema(USER_RESPONSE_VALIDATION_OPTIONS.name),
+    email: createEmailSchema(USER_RESPONSE_VALIDATION_OPTIONS.email),
+    emailVerifiedAt: emailVerifiedAtSchema,
+    role: roleSchema,
+    status: statusSchema,
+    profileImagePath: createProfileImagePathSchema(),
+  }),
 });
 export type LoginUserResponse = z.infer<typeof loginUserResponseSchema>;
+
+export const changePasswordRequestSchema = z
+  .object({
+    currentPassword: createPasswordSchema(),
+    newPassword: createPasswordSchema(),
+    newPasswordConfirm: createPasswordConfirmSchema(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.currentPassword === data.newPassword) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '새 비밀번호는 이전과 달라야 합니다.',
+        path: ['newPassword'],
+      });
+    }
+    if (data.newPassword !== data.newPasswordConfirm) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.',
+        path: ['newPasswordConfirm'],
+      });
+    }
+  });
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+
+export const changePasswordResponseSchema = z.object({ accessToken: z.string().min(1) });
+export type ChangePasswordResponse = z.infer<typeof changePasswordResponseSchema>;
 
 /* 요청 전용 */
 
@@ -118,3 +131,40 @@ function createPasswordConfirmSchema(): z.ZodType<string> {
     AUTH_REQUEST_VALIDATION_OPTIONS.passwordConfirm,
   );
 }
+
+export const getUserPresencesRequestSchema = z.object({
+  userIds: z.array(z.string().min(1)).min(1, '최소 1명 이상의 사용자 ID가 필요합니다.'),
+});
+export type GetUserPresencesRequest = z.infer<typeof getUserPresencesRequestSchema>;
+
+export const getUserPresencesResponseSchema = z.object({
+  userPresences: z.array(
+    z.object({
+      userId: z.string().min(1),
+      isOnline: z.boolean(),
+    }),
+  ),
+});
+export type GetUserPresencesResponse = z.infer<typeof getUserPresencesResponseSchema>;
+
+/* 응답 전용 */
+
+export const refreshTokenResponseSchema = z.object({ accessToken: z.string().min(1) });
+
+/* JWT 토큰 페이로드 스키마 */
+
+export const tokenPayloadSchema = z.object({
+  sub: z.string().regex(/^\d+$/), // userId (PK) --> 추후 UUID로 변경 필요
+  // sid: z.string().regex(/^\d+$/), // userSessionId (PK) --> 추후 UUID로 변경 필요 (다중 기기 로그인시 필요)
+
+  loginId: createLoginIdSchema(USER_RESPONSE_VALIDATION_OPTIONS.loginId), // loginId
+  role: roleSchema, // role
+
+  iat: z.number(), // 발급 시각 (Unix Timestamp, 초)
+  exp: z.number(), // 만료 시각 (Unix Timestamp, 초)
+});
+export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
+export type TokenInputPayload = Omit<TokenPayload, 'iat' | 'exp'>;
+export type AuthenticatedUser = Prettify<
+  Omit<TokenPayload, 'sub' | 'iat' | 'exp'> & { id: string }
+>;

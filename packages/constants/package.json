@@ -3,7 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*.js": {
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  },
   "exports": {
+    "./admin": {
+      "types": "./src/admin/admin.ts",
+      "development": "./src/admin/admin.ts",
+      "default": "./dist/admin/admin.js"
+    },
     "./user-login-history": {
       "types": "./src/auth/user-login-history.ts",
       "development": "./src/auth/user-login-history.ts",

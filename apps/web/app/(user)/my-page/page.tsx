@@ -1,0 +1,110 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
+
+import { useAuth } from '@/features/auth/AuthContext';
+import MyPageView from '@/features/my-page/components/MyPagesView';
+import {
+  changePassword,
+  fetchMyProfile,
+  updateMyProfile,
+  type MyProfile,
+} from '@/features/my-page/profileApi';
+
+// ISO8601 → "2026. 8. 31." (값이 없으면 "-")
+function formatJoinDate(iso: string): string {
+  if (iso === '') {
+    return '-';
+  }
+
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+export default function MyPage() {
+  const router = useRouter();
+  const { user, logout, patchUser, applyAccessToken } = useAuth();
+
+  const [profile, setProfile] = useState<MyProfile | null>(null);
+
+  // 마운트 시 서버 프로필 조회 (로그인 응답 캐시보다 정확). 실패하면 캐시 그대로 사용.
+  useEffect(() => {
+    let alive = true;
+
+    void fetchMyProfile()
+      .then((p) => {
+        if (alive) {
+          setProfile(p);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (user === null) {
+    return null; // (user) 레이아웃이 인증을 보장하므로 실제로는 도달하지 않음
+  }
+
+  function handleLogout() {
+    void logout().then(() => {
+      router.replace('/login');
+    });
+  }
+
+  // 이름·이메일 저장 → PATCH /users/me → 로컬 프로필 + 헤더 캐시 갱신 (실패 시 throw → 폼이 에러 표시)
+  async function handleSaveInfo(data: { name: string; email: string }): Promise<void> {
+    const updated = await updateMyProfile({ name: data.name, email: data.email });
+
+    setProfile((prev) =>
+      prev === null ? prev : { ...prev, name: updated.name, email: updated.email },
+    );
+    patchUser({ name: updated.name, email: updated.email });
+  }
+
+  // 비밀번호 변경 → POST /auth/change-password → 로테이션된 새 토큰 적용 (실패 시 throw → 폼이 에러 표시)
+  async function handleChangePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+    newPasswordConfirm: string;
+  }): Promise<void> {
+    const { accessToken } = await changePassword(data);
+
+    applyAccessToken(accessToken);
+  }
+
+  // 서버 프로필이 오기 전엔 로그인 캐시로 즉시 표시, 오면 교체
+  const shown = profile ?? {
+    loginId: user.loginId,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    profileImagePath: user.profileImagePath,
+  };
+
+  return (
+    <MyPageView
+      key={profile?.id ?? 'cache'}
+      username={shown.loginId}
+      displayName={shown.name}
+      email={shown.email}
+      role={shown.role === 'ADMIN' ? 'admin' : 'user'}
+      joinDate={profile === null ? '-' : formatJoinDate(profile.createdAt)}
+      imageUrl={shown.profileImagePath}
+      onLogout={handleLogout}
+      onSaveInfo={handleSaveInfo}
+      onChangePassword={handleChangePassword}
+    />
+  );
+}

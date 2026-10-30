@@ -14,7 +14,13 @@ export class UserEntity extends SoftDeleteAuditBase {
   @Column({ name: 'login_id', type: 'varchar', length: 20 })
   loginId!: string;
 
-  @Column({ name: 'password_hash', type: 'varchar', length: 255, collation: 'utf8mb4_bin' })
+  @Column({
+    name: 'password_hash',
+    type: 'varchar',
+    length: 255,
+    collation: 'utf8mb4_bin',
+    select: false,
+  })
   passwordHash!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 50 })

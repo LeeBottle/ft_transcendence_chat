@@ -2,6 +2,8 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 
+import cookieParser from 'cookie-parser';
+
 import { AppModule } from './app.module.js';
 import type { ApiEnv } from './config/api-env.schema.js';
 import { ApiEnvError } from './config/exceptions/environment-validation.error.js';
@@ -9,7 +11,6 @@ import { ApiEnvError } from './config/exceptions/environment-validation.error.js
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get<ConfigService<ApiEnv, true>>(ConfigService);
-
   const clientUrl = configService.getOrThrow('CLIENT_URL', { infer: true });
 
   app.enableCors({
@@ -19,6 +20,7 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
+  app.use(cookieParser());
 
   app.set('trust proxy', 1);
 

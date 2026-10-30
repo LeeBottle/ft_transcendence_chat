@@ -1,4 +1,3 @@
-// src/common/pipes/zod-validation.pipe.ts
 import {
   BadRequestException,
   HttpStatus,
